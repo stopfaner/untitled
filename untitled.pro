@@ -4,15 +4,15 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = untitled
 TEMPLATE = app
 
+QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES += main.cpp\
-        widget.cpp
+SOURCES += main.cpp
 
-HEADERS  += widget.h
+HEADERS  +=
