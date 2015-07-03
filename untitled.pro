@@ -17,11 +17,17 @@ SOURCES += main.cpp \
     Sources/gamewidget.cpp \
     Sources/GameStates/gamestate.cpp \
     Sources/GameObjects/gameobject.cpp \
-    Sources/UserInterface/uielement.cpp
+    Sources/UserInterface/uielement.cpp \
+    Sources/UserInterface/HUD/hudelement.cpp \
+    Sources/UserInterface/Screen/scene.cpp \
+    Sources/UserInterface/Screen/camera.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
     Sources/gameinstance.h \
     Sources/GameStates/gamestate.h \
     Sources/GameObjects/gameobject.h \
-    Sources/UserInterface/uielement.h
+    Sources/UserInterface/uielement.h \
+    Sources/UserInterface/HUD/hudelement.h \
+    Sources/UserInterface/Screen/scene.h \
+    Sources/UserInterface/Screen/camera.h
