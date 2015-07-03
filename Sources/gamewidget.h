@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#include <QApplication>
-#include "Sources/gameinstance.h"
+#ifndef GAMEWIDGET_H
+#define GAMEWIDGET_H
+
+#include <QGLWidget>
 
 /**
- * @brief main - entrance point of programm
- * @author - Denys Lytvinyuk
- * @return execution
+ * @brief The GameWidget class
  */
-int main(int argc, char *argv[]) {
+class GameWidget : public QGLWidget {
 
-    QApplication a(argc, argv);
+public:
+    GameWidget(QWidget *parent = 0);
 
-    GameInstance::getInstance().start();
+};
 
-    return a.exec();
-}
+#endif // GAMEWIDGET_H

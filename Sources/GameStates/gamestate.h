@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-#include <QApplication>
-#include "Sources/gameinstance.h"
+#ifndef GAMESTATE_H
+#define GAMESTATE_H
 
-/**
- * @brief main - entrance point of programm
- * @author - Denys Lytvinyuk
- * @return execution
- */
-int main(int argc, char *argv[]) {
 
-    QApplication a(argc, argv);
+class GameState
+{
+public:
+    GameState();
+};
 
-    GameInstance::getInstance().start();
-
-    return a.exec();
-}
+#endif // GAMESTATE_H

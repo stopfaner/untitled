@@ -13,6 +13,15 @@ TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++11
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    Sources/gamewidget.cpp \
+    Sources/GameStates/gamestate.cpp \
+    Sources/GameObjects/gameobject.cpp \
+    Sources/UserInterface/uielement.cpp
 
-HEADERS  +=
+HEADERS  += \
+    Sources/gamewidget.h \
+    Sources/gameinstance.h \
+    Sources/GameStates/gamestate.h \
+    Sources/GameObjects/gameobject.h \
+    Sources/UserInterface/uielement.h
