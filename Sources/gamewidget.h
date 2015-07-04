@@ -18,6 +18,8 @@
 #define GAMEWIDGET_H
 
 #include <QGLWidget>
+#include <QMouseEvent>
+#include <Box2D/Box2D.h>
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -30,6 +32,27 @@ public:
      * @param parent - parent widget instance
      */
     GameWidget(QWidget *parent = 0);
+
+private:
+    int WIDTH = 640;
+    int HEIGHT = 480;
+
+    float M2P = 20.0f;
+    float P2M = 1 / M2P;
+
+    b2World* world;
+
+    void initializeGL();
+
+    void resizeGL(int nWidth, int nHeight);
+
+    void paintGL();
+
+    void mousePressEvent(QMouseEvent* event);
+
+    b2Body* addRect(int x, int y, int width, int height, bool dyn = true);
+
+    void drawSquare(b2Vec2* points, b2Vec2 center, float angle);
 
 };
 
