@@ -20,11 +20,15 @@
 #include <QGLWidget>
 
 /**
- * @brief The GameWidget class
+ * @brief The GameWidget class describes main window activity
  */
 class GameWidget : public QGLWidget {
 
 public:
+    /**
+     * @brief GameWidget - constructor
+     * @param parent - parent widget instance
+     */
     GameWidget(QWidget *parent = 0);
 
 };

@@ -16,18 +16,26 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += main.cpp \
     Sources/gamewidget.cpp \
     Sources/GameStates/gamestate.cpp \
-    Sources/GameObjects/gameobject.cpp \
     Sources/UserInterface/uielement.cpp \
     Sources/UserInterface/HUD/hudelement.cpp \
     Sources/UserInterface/Screen/scene.cpp \
-    Sources/UserInterface/Screen/camera.cpp
+    Sources/UserInterface/Screen/camera.cpp \
+    Sources/GameObjects/entity.cpp \
+    Sources/GameObjects/actor.cpp \
+    Sources/GameObjects/Characters/player.cpp \
+    Sources/GameObjects/Characters/bot.cpp \
+    Sources/Process/gamemod.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
     Sources/gameinstance.h \
     Sources/GameStates/gamestate.h \
-    Sources/GameObjects/gameobject.h \
     Sources/UserInterface/uielement.h \
     Sources/UserInterface/HUD/hudelement.h \
     Sources/UserInterface/Screen/scene.h \
-    Sources/UserInterface/Screen/camera.h
+    Sources/UserInterface/Screen/camera.h \
+    Sources/GameObjects/entity.h \
+    Sources/GameObjects/actor.h \
+    Sources/GameObjects/Characters/player.h \
+    Sources/GameObjects/Characters/bot.h \
+    Sources/Process/gamemod.h

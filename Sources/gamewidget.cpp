@@ -16,6 +16,10 @@
 
 #include "gamewidget.h"
 
+/**
+ * @brief GameWidget::GameWidget - contructor
+ * @param parent - parent widget instance
+ */
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
 
 
