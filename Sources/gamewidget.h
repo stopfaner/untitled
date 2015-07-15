@@ -34,11 +34,11 @@ public:
     GameWidget(QWidget *parent = 0);
 
 private:
-    int WIDTH = 640;
-    int HEIGHT = 480;
+    int WIDTH = 1900;
+    int HEIGHT = 1000;
 
-    float M2P = 20.0f;
-    float P2M = 1 / M2P;
+    float M2P = 20;
+    float P2M=1/M2P;
 
     b2World* world;
 
@@ -49,6 +49,8 @@ private:
     void paintGL();
 
     void mousePressEvent(QMouseEvent* event);
+
+    void keyPressEvent(QKeyEvent* event);
 
     b2Body* addRect(int x, int y, int width, int height, bool dyn = true);
 

@@ -22,17 +22,15 @@
  * @param parent - parent widget instance
  */
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
-
 }
 
 void GameWidget::initializeGL() {
     glMatrixMode(GL_PROJECTION);
                     glOrtho(0,WIDTH,HEIGHT,0,-1,1);
             glMatrixMode(GL_MODELVIEW);
-
-
-    world = new b2World(b2Vec2(0.0, 9.81));
-    addRect(WIDTH / 2, HEIGHT - 50, WIDTH, 30, false);
+            glClearColor(0,0,0,1);
+            world=new b2World(b2Vec2(0.0,9.81));
+            addRect(WIDTH/2,HEIGHT-50,1,1,false);
 }
 
 void GameWidget::resizeGL(int nWidth, int nHeight) {
@@ -43,18 +41,18 @@ void GameWidget::resizeGL(int nWidth, int nHeight) {
 
 void GameWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
-            glLoadIdentity();          // загрузка единичную матрицу
+            glLoadIdentity();
+            b2Body* tmp=world->GetBodyList();
+            b2Vec2 points[4];
+            while(tmp)
+            {
+                    for(int i=0;i<4;i++)
+                            points[i]=((b2PolygonShape*)tmp->GetFixtureList()->GetShape())->GetVertex(i);
 
-    b2Body* tmp = world->GetBodyList();
-    b2Vec2 points[4];
-    while(tmp) {
-
-        for(int i=0;i<4;i++)
-            points[i] = ((b2PolygonShape*)tmp->GetFixtureList()->GetShape())->GetVertex(i);
-            drawSquare(points, tmp->GetWorldCenter(), tmp->GetAngle());
-            tmp = tmp->GetNext();
-    }
-    world->Step(1.0/30.0, 8, 3);
+                    drawSquare(points,tmp->GetWorldCenter(),tmp->GetAngle());
+                    tmp=tmp->GetNext();
+            }
+            world->Step(1.0/30.0,8,3);
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
@@ -63,32 +61,36 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
     addRect(event->pos().x(), event->pos().x(), 20, 20, true);
 }
 
-b2Body* GameWidget::addRect(int x, int y, int width, int height, bool dyn) {
+void GameWidget::keyPressEvent(QKeyEvent *event) {
+    paintGL();
+}
+
+b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
     b2BodyDef bodydef;
-    bodydef.position.Set(x * P2M, y * P2M);
+    bodydef.position.Set(x*P2M,y*P2M);
     if(dyn)
-        bodydef.type = b2_dynamicBody;
-    b2Body* body = world->CreateBody(&bodydef);
+            bodydef.type=b2_dynamicBody;
+    b2Body* body=world->CreateBody(&bodydef);
 
     b2PolygonShape shape;
-    shape.SetAsBox(P2M * width / 2, P2M * height / 2);
+    shape.SetAsBox(P2M*w/2,P2M*h/2);
 
     b2FixtureDef fixturedef;
-    fixturedef.shape = &shape;
-    fixturedef.density = 1.0;
+    fixturedef.shape=&shape;
+    fixturedef.density=1.0;
     body->CreateFixture(&fixturedef);
-
-    qDebug()<<"Add rect";
 }
 
 void GameWidget::drawSquare(b2Vec2* points,b2Vec2 center,float angle) {
-        qglColor(Qt::white);
-        glPushMatrix();
-                glTranslatef(center.x*M2P,center.y*M2P,0);
-                glRotatef(angle*180.0/M_PI,0,0,1);
-                glBegin(GL_QUADS);
-                        for(int i=0;i<4;i++)
-                                glVertex2f(points[i].x*M2P,points[i].y*M2P);
-                glEnd();
-        glPopMatrix();
+    glColor3f(1,1,1);
+            glPushMatrix();
+                    //glTranslatef(center.x,center.y,0);
+                    glRotatef(angle*180.0/M_PI,0,0,1);
+                    glBegin(GL_QUADS);
+                      glVertex2f(0.5, 0.5);
+                      glVertex2f(-0.5, 0.5);
+                      glVertex2f(-0.5, -0.5);
+                      glVertex2f(0.5, -0.5);
+                    glEnd();
+            glPopMatrix();
 }
