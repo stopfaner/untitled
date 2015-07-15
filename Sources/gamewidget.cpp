@@ -85,7 +85,7 @@ void GameWidget::drawSquare(b2Vec2* points,b2Vec2 center,float angle) {
         qglColor(Qt::white);
         glPushMatrix();
                 glTranslatef(center.x*M2P,center.y*M2P,0);
-                glRotatef(angle*180.0/M_PI,0,0,1);
+                glRotatef(angle*180.0/3.14,0,0,1);
                 glBegin(GL_QUADS);
                         for(int i=0;i<4;i++)
                                 glVertex2f(points[i].x*M2P,points[i].y*M2P);
