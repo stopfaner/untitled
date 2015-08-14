@@ -16,7 +16,7 @@
 
 #include "gamewidget.h"
 #include <QDebug>
-#define M_PI 3.14
+#define M_PI		3.14159265358979323846
 
 /**
  * @brief GameWidget::GameWidget - contructor
@@ -25,7 +25,7 @@
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     timer = new QTimer;
     connect (timer, SIGNAL(timeout()), this, SLOT(updateGL()));
-    timer->start();
+    timer->start(10);
 }
 
 void GameWidget::initializeGL() {
@@ -34,7 +34,26 @@ void GameWidget::initializeGL() {
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0,0,0,1);
     world=new b2World(b2Vec2(0.0,-9.81));
-    addRect(0,0,300,20,false);
+    addRect(0,-HEIGHT,WIDTH*2,50,false);
+    addRect(-WIDTH,0,50,HEIGHT*2,false);
+    addRect(WIDTH,0,50,HEIGHT*2,false);
+    addSpecRect();
+}
+
+b2Body* GameWidget::addSpecRect() {
+    b2BodyDef bodydef;
+    bodydef.position.Set(0,0);
+
+        bodydef.type=b2_dynamicBody;
+    b2Body* body=world->CreateBody(&bodydef);
+body->SetAngularVelocity(-5);
+    b2PolygonShape shape;
+    shape.SetAsBox(4,4);
+
+    b2FixtureDef fixturedef;
+    fixturedef.shape=&shape;
+    fixturedef.density=1.0;
+    body->CreateFixture(&fixturedef);
 }
 
 void GameWidget::resizeGL(int nWidth, int nHeight) {
@@ -61,9 +80,7 @@ void GameWidget::paintGL() {
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
-
-    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 20, 20, true);
-    updateGL();
+    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 40, 40, true);
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
@@ -76,7 +93,7 @@ b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
     if(dyn)
         bodydef.type=b2_dynamicBody;
     b2Body* body=world->CreateBody(&bodydef);
-
+body->SetAngularVelocity(0.5);
     b2PolygonShape shape;
     shape.SetAsBox(P2M*w/2,P2M*h/2);
 
@@ -96,5 +113,4 @@ void GameWidget::drawSquare(b2Vec2* points,b2Vec2 center,float angle) {
         glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/HEIGHT);
     glEnd();
     glPopMatrix();
-
 }

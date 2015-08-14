@@ -57,6 +57,8 @@ private:
 
     b2Body* addRect(int x, int y, int width, int height, bool dyn = true);
 
+    b2Body* addSpecRect ();
+
     void drawSquare(b2Vec2* points, b2Vec2 center, float angle);
 
 };
