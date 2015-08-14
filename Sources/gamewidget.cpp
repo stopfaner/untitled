@@ -34,7 +34,6 @@ void GameWidget::initializeGL() {
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0,0,0,1);
     world=new b2World(b2Vec2(0.0,-9.81));
-   // addRect(0,0,WIDTH,20,false);
     addRect(0,0,300,20,false);
 }
 
@@ -57,16 +56,13 @@ void GameWidget::paintGL() {
         drawSquare(points,tmp->GetWorldCenter(),tmp->GetAngle());
         tmp=tmp->GetNext();
     }
-       world->Step(1.0/30.0,8,3);
+    world->Step(1.0/30.0,8,3);
 
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
 
-    qDebug()<<"Mouse"<<endl<<event->pos().x()<<" "<<event->pos().y()<<endl;
-float toChange = 2;
-addRect((event->pos().x()-WIDTH/2)*toChange, -(event->pos().y()-HEIGHT/2)*toChange, 20, 20, true);
-    //addRect(event->pos().x()-WIDTH/2, -(event->pos().y()-HEIGHT/2), 20, 20, true);
+    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 20, 20, true);
     updateGL();
 }
 
@@ -75,8 +71,6 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
 }
 
 b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
-    qDebug()<<"Adding rectangle";
-    qDebug()<<x<<" "<<y;
     b2BodyDef bodydef;
     bodydef.position.Set(x*P2M,y*P2M);
     if(dyn)
@@ -93,42 +87,14 @@ b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
 }
 
 void GameWidget::drawSquare(b2Vec2* points,b2Vec2 center,float angle) {
-    qDebug()<<"Drawing square";
-    qDebug()<<"coords in meters "<<center.x<<" "<<center.y;
     glColor3f(1,1,1);
     glPushMatrix();
-    qDebug()<<"drawing coords "<<center.x*M2P/WIDTH<<" "<<center.y*M2P/HEIGHT;
     glTranslatef(center.x*M2P/WIDTH,center.y*M2P/HEIGHT,0);
     glRotatef(angle*180.0/M_PI,0,0,1);
     glBegin(GL_QUADS);
-float tempKoefx = 100./WIDTH;//100 meters in screen
-float tempKoefy = 100./HEIGHT;
     for(int i=0;i<4;i++)
-         glVertex2f(points[i].x*tempKoefx,points[i].y*tempKoefy);
-       // glVertex2f(points[i].x*M2P,points[i].y*M2P);
+        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/HEIGHT);
     glEnd();
     glPopMatrix();
-    /*  glColor3f(1,1,1);
-            glPushMatrix();
-                    //glTranslatef(center.x,center.y,0);
-                    glRotatef(angle*180.0/M_PI,0,0,1);
-                    glBegin(GL_QUADS);
-                      glVertex2f(0.5, 0.5);
-                      glVertex2f(-0.5, 0.5);
-                      glVertex2f(-0.5, -0.5);
-                      glVertex2f(0.5, -0.5);
-                    glEnd();
-            glPopMatrix();
 
-
-    qglColor(Qt::white);
-    glPushMatrix();
-    glTranslatef(center.x*M2P,center.y*M2P,0);
-    glRotatef(angle*180.0/M_PI,0,0,1);
-    glBegin(GL_QUADS);
-    for(int i=0;i<4;i++){
-        glVertex2f(points[i].x*M2P,points[i].y*M2P);
-    }
-    glEnd();
-    glPopMatrix();*/
 }
