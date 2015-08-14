@@ -20,6 +20,7 @@
 #include <QGLWidget>
 #include <QMouseEvent>
 #include <Box2D/Box2D.h>
+#include <QTimer>
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -34,11 +35,13 @@ public:
     GameWidget(QWidget *parent = 0);
 
 private:
-    int WIDTH = 1900;
-    int HEIGHT = 1000;
+    int WIDTH = 640;
+    int HEIGHT = 480;
 
     float M2P = 20;
     float P2M=1/M2P;
+
+    QTimer *timer;
 
     b2World* world;
 
