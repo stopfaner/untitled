@@ -61,7 +61,8 @@ public:
      * @param parent - parent widget instance
      */
     GameWidget(QWidget *parent = 0);
-
+//public slots:
+    void updateGame();
 private:
     int WIDTH = 480;
     int HEIGHT = 480;
@@ -89,6 +90,8 @@ private:
     b2Body* addSpecRect ();
 
     void drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color);
+
+    void updatePlayerJump ();
 
 };
 

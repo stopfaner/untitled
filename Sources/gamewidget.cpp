@@ -30,12 +30,23 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     timer->start(10);
     world=new b2World(b2Vec2(0.0,-9.81));
     player = new Player(100,-100,world);
+   // world->SetContactListener(player->contactListener);
     addRect(0,-HEIGHT,WIDTH*2,50,false);
     addRect(0,HEIGHT,WIDTH*2,50,false);
     addRect(-WIDTH,0,50,HEIGHT*2,false);
     addRect(WIDTH,0,50,HEIGHT*2,false);
     addRect(0,0,40,40,false);
     addSpecRect();
+}
+
+void GameWidget::updateGame(){
+   // updateGL();
+   // paintGL();
+    updatePlayerJump();
+}
+
+void GameWidget::updatePlayerJump(){
+    if (player->body->GetLinearVelocity().y==0) player->allowJump();
 }
 
 void GameWidget::initializeGL() {
@@ -69,12 +80,13 @@ void GameWidget::paintGL() {
         {
         case b2_staticBody: bodyColor.setColor (80, 80, 80); break;
         case b2_dynamicBody: bodyColor.setColor (50, 50, 170); break;
+        default: break;
         }
         drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), bodyColor);
         tmp=tmp->GetNext();
     }
     world->Step(1.0/30.0,8,3);
-
+    updateGame();
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
@@ -83,18 +95,19 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
     switch(event->key()) {
-        case Qt::Key_Left :
-            player->moveLeft();
-            qDebug()<<"Left";
-            break;
-        case Qt::Key_Right :
-            player->moveRight();
-            qDebug()<<"Right";
-            break;
-        case Qt::Key_Up :
-            player->jump();
-            qDebug()<<"Jump";
-            break;
+    case Qt::Key_Left :
+        player->moveLeft();
+        qDebug()<<"Left";
+        break;
+    case Qt::Key_Right :
+        player->moveRight();
+        qDebug()<<"Right";
+        break;
+    case Qt::Key_Up :
+        qDebug()<<"Jump";
+        player->jump();
+
+        break;
     }
 }
 
@@ -114,6 +127,7 @@ b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
     fixturedef.filter.groupIndex=1;
 
     body->CreateFixture(&fixturedef);
+    return body;
 }
 
 b2Body* GameWidget::addSpecRect() {
@@ -132,6 +146,7 @@ b2Body* GameWidget::addSpecRect() {
     fixturedef.filter.groupIndex=1;
 
     body->CreateFixture(&fixturedef);
+    return body;
 }
 
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color) {

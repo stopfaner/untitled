@@ -2,7 +2,8 @@
 #include <QDebug>
 Player::Player()
 {
-
+    canJump = true;
+    //contactListener = new MyContactListener;
 }
 
 Player::Player(int x, int y, b2World *world) {
@@ -20,13 +21,17 @@ Player::Player(int x, int y, b2World *world) {
     fixturedef.shape = &shape;
     fixturedef.density = 1.0;
 
-    body->CreateFixture(&fixturedef);
+    b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
+    mainFixture->SetUserData( (void*)1 );
     b2PolygonShape polygonShape;
     polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
-    b2FixtureDef myFixtureDef;
-    myFixtureDef.isSensor = true;
-    b2Fixture* footSensorFixture = body->CreateFixture(&myFixtureDef);
+    fixturedef.isSensor = true;
+    b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
     footSensorFixture->SetUserData( (void*)3 );
+}
+
+void Player::allowJump(){
+    canJump = 1;
 }
 
 void Player::moveLeft(){
@@ -40,12 +45,22 @@ void Player::moveRight(){
 }
 
 void Player::jump(){
-    if(onGround())
-        body->ApplyLinearImpulse(b2Vec2(0,105),b2Vec2(0,0),true);
+    if(canJump && onGround())
+    {
+        //  if (contactListener->numFootContacts > 0)
+        canJump = false;
+        body->ApplyLinearImpulse(b2Vec2(0,200),b2Vec2(0,0),true);
+    }
 }
 
 bool Player::onGround() {
-        return true;
+    for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
+    {
+        b2Contact* c = ce->contact;
+            if ((int) c->GetFixtureA()->GetUserData() == 3 || (int) c->GetFixtureB()->GetUserData() == 3) {
+                return true;
+            }
+    }
     return false;
 
     /*
