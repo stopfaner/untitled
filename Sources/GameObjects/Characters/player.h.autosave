@@ -12,10 +12,8 @@ public:
     void moveRight();
     void jump();
     bool onGround();
-    void updatePos();
 private:
     b2Body *body;
-    float x,y;
 };
 
 #endif // PLAYER_H

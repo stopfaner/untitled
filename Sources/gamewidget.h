@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 #include <Box2D/Box2D.h>
 #include <QTimer>
+#include "GameObjects/Characters/player.h"
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -68,6 +69,7 @@ private:
     float M2P = 20;
     float P2M=1/M2P;
 
+    Player *player;
     QTimer *timer;
 
     b2World* world;
