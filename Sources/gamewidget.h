@@ -25,6 +25,33 @@
 /**
  * @brief The GameWidget class describes main window activity
  */
+
+//TOMOVE
+class Color
+{
+public:
+    GLfloat red;
+    GLfloat green;
+    GLfloat blue;
+    Color ()
+    {
+        red = 1;
+        green = 1;
+        blue = 1;
+    }
+    Color (short red, short green, short blue)
+    {
+        setColor (red, green, blue);
+
+    }
+    setColor (short red, short green, short blue)
+    {
+        this->red = (float) red / 255;
+        this->green = (float) green / 255;
+        this-> blue = (float) blue / 255;
+    }
+};
+
 class GameWidget : public QGLWidget {
 
 public:
@@ -35,7 +62,7 @@ public:
     GameWidget(QWidget *parent = 0);
 
 private:
-    int WIDTH = 640;
+    int WIDTH = 480;
     int HEIGHT = 480;
 
     float M2P = 20;
@@ -59,7 +86,7 @@ private:
 
     b2Body* addSpecRect ();
 
-    void drawSquare(b2Vec2* points, b2Vec2 center, float angle);
+    void drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color);
 
 };
 
