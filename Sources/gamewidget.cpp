@@ -44,7 +44,7 @@ void GameWidget::updateGame(){
     // updateGL();
     // paintGL();
     updatePlayerJump();
-    player->applyImpulse();
+    player->applyForce();
 }
 
 void GameWidget::updatePlayerJump(){

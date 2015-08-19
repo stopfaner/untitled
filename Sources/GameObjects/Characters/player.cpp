@@ -47,7 +47,7 @@ void Player::moveRight(){
         body->ApplyForceToCenter(b2Vec2(500,0),true);
 }
 */
-void Player::applyImpulse(){
+void Player::applyForce(){
     b2Vec2 vel = body->GetLinearVelocity();
     float desiredVel = 0;
     switch ( moveState )
@@ -57,8 +57,8 @@ void Player::applyImpulse(){
     case MS_RIGHT: desiredVel =  5; break;
     }
     float velChange = desiredVel - vel.x;
-    float impulse = body->GetMass() * velChange; //disregard time factor
-    body->ApplyLinearImpulse( b2Vec2(impulse,0), body->GetWorldCenter(), true );
+    float force = body->GetMass() * velChange; //disregard time factor
+    body->ApplyForce( b2Vec2(force,0), body->GetWorldCenter(), true );
 }
 
 void Player::jump(){

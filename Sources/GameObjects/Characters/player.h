@@ -24,7 +24,7 @@ public:
     void jump();
     bool onGround();
     void allowJump();
-    void applyImpulse();
+    void applyForce();
     //MyContactListener *contactListener;
     b2Body *body;
 
