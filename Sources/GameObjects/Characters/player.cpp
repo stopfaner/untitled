@@ -3,10 +3,12 @@
 Player::Player()
 {
     canJump = true;
+    moveState = MS_STAND;
     //contactListener = new MyContactListener;
 }
 
 Player::Player(int x, int y, b2World *world) {
+    Player();
     b2BodyDef bodydef;
     bodydef.position.Set(x/20,y/20);
     bodydef.type = b2_dynamicBody;
@@ -17,7 +19,7 @@ Player::Player(int x, int y, b2World *world) {
     shape.SetAsBox(1,2);
 
     b2FixtureDef fixturedef;
-    fixturedef.friction = 5;
+    // fixturedef.friction = 5;
     fixturedef.shape = &shape;
     fixturedef.density = 1.0;
 
@@ -33,15 +35,30 @@ Player::Player(int x, int y, b2World *world) {
 void Player::allowJump(){
     canJump = 1;
 }
-
+/*
 void Player::moveLeft(){
     if(body->GetLinearVelocity().x > -10)
-        body->ApplyForceToCenter(b2Vec2(-500,0),true);
+       // body->ApplyForceToCenter(b2Vec2(-500,0),true);
+    body->ApplyLinearImpulse(b2Vec2(-body->GetMass()*5,0), b2Vec2(0,0), true);
 }
 
 void Player::moveRight(){
     if(body->GetLinearVelocity().x < 10)
         body->ApplyForceToCenter(b2Vec2(500,0),true);
+}
+*/
+void Player::applyImpulse(){
+    b2Vec2 vel = body->GetLinearVelocity();
+    float desiredVel = 0;
+    switch ( moveState )
+    {
+    case MS_LEFT:  desiredVel = -5; break;
+    case MS_STAND:  desiredVel =  0; break;
+    case MS_RIGHT: desiredVel =  5; break;
+    }
+    float velChange = desiredVel - vel.x;
+    float impulse = body->GetMass() * velChange; //disregard time factor
+    body->ApplyLinearImpulse( b2Vec2(impulse,0), body->GetWorldCenter(), true );
 }
 
 void Player::jump(){
@@ -49,7 +66,7 @@ void Player::jump(){
     {
         //  if (contactListener->numFootContacts > 0)
         canJump = false;
-        body->ApplyLinearImpulse(b2Vec2(0,200),b2Vec2(0,0),true);
+        body->ApplyLinearImpulse(b2Vec2(0,body->GetMass()*10),b2Vec2(0,0),true);
     }
 }
 
@@ -57,9 +74,9 @@ bool Player::onGround() {
     for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
     {
         b2Contact* c = ce->contact;
-            if ((int) c->GetFixtureA()->GetUserData() == 3 || (int) c->GetFixtureB()->GetUserData() == 3) {
-                return true;
-            }
+        if ((int) c->GetFixtureA()->GetUserData() == 3 || (int) c->GetFixtureB()->GetUserData() == 3) {
+            return true;
+        }
     }
     return false;
 

@@ -9,14 +9,22 @@ class MyContactListener;
 class Player
 {
 public:
+    enum MoveState{
+        MS_STAND,
+        MS_LEFT,
+        MS_RIGHT
+    };
+    MoveState moveState;
+
     Player();
     Player(int x, int y, b2World *world);
 
-    void moveLeft();
-    void moveRight();
+  //  void moveLeft();
+ //   void moveRight();
     void jump();
     bool onGround();
     void allowJump();
+    void applyImpulse();
     //MyContactListener *contactListener;
     b2Body *body;
 

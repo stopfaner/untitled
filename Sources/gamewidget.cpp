@@ -18,6 +18,7 @@
 #include <QDebug>
 #define M_PI		3.14159265358979323846
 
+
 /**
  * @brief GameWidget::GameWidget - contructor
  * @param parent - parent widget instance
@@ -30,7 +31,7 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     timer->start(10);
     world=new b2World(b2Vec2(0.0,-9.81));
     player = new Player(100,-100,world);
-   // world->SetContactListener(player->contactListener);
+    // world->SetContactListener(player->contactListener);
     addRect(0,-HEIGHT,WIDTH*2,50,false);
     addRect(0,HEIGHT,WIDTH*2,50,false);
     addRect(-WIDTH,0,50,HEIGHT*2,false);
@@ -40,9 +41,10 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
 }
 
 void GameWidget::updateGame(){
-   // updateGL();
-   // paintGL();
+    // updateGL();
+    // paintGL();
     updatePlayerJump();
+    player->applyImpulse();
 }
 
 void GameWidget::updatePlayerJump(){
@@ -94,21 +96,20 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
-    switch(event->key()) {
-    case Qt::Key_Left :
-        player->moveLeft();
-        qDebug()<<"Left";
-        break;
-    case Qt::Key_Right :
-        player->moveRight();
-        qDebug()<<"Right";
-        break;
-    case Qt::Key_Up :
-        qDebug()<<"Jump";
+    int key = event->key();
+    if (key == Qt::Key_Left || key == Qt::Key_A)
+        player->moveState = Player::MS_LEFT;
+    if (key == Qt::Key_Right || key == Qt::Key_D)
+        player->moveState = Player::MS_RIGHT;
+    if (key == Qt::Key_Up || key == Qt::Key_W)
         player->jump();
+}
 
-        break;
-    }
+void GameWidget::keyReleaseEvent(QKeyEvent *event) {
+    int key = event->key();
+    if ( (key == Qt::Key_Left || key == Qt::Key_A) && player->moveState == Player::MS_LEFT
+       ||(key == Qt::Key_Right || key == Qt::Key_D) && player->moveState == Player::MS_RIGHT )
+        player->moveState = Player::MS_STAND;
 }
 
 b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
