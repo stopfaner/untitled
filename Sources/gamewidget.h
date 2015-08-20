@@ -70,8 +70,8 @@ public:
 //public slots:
     void updateGame();
 private:
-    int WIDTH = 960;
-    int HEIGHT = 960;
+    int WIDTH = 600;
+    int HEIGHT = 600;
 
     float M2P = 40;
     float P2M=1/M2P;

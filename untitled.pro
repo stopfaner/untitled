@@ -74,7 +74,9 @@ SOURCES += main.cpp \
     SOIL/image_DXT.c \
     SOIL/image_helper.c \
     SOIL/SOIL.c \
-    SOIL/stb_image_aug.c
+    SOIL/stb_image_aug.c \
+    Sources/GameObjects/userdata.cpp \
+    textures.cpp
 HEADERS  += \
     Sources/gamewidget.h \
     Sources/gameinstance.h \
@@ -140,7 +142,9 @@ HEADERS  += \
     SOIL/SOIL.h \
     SOIL/stb_image_aug.h \
     SOIL/stbi_DDS_aug.h \
-    SOIL/stbi_DDS_aug_c.h
+    SOIL/stbi_DDS_aug_c.h \
+    Sources/GameObjects/userdata.h \
+    textures.h
 
 
 
@@ -152,4 +156,3 @@ DEPENDPATH += $$PWD/SOIL
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/SOIL/libSOIL.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/SOIL/libSOIL.a
 
-DISTFILES +=

@@ -145,7 +145,6 @@ void GameWidget::paintGL() {
                          b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
     drawSquare (points1,b2Vec2(0,0),0, data1);
 
-
     b2Body* tmp=world->GetBodyList();
     b2Vec2 points[4];
     while(tmp)
@@ -235,6 +234,7 @@ b2Body* GameWidget::addSpecRect() {
 }
 
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData* userData) {
+    glViewport(-player->body->GetWorldCenter().x*M2P/2, -player->body->GetWorldCenter().y*M2P/2, WIDTH, HEIGHT);
     struct point {float x; float y;};
     point  squarePoints [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0}};
     glPushMatrix();
