@@ -2,6 +2,7 @@
 #define BOT_H
 #include <Box2D/Box2D.h>
 #include "player.h"
+#include "Sources/GameObjects/userdata.h"
 class AI;
 
 class Bot
@@ -22,6 +23,7 @@ public:
     void allowJump();
     void updateBotJump();
     void applyForce();
+    void setBody (b2Body* body);
     b2Body *body;
 
 private:

@@ -15,7 +15,6 @@ public:
     MoveState moveState;
 
     Player();
-    Player(int x, int y, b2World *world);
 
   //  void moveLeft();
  //   void moveRight();
@@ -24,6 +23,7 @@ public:
     void allowJump();
     void applyForce();
     void updatePlayerJump();
+    void setBody (b2Body* body);
     //MyContactListener *contactListener;
     b2Body *body;
 

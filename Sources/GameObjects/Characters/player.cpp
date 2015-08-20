@@ -7,31 +7,6 @@ Player::Player()
     //contactListener = new MyContactListener;
 }
 
-Player::Player(int x, int y, b2World *world) {
-    Player();
-    b2BodyDef bodydef;
-    bodydef.position.Set(x/20,y/20);
-    bodydef.type = b2_dynamicBody;
-    bodydef.fixedRotation = true;
-    body = world->CreateBody(&bodydef);
-
-    b2PolygonShape shape;
-    shape.SetAsBox(1,2);
-
-    b2FixtureDef fixturedef;
-    // fixturedef.friction = 5;
-    fixturedef.shape = &shape;
-    fixturedef.density = 1.0;
-
-    b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
-    mainFixture->SetUserData( (void*)1 );
-    b2PolygonShape polygonShape;
-    polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
-    fixturedef.isSensor = true;
-    b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
-    footSensorFixture->SetUserData( (void*)3 );
-}
-
 void Player::allowJump(){
     canJump = true;
 }
@@ -47,6 +22,10 @@ void Player::moveRight(){
         body->ApplyForceToCenter(b2Vec2(500,0),true);
 }
 */
+void Player::setBody (b2Body* body){
+    this->body = body;
+}
+
 void Player::applyForce(){
     b2Vec2 vel = body->GetLinearVelocity();
     float desiredVel = 0;

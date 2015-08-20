@@ -26,6 +26,8 @@
 #include "GameObjects/Characters/bot.h"
 #include <SOIL.h>
 #include <vector>
+#include "textures.h"
+#include "GameObjects/userdata.h"
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -68,10 +70,10 @@ public:
 //public slots:
     void updateGame();
 private:
-    int WIDTH = 480;
-    int HEIGHT = 480;
+    int WIDTH = 960;
+    int HEIGHT = 960;
 
-    float M2P = 20;
+    float M2P = 40;
     float P2M=1/M2P;
 
     Player *player;
@@ -97,11 +99,16 @@ private:
 
     b2Body* addSpecRect ();
 
-    void drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color);
+    void drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData *userData);
+
+    void addPlayer ();
+
+    b2Body *addBot();
 
 
 
     GLuint tex;
+    Textures textures;
 };
 
 #endif // GAMEWIDGET_H

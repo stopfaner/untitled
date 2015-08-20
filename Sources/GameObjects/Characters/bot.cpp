@@ -7,6 +7,10 @@ Bot::Bot()
     moveState = MS_STAND;
 }
 
+void Bot::setBody (b2Body* body){
+    this->body = body;
+}
+
 Bot::Bot(int x, int y, b2World *world) {
     Bot();
     b2BodyDef bodydef;
