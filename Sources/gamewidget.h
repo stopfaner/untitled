@@ -24,6 +24,8 @@
 #include <QTimer>
 #include "GameObjects/Characters/player.h"
 #include <SOIL.h>
+#include "textures.h"
+#include "GameObjects/userdata.h"
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -92,11 +94,14 @@ private:
 
     b2Body* addSpecRect ();
 
-    void drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color);
+    void drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData *userData);
+
+    void addPlayer ();
 
     void updatePlayerJump ();
 
     GLuint tex;
+    Textures textures;
 };
 
 #endif // GAMEWIDGET_H
