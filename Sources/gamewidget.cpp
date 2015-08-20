@@ -37,17 +37,24 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     addRect(WIDTH,0,50,HEIGHT*2,false);
     addRect(0,0,40,40,false);
     addSpecRect();
+    Bot *bot;
+    bot = new Bot(300,-300,world);
+    AI *ai;
+    ai = new AI(player,bot);
+    Ai.push_back(ai);
 }
 
 void GameWidget::updateGame(){
     // updateGL();
     // paintGL();
-    updatePlayerJump();
+    player->updatePlayerJump();
     player->applyForce();
-}
-
-void GameWidget::updatePlayerJump(){
-    if (player->body->GetLinearVelocity().y==0) player->allowJump();
+    for(unsigned int i = 0; i < Ai.size(); i++) {
+        AI *temp = Ai.at(i);
+        temp->updateAI();
+        temp->bot->applyForce();
+        temp->bot->updateBotJump();
+    }
 }
 
 void GameWidget::initializeGL() {

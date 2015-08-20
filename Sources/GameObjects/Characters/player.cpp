@@ -33,7 +33,7 @@ Player::Player(int x, int y, b2World *world) {
 }
 
 void Player::allowJump(){
-    canJump = 1;
+    canJump = true;
 }
 /*
 void Player::moveLeft(){
@@ -52,9 +52,9 @@ void Player::applyForce(){
     float desiredVel = 0;
     switch ( moveState )
     {
-    case MS_LEFT:  desiredVel = -5; break;
+    case MS_LEFT:  desiredVel = -10; break;
     case MS_STAND:  desiredVel =  0; break;
-    case MS_RIGHT: desiredVel =  5; break;
+    case MS_RIGHT: desiredVel =  10; break;
     }
     float velChange = desiredVel - vel.x;
     float force = body->GetMass() * velChange; //disregard time factor
@@ -68,6 +68,11 @@ void Player::jump(){
         canJump = false;
         body->ApplyLinearImpulse(b2Vec2(0,body->GetMass()*10),b2Vec2(0,0),true);
     }
+}
+
+void Player::updatePlayerJump(){
+    if (body->GetLinearVelocity().y > -0.01 && body->GetLinearVelocity().y < 0.01)
+        allowJump();
 }
 
 bool Player::onGround() {

@@ -4,8 +4,6 @@
 
 class MyContactListener;
 
-
-
 class Player
 {
 public:
@@ -25,6 +23,7 @@ public:
     bool onGround();
     void allowJump();
     void applyForce();
+    void updatePlayerJump();
     //MyContactListener *contactListener;
     b2Body *body;
 

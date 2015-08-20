@@ -23,12 +23,14 @@
 #include <Box2D/Box2D.h>
 #include <QTimer>
 #include "GameObjects/Characters/player.h"
+#include "GameObjects/Characters/bot.h"
 #include <SOIL.h>
+#include <vector>
 
 /**
  * @brief The GameWidget class describes main window activity
  */
-
+using namespace std;
 //TOMOVE
 class Color
 {
@@ -73,6 +75,9 @@ private:
     float P2M=1/M2P;
 
     Player *player;
+    //vector<Bot*> bots;
+    vector<AI*> Ai;
+
     QTimer *timer;
 
     b2World* world;
@@ -94,7 +99,7 @@ private:
 
     void drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color);
 
-    void updatePlayerJump ();
+
 
     GLuint tex;
 };
