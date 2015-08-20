@@ -70,7 +70,11 @@ SOURCES += main.cpp \
     Box2D/Dynamics/b2Island.cpp \
     Box2D/Dynamics/b2World.cpp \
     Box2D/Dynamics/b2WorldCallbacks.cpp \
-    Box2D/Rope/b2Rope.cpp
+    Box2D/Rope/b2Rope.cpp \
+    SOIL/image_DXT.c \
+    SOIL/image_helper.c \
+    SOIL/SOIL.c \
+    SOIL/stb_image_aug.c
 HEADERS  += \
     Sources/gamewidget.h \
     Sources/gameinstance.h \
@@ -130,4 +134,22 @@ HEADERS  += \
     Box2D/Dynamics/b2World.h \
     Box2D/Dynamics/b2WorldCallbacks.h \
     Box2D/Rope/b2Rope.h \
-    Box2D/Box2D.h
+    Box2D/Box2D.h \
+    SOIL/image_DXT.h \
+    SOIL/image_helper.h \
+    SOIL/SOIL.h \
+    SOIL/stb_image_aug.h \
+    SOIL/stbi_DDS_aug.h \
+    SOIL/stbi_DDS_aug_c.h
+
+
+
+unix|win32: LIBS += -L$$PWD/SOIL/ -llibSOIL
+
+INCLUDEPATH += $$PWD/SOIL
+DEPENDPATH += $$PWD/SOIL
+
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/SOIL/libSOIL.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/SOIL/libSOIL.a
+
+DISTFILES +=

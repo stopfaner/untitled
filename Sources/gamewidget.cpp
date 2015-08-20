@@ -24,7 +24,6 @@
  * @param parent - parent widget instance
  */
 
-
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     timer = new QTimer;
     connect (timer, SIGNAL(timeout()), this, SLOT(updateGL()));
@@ -57,6 +56,17 @@ void GameWidget::initializeGL() {
     glOrtho(0,WIDTH,HEIGHT,0,-1,1);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0,0,0,1);
+
+
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    tex = SOIL_load_OGL_texture(
+                "img.png",
+                SOIL_LOAD_AUTO,
+                SOIL_CREATE_NEW_ID,
+                SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+
 }
 
 void GameWidget::resizeGL(int nWidth, int nHeight) {
@@ -87,6 +97,17 @@ void GameWidget::paintGL() {
         drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), bodyColor);
         tmp=tmp->GetNext();
     }
+
+
+
+    /* int width = 100, height = 100;
+    unsigned char* image =
+        SOIL_load_image("img.png", &width, &height, 0, SOIL_LOAD_RGBA);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                  GL_UNSIGNED_BYTE, image);*/
+    //SOIL_free_image_data(image);
+
+
     world->Step(1.0/30.0,8,3);
     updateGame();
 }
@@ -108,7 +129,7 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
 void GameWidget::keyReleaseEvent(QKeyEvent *event) {
     int key = event->key();
     if ( (key == Qt::Key_Left || key == Qt::Key_A) && player->moveState == Player::MS_LEFT
-       ||(key == Qt::Key_Right || key == Qt::Key_D) && player->moveState == Player::MS_RIGHT )
+         ||(key == Qt::Key_Right || key == Qt::Key_D) && player->moveState == Player::MS_RIGHT )
         player->moveState = Player::MS_STAND;
 }
 
@@ -151,13 +172,36 @@ b2Body* GameWidget::addSpecRect() {
 }
 
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color) {
-    glColor3f(color.red, color.green, color.blue);
+    /*
     glPushMatrix();
+    glColor3f(color.red, color.green, color.blue);
     glTranslatef(center.x*M2P/WIDTH,center.y*M2P/WIDTH,0);
     glRotatef(angle*180.0/M_PI,0,0,1);
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++)
         glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
     glEnd();
+    glPopMatrix();
+    */
+    struct point {float x; float y;};
+    point  squarePoints [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0}};
+
+    glPushMatrix();
+    glColor3f(1, 1 ,1);
+    glTranslatef(center.x*M2P/WIDTH,center.y*M2P/WIDTH,0);
+     glRotatef(angle*180.0/M_PI,0,0,1);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_QUADS);
+    for(int i=0;i<4;i++){
+        glTexCoord2f(squarePoints[i].x, squarePoints[i].y);
+        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
+    }
+    /*glTexCoord2f(0.0f, 0.0f);glVertex3f(0.0f, 0.0f, 0.0f);
+    glTexCoord2f(1.0f, 0.0f);glVertex3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(1.0f, 1.0f);glVertex3f(1.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 1.0f);glVertex3f(0.0f, 1.0f, 0.0f);*/
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 }

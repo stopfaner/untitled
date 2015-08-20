@@ -18,10 +18,12 @@
 #define GAMEWIDGET_H
 
 #include <QGLWidget>
+
 #include <QMouseEvent>
 #include <Box2D/Box2D.h>
 #include <QTimer>
 #include "GameObjects/Characters/player.h"
+#include <SOIL.h>
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -94,6 +96,7 @@ private:
 
     void updatePlayerJump ();
 
+    GLuint tex;
 };
 
 #endif // GAMEWIDGET_H
