@@ -171,7 +171,7 @@ void GameWidget::paintGL() {
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
-    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true);
+    addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2, -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2, 80, 80, true);
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
