@@ -97,7 +97,7 @@ private:
     void keyPressEvent(QKeyEvent* event);
     void keyReleaseEvent(QKeyEvent* event);
 
-    b2Body* addRect(int x, int y, int width, int height, bool dyn, Textures::Type type);
+    b2Body* addRect(float x, float y, float width, float height, bool dyn, Textures::Type type);
 
     b2Body* addSpecRect ();
 

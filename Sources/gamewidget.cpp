@@ -33,11 +33,11 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     player = new Player();
     addPlayer();
     // world->SetContactListener(player->contactListener);
-    addRect(0,-HEIGHT,WIDTH*2,50,false,Textures::Type::WALL);
-    addRect(0,HEIGHT,WIDTH*2,50,false,Textures::Type::WALL);
-    addRect(-WIDTH,0,50,HEIGHT*2,false,Textures::Type::WALL);
-    addRect(WIDTH,0,50,HEIGHT*2,false,Textures::Type::WALL);
-    addRect(0,0,40,40,false,Textures::Type::CRATE);
+    addRect(0,-HEIGHT*P2M,WIDTH*2*P2M,3,false,Textures::Type::WALL);
+    addRect(0,HEIGHT*P2M,WIDTH*2*P2M,3,false,Textures::Type::WALL);
+    addRect(-WIDTH*P2M,0,3,HEIGHT*2*P2M,false,Textures::Type::WALL);
+    addRect(WIDTH*P2M,0,3,HEIGHT*2*P2M,false,Textures::Type::WALL);
+    addRect(0,0,2.5,2.5,false,Textures::Type::CRATE);
     //addRect(0,-HEIGHT,WIDTH*8,50,false);
     //addRect(0,HEIGHT,WIDTH*8,50,false);
    // addRect(-WIDTH,0,50,HEIGHT*2,false);
@@ -189,8 +189,8 @@ void GameWidget::paintGL() {
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
     //addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
-    addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2,
-            -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
+    addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2*P2M,
+            -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2*P2M, 2, 2, true, Textures::Type::CRATE);
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
@@ -201,6 +201,7 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->moveState = Player::MS_RIGHT;
     if (key == Qt::Key_Up || key == Qt::Key_W)
         player->jump();
+    if (key == Qt::Key_Escape) this->close();
 }
 
 void GameWidget::keyReleaseEvent(QKeyEvent *event) {
@@ -210,19 +211,19 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
         player->moveState = Player::MS_STAND;
 }
 
-b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn, Textures::Type type) {
+b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textures::Type type) {
     b2BodyDef bodydef;
-    bodydef.position.Set(x*P2M,y*P2M);
+    bodydef.position.Set(x,y);
     if(dyn)
         bodydef.type=b2_dynamicBody;
     b2Body* body=world->CreateBody(&bodydef);
     body->SetAngularVelocity(0.5);
     b2PolygonShape shape;
-    shape.SetAsBox(P2M*w/2,P2M*h/2);
+    shape.SetAsBox(w/2,h/2);
 
     b2FixtureDef fixturedef;
     fixturedef.shape=&shape;
-    fixturedef.density=1.0;
+    fixturedef.density=3.0;
     fixturedef.filter.groupIndex=1;
 
     body->CreateFixture(&fixturedef);
@@ -239,7 +240,7 @@ b2Body* GameWidget::addSpecRect() {
     b2Body* body=world->CreateBody(&bodydef);
     body->SetAngularVelocity(-5);
     b2PolygonShape shape;
-    shape.SetAsBox(4,4);
+    shape.SetAsBox(3,3);
 
     b2FixtureDef fixturedef;
     fixturedef.shape=&shape;
