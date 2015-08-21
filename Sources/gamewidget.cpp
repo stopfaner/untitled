@@ -38,6 +38,11 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     addRect(-WIDTH,0,50,HEIGHT*2,false,Textures::Type::WALL);
     addRect(WIDTH,0,50,HEIGHT*2,false,Textures::Type::WALL);
     addRect(0,0,40,40,false,Textures::Type::CRATE);
+    //addRect(0,-HEIGHT,WIDTH*8,50,false);
+    //addRect(0,HEIGHT,WIDTH*8,50,false);
+   // addRect(-WIDTH,0,50,HEIGHT*2,false);
+   // addRect(WIDTH,0,50,HEIGHT*2,false);
+    //addRect(0,0,40,40,false);
     addSpecRect();
     Bot *bot;
     bot = new Bot();
@@ -122,7 +127,8 @@ void GameWidget::initializeGL() {
     glOrtho(0,WIDTH,HEIGHT,0,-1,1);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0,0,0,1);
-
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     textures.loadAll();
 }
 
@@ -136,22 +142,30 @@ void GameWidget::resizeGL(int nWidth, int nHeight) {
 
 void GameWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(-player->body->GetWorldCenter().x*M2P/2,
+               -player->body->GetWorldCenter().y*M2P/2, WIDTH, HEIGHT);
+
     glLoadIdentity();
 
     //background
 
     UserData* data1 = new UserData (Textures::Type::BACKGROUND);
-    b2Vec2 points1[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
+    b2Vec2 pointsBackground[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
                          b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
-    drawSquare (points1,b2Vec2(0,0),0, data1);
+    drawSquare (pointsBackground,b2Vec2(0,0),0, data1);
 
+    //transparent square
+
+    b2Vec2 points1[4] = {b2Vec2(-5,-5),b2Vec2(5,-5),
+                         b2Vec2(5,5),b2Vec2(-5,5)};
+    drawSquare (points1,b2Vec2(0,0),0, Color(255, 255, 0, 100));
+
+    //bodies
 
     b2Body* tmp=world->GetBodyList();
     b2Vec2 points[4];
     while(tmp)
     {
-
-
         for(int i=0;i<4;i++){
             points[i]=((b2PolygonShape*)tmp->GetFixtureList()->GetShape())->GetVertex(i);
         }
@@ -167,12 +181,16 @@ void GameWidget::paintGL() {
         tmp=tmp->GetNext();
     }
 
+    //update Box2D
+
     world->Step(1.0/30.0,8,3);
     updateGame();
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
-    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
+    //addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
+    addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2,
+            -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
@@ -252,4 +270,17 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
     glDisable(GL_TEXTURE_2D);
     glPopMatrix();
     glColor3f(1, 1 ,1);
+}
+
+void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color) {
+
+    glColor4f(color.red, color.green, color.blue, color.alpha);
+    glPushMatrix();
+    glTranslatef(center.x*M2P/WIDTH,center.y*M2P/WIDTH,0);
+    glRotatef(angle*180.0/M_PI,0,0,1);
+    glBegin(GL_QUADS);
+    for(int i=0;i<4;i++)
+        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
+    glEnd();
+    glPopMatrix();
 }

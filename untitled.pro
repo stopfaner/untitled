@@ -156,4 +156,3 @@ DEPENDPATH += $$PWD/SOIL
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/SOIL/libSOIL.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/SOIL/libSOIL.a
 
-DISTFILES +=
