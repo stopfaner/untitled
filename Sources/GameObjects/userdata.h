@@ -10,6 +10,7 @@ public:
 
     Textures::Type textureType;
     bool isMirrored;
+    bool isPlayer;
 };
 
 #endif // USERDATA_H

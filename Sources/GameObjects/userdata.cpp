@@ -2,6 +2,7 @@
 
 UserData::UserData(){
     isMirrored = false;
+    isPlayer = false;
 }
 
 UserData::UserData(Textures::Type type){

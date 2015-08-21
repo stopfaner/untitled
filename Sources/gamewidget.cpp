@@ -33,17 +33,18 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     player = new Player();
     addPlayer();
     // world->SetContactListener(player->contactListener);
-    addRect(0,-HEIGHT*P2M,WIDTH*2*P2M,3,false,Textures::Type::WALL);
-    addRect(0,HEIGHT*P2M,WIDTH*2*P2M,3,false,Textures::Type::WALL);
-    addRect(-WIDTH*P2M,0,3,HEIGHT*2*P2M,false,Textures::Type::WALL);
-    addRect(WIDTH*P2M,0,3,HEIGHT*2*P2M,false,Textures::Type::WALL);
-    addRect(0,0,2.5,2.5,false,Textures::Type::CRATE);
+    addRect(0,-HEIGHT*P2M,1000,3,false,Textures::Type::CRATE);
+    addRect(0,HEIGHT*P2M,1000,3,false,Textures::Type::CRATE);
+    //addRect(-WIDTH*P2M,0,3,10000,false,Textures::Type::BOT);
+    //addRect(WIDTH*P2M,0,3,10000,false,Textures::Type::PLAYER);
+    //addRect(100,100,100,100,false,Textures::Type::CRATE);
     //addRect(0,-HEIGHT,WIDTH*8,50,false);
     //addRect(0,HEIGHT,WIDTH*8,50,false);
     // addRect(-WIDTH,0,50,HEIGHT*2,false);
     // addRect(WIDTH,0,50,HEIGHT*2,false);
     //addRect(0,0,40,40,false);
     addSpecRect();
+
     Bot *bot;
     bot = new Bot();
     bot->setBody(addBot());
@@ -60,6 +61,7 @@ void GameWidget::addPlayer (){
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
     player->userData = new UserData (Textures::Type::PLAYER);
+    player->userData->isPlayer = true;
     body->SetUserData((void*) player->userData);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
@@ -147,8 +149,8 @@ void GameWidget::resizeGL(int nWidth, int nHeight) {
 
 void GameWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
-    glViewport(-player->body->GetWorldCenter().x*M2P/2,
-               -player->body->GetWorldCenter().y*M2P/2, WIDTH, HEIGHT);
+    //glViewport(-player->body->GetWorldCenter().x*M2P/2,
+    //           -player->body->GetWorldCenter().y*M2P/2, WIDTH, HEIGHT);
 
     glLoadIdentity();
 
@@ -271,7 +273,9 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
             texPoints[i] = straightImage[i];
     glPushMatrix();
     glColor3f(1, 1 ,1);
-    glTranslatef(center.x*M2P/WIDTH,center.y*M2P/WIDTH,0);
+    if(!userData->isPlayer)
+    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+
     glRotatef(angle*180.0/M_PI,0,0,1);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures.getTextureId(userData->textureType));//TOCHANGE?
@@ -290,7 +294,7 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color col
 
     glColor4f(color.red, color.green, color.blue, color.alpha);
     glPushMatrix();
-    glTranslatef(center.x*M2P/WIDTH,center.y*M2P/WIDTH,0);
+    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/2,center.y*M2P/WIDTH+player->body->GetWorldCenter().y*M2P/2,0);
     glRotatef(angle*180.0/M_PI,0,0,1);
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++)
