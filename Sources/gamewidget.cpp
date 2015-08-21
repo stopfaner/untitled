@@ -47,7 +47,7 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
 
     Bot *bot;
     bot = new Bot();
-    bot->setBody(addBot());
+    bot->setBody(addBot(bot));
     AI *ai;
     ai = new AI(player,bot);
     Ai.push_back(ai);
@@ -84,14 +84,14 @@ void GameWidget::addPlayer (){
     footSensorFixture->SetUserData( (void*)3 );
 }
 
-b2Body *GameWidget::addBot() {
+b2Body *GameWidget::addBot(Bot* bot) {
     b2BodyDef bodydef;
     bodydef.position.Set(0, 0);
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
-
-    body->SetUserData((void*) new UserData (Textures::Type::BOT));
+    bot->userData = new UserData (Textures::Type::BOT);
+    body->SetUserData((void*) bot->userData);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
 
@@ -121,6 +121,11 @@ void GameWidget::updateGame(){
         temp->updateAI();
         temp->bot->applyForce();
         temp->bot->updateBotJump();
+
+        if (temp->bot->moveState == Player::MoveState::MS_LEFT)
+            temp->bot->userData->isMirrored = true;
+        if (temp->bot->moveState == Player::MoveState::MS_RIGHT)
+         temp->bot->userData->isMirrored = false;
     }
     if (player->moveState == Player::MoveState::MS_LEFT)
         player->userData->isMirrored = true;
