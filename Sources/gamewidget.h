@@ -40,22 +40,24 @@ public:
     GLfloat red;
     GLfloat green;
     GLfloat blue;
+    GLfloat alpha;
     Color ()
     {
         red = 1;
         green = 1;
         blue = 1;
+        alpha = 1;
     }
-    Color (short red, short green, short blue)
+    Color (short red, short green, short blue, short alpha = 255)
     {
-        setColor (red, green, blue);
-
+        setColor (red, green, blue, alpha);
     }
-    setColor (short red, short green, short blue)
+    setColor (short red, short green, short blue, short alpha = 255)
     {
         this->red = (float) red / 255;
         this->green = (float) green / 255;
         this-> blue = (float) blue / 255;
+        this-> alpha = (float) alpha / 255;
     }
 };
 
@@ -100,6 +102,7 @@ private:
     b2Body* addSpecRect ();
 
     void drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData *userData);
+    void drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color);
 
     void addPlayer ();
 
