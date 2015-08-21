@@ -13,18 +13,22 @@ public:
         WALL,
         BOT,
         BACKGROUND,
-        TEST1, TEST2, TEST3
+        TEST1, TEST2, TEST3,
+        RUN
     };
     struct Texture {
         GLuint id;
         Type type;
+        int rows = 1;
+        int columns = 1;
+        int framesQuantity = 1;
     };
     Textures();
-    std::vector <Texture> vec;
-    GLuint getTextureId (Type);
+    std::vector <Texture*> vec;
+    Texture* getTexture (Type);
     void loadAll ();
 private:
-    void loadTexture (Type);
+    void loadTexture (Type, std::string path, int rows = 1, int columns = 1);
 };
 
 #endif // TEXTURE_H

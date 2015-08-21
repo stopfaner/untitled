@@ -105,6 +105,7 @@ private:
     void drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color);
 
     void addPlayer ();
+    void createWorld();
 
     b2Body *addBot(Bot* bot);
 

@@ -26,6 +26,11 @@
  */
 
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
+
+}
+
+
+void GameWidget::createWorld(){
     timer = new QTimer;
     connect (timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     timer->start(10);
@@ -60,7 +65,7 @@ void GameWidget::addPlayer (){
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
-    player->userData = new UserData (Textures::Type::PLAYER);
+    player->userData = new UserData (textures.getTexture(Textures::Type::RUN));
     player->userData->isPlayer = true;
     body->SetUserData((void*) player->userData);
     b2PolygonShape shape;
@@ -90,7 +95,7 @@ b2Body *GameWidget::addBot(Bot* bot) {
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
-    bot->userData = new UserData (Textures::Type::BOT);
+    bot->userData = new UserData (textures.getTexture(Textures::Type::BOT));
     body->SetUserData((void*) bot->userData);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
@@ -125,12 +130,19 @@ void GameWidget::updateGame(){
         if (temp->bot->moveState == Player::MoveState::MS_LEFT)
             temp->bot->userData->isMirrored = true;
         if (temp->bot->moveState == Player::MoveState::MS_RIGHT)
-         temp->bot->userData->isMirrored = false;
+            temp->bot->userData->isMirrored = false;
     }
     if (player->moveState == Player::MoveState::MS_LEFT)
         player->userData->isMirrored = true;
     if (player->moveState == Player::MoveState::MS_RIGHT)
-     player->userData->isMirrored = false;
+        player->userData->isMirrored = false;
+    if (player->moveState == Player::MoveState::MS_LEFT
+            || player->moveState == Player::MoveState::MS_RIGHT){
+        if (player->userData->texture_p->type != Textures::Type::RUN)
+        player->userData->setTexture(textures.getTexture(Textures::Type::RUN));
+        player->userData->changeFrame();
+    }
+    else player->userData->setTexture(textures.getTexture(Textures::Type::PLAYER));
 }
 
 void GameWidget::initializeGL() {
@@ -142,6 +154,7 @@ void GameWidget::initializeGL() {
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     textures.loadAll();
+    createWorld();
 }
 
 void GameWidget::resizeGL(int nWidth, int nHeight) {
@@ -161,7 +174,7 @@ void GameWidget::paintGL() {
 
     //background
 
-    UserData* data1 = new UserData (Textures::Type::BACKGROUND);
+    UserData* data1 = new UserData (textures.getTexture(Textures::Type::BACKGROUND));
     b2Vec2 pointsBackground[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
                                   b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
     drawSquare (pointsBackground,b2Vec2(0,0),0, data1);
@@ -240,7 +253,7 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
 
     body->CreateFixture(&fixturedef);
 
-    body->SetUserData((void*) new UserData (type));
+    body->SetUserData((void*) new UserData (textures.getTexture(type)));
     return body;
 }
 
@@ -261,7 +274,7 @@ b2Body* GameWidget::addSpecRect() {
 
     body->CreateFixture(&fixturedef);
 
-    body->SetUserData((void*) new UserData (Textures::Type::CRATE));
+    body->SetUserData((void*) new UserData (textures.getTexture(Textures::Type::CRATE)));
     return body;
 }
 
@@ -276,14 +289,22 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
     else
         for (int i = 0; i<4; i++)
             texPoints[i] = straightImage[i];
+    for (int i = 0; i < 4; ++i){
+        int x = userData->currentFrameN % userData->texture_p->columns;
+        int y = userData->currentFrameN / userData->texture_p->rows;
+        texPoints[i].x /= userData->texture_p->columns;
+        texPoints[i].y /= userData->texture_p->rows;
+        texPoints[i].x += (float) x/userData->texture_p->columns;
+        texPoints[i].y += (float) y/userData->texture_p->rows;
+    }
     glPushMatrix();
     glColor3f(1, 1 ,1);
     if(!userData->isPlayer)
-    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
 
     glRotatef(angle*180.0/M_PI,0,0,1);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, textures.getTextureId(userData->textureType));//TOCHANGE?
+    glBindTexture(GL_TEXTURE_2D, userData->texture_p->id);//TOCHANGE?
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++){
         glTexCoord2f(texPoints[i].x, texPoints[i].y);

@@ -6,11 +6,18 @@ class UserData
 {
 public:
     UserData();
-    UserData(Textures::Type);
+    UserData(Textures::Texture* texture_p);
 
-    Textures::Type textureType;
+    Textures::Texture* texture_p;
     bool isMirrored;
     bool isPlayer;
+    int currentFrameN;
+    int framesQuantity;
+    int frameDelay;
+    int frameDelayMax;
+
+    void changeFrame ();
+    void setTexture (Textures::Texture *texture_p);
 };
 
 #endif // USERDATA_H

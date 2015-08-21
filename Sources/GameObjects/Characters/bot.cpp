@@ -11,7 +11,7 @@ void Bot::setBody (b2Body* body){
     this->body = body;
 }
 
-Bot::Bot(int x, int y, b2World *world) {
+Bot::Bot(int x, int y, b2World *world) : Bot() {
     Bot();
     b2BodyDef bodydef;
     bodydef.position.Set(x/20,y/20);
