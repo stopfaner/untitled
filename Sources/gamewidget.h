@@ -106,7 +106,7 @@ private:
 
     void addPlayer ();
 
-    b2Body *addBot();
+    b2Body *addBot(Bot* bot);
 
 
 

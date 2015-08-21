@@ -25,7 +25,7 @@ public:
     void applyForce();
     void setBody (b2Body* body);
     b2Body *body;
-
+    UserData *userData;
 private:
     bool canJump;
 };
