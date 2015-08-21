@@ -26,7 +26,7 @@
 #include "GameObjects/Characters/bot.h"
 #include <SOIL.h>
 #include <vector>
-#include "textures.h"
+#include "Sources/UserInterface/textures.h"
 #include "GameObjects/userdata.h"
 
 /**
@@ -95,7 +95,7 @@ private:
     void keyPressEvent(QKeyEvent* event);
     void keyReleaseEvent(QKeyEvent* event);
 
-    b2Body* addRect(int x, int y, int width, int height, bool dyn = true);
+    b2Body* addRect(int x, int y, int width, int height, bool dyn, Textures::Type type);
 
     b2Body* addSpecRect ();
 

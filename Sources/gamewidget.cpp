@@ -33,11 +33,11 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     player = new Player();
     addPlayer();
     // world->SetContactListener(player->contactListener);
-    addRect(0,-HEIGHT,WIDTH*2,50,false);
-    addRect(0,HEIGHT,WIDTH*2,50,false);
-    addRect(-WIDTH,0,50,HEIGHT*2,false);
-    addRect(WIDTH,0,50,HEIGHT*2,false);
-    addRect(0,0,40,40,false);
+    addRect(0,-HEIGHT,WIDTH*2,50,false,Textures::Type::WALL);
+    addRect(0,HEIGHT,WIDTH*2,50,false,Textures::Type::WALL);
+    addRect(-WIDTH,0,50,HEIGHT*2,false,Textures::Type::WALL);
+    addRect(WIDTH,0,50,HEIGHT*2,false,Textures::Type::WALL);
+    addRect(0,0,40,40,false,Textures::Type::CRATE);
     addSpecRect();
     Bot *bot;
     bot = new Bot();
@@ -172,7 +172,7 @@ void GameWidget::paintGL() {
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
-    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true);
+    addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
@@ -192,7 +192,7 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
         player->moveState = Player::MS_STAND;
 }
 
-b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
+b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn, Textures::Type type) {
     b2BodyDef bodydef;
     bodydef.position.Set(x*P2M,y*P2M);
     if(dyn)
@@ -209,7 +209,7 @@ b2Body* GameWidget::addRect(int x, int y, int w, int h, bool dyn) {
 
     body->CreateFixture(&fixturedef);
 
-    body->SetUserData((void*) new UserData (Textures::Type::CRATE));
+    body->SetUserData((void*) new UserData (type));
     return body;
 }
 
