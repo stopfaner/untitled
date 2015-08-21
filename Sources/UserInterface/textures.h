@@ -20,9 +20,9 @@ public:
         Type type;
     };
     Textures();
-    void loadAll ();
     std::vector <Texture> vec;
     GLuint getTextureId (Type);
+    void loadAll ();
 private:
     void loadTexture (Type);
 };

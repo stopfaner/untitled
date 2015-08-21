@@ -5,10 +5,11 @@
 class UserData
 {
 public:
-    Textures::Type textureType;
     UserData();
     UserData(Textures::Type);
 
+    Textures::Type textureType;
+    bool isMirrored;
 };
 
 #endif // USERDATA_H

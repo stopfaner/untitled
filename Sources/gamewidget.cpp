@@ -40,8 +40,8 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     addRect(0,0,2.5,2.5,false,Textures::Type::CRATE);
     //addRect(0,-HEIGHT,WIDTH*8,50,false);
     //addRect(0,HEIGHT,WIDTH*8,50,false);
-   // addRect(-WIDTH,0,50,HEIGHT*2,false);
-   // addRect(WIDTH,0,50,HEIGHT*2,false);
+    // addRect(-WIDTH,0,50,HEIGHT*2,false);
+    // addRect(WIDTH,0,50,HEIGHT*2,false);
     //addRect(0,0,40,40,false);
     addSpecRect();
     Bot *bot;
@@ -59,7 +59,8 @@ void GameWidget::addPlayer (){
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
-    body->SetUserData((void*) new UserData (Textures::Type::PLAYER));
+    player->userData = new UserData (Textures::Type::PLAYER);
+    body->SetUserData((void*) player->userData);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
 
@@ -119,6 +120,10 @@ void GameWidget::updateGame(){
         temp->bot->applyForce();
         temp->bot->updateBotJump();
     }
+    if (player->moveState == Player::MoveState::MS_LEFT)
+        player->userData->isMirrored = true;
+    if (player->moveState == Player::MoveState::MS_RIGHT)
+     player->userData->isMirrored = false;
 }
 
 void GameWidget::initializeGL() {
@@ -151,7 +156,7 @@ void GameWidget::paintGL() {
 
     UserData* data1 = new UserData (Textures::Type::BACKGROUND);
     b2Vec2 pointsBackground[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
-                         b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
+                                  b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
     drawSquare (pointsBackground,b2Vec2(0,0),0, data1);
 
     //transparent square
@@ -255,16 +260,24 @@ b2Body* GameWidget::addSpecRect() {
 
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData* userData) {
     struct point {float x; float y;};
-    point  squarePoints [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0}};
+    point  texPoints [4];
+    point  straightImage [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0f}};
+    point  mirroredImage [4] = {{1.0f, 0.0f},{0.0f, 0.0f},{0.0f, 1.0f},{1.0f, 1.0f}};
+    if (userData->isMirrored)
+        for (int i = 0; i<4; i++)
+            texPoints[i] = mirroredImage[i];
+    else
+        for (int i = 0; i<4; i++)
+            texPoints[i] = straightImage[i];
     glPushMatrix();
     glColor3f(1, 1 ,1);
     glTranslatef(center.x*M2P/WIDTH,center.y*M2P/WIDTH,0);
-     glRotatef(angle*180.0/M_PI,0,0,1);
+    glRotatef(angle*180.0/M_PI,0,0,1);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, textures.getTextureId(userData->textureType));//TOCHANGE?
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++){
-        glTexCoord2f(squarePoints[i].x, squarePoints[i].y);
+        glTexCoord2f(texPoints[i].x, texPoints[i].y);
         glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
     }
     glEnd();
