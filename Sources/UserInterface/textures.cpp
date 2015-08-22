@@ -6,14 +6,14 @@ Textures::Textures(){
 
 void Textures::loadAll (){
     loadTexture(CRATE, "crate.png");
-    loadTexture(PLAYER, "player.png");
+    loadTexture(PLAYER, "player.png", 1, 9);
     loadTexture(WALL, "wall.png");
     loadTexture(BOT, "bot.png");
     loadTexture(BACKGROUND, "background.png");
     loadTexture(TEST1, "1.png");
     loadTexture(TEST2, "2.png");
     loadTexture(TEST3, "3.png");
-    loadTexture(RUN, "run.png", 2, 4);
+    loadTexture(RUN, "run.png", 1, 4);
 }
 
 void Textures::loadTexture (Type type, std::string path, int rows, int columns){
@@ -30,12 +30,12 @@ void Textures::loadTexture (Type type, std::string path, int rows, int columns){
                 SOIL_CREATE_NEW_ID,
                 SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
     vec.push_back(tex);
-    qDebug()<< path.c_str() << " loaded";
 }
 
 Textures::Texture* Textures::getTexture (Type type){
     for (int i = 0; i < vec.size(); ++i)
-        if (vec.at(i)->type == type) {qDebug ()<< type << " loaded"; return vec[i];}
+        if (vec.at(i)->type == type)
+            return vec[i];
 }
 
 

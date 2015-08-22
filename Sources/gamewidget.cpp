@@ -132,6 +132,9 @@ void GameWidget::updateGame(){
         if (temp->bot->moveState == Player::MoveState::MS_RIGHT)
             temp->bot->userData->isMirrored = false;
     }
+
+    //setting animation type
+
     if (player->moveState == Player::MoveState::MS_LEFT)
         player->userData->isMirrored = true;
     if (player->moveState == Player::MoveState::MS_RIGHT)
@@ -140,9 +143,10 @@ void GameWidget::updateGame(){
             || player->moveState == Player::MoveState::MS_RIGHT){
         if (player->userData->texture_p->type != Textures::Type::RUN)
         player->userData->setTexture(textures.getTexture(Textures::Type::RUN));
-        player->userData->changeFrame();
     }
-    else player->userData->setTexture(textures.getTexture(Textures::Type::PLAYER));
+    else
+        if (player->userData->texture_p->type != Textures::Type::PLAYER)
+            player->userData->setTexture(textures.getTexture(Textures::Type::PLAYER));
 }
 
 void GameWidget::initializeGL() {
@@ -202,7 +206,9 @@ void GameWidget::paintGL() {
         default: break;
         }
         UserData* data = static_cast<UserData*>(tmp->GetUserData());
+
         drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), data);
+        data->changeFrame();
         tmp=tmp->GetNext();
     }
 
@@ -279,6 +285,9 @@ b2Body* GameWidget::addSpecRect() {
 }
 
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData* userData) {
+
+    //setting texture's points
+
     struct point {float x; float y;};
     point  texPoints [4];
     point  straightImage [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0f}};
@@ -289,14 +298,19 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
     else
         for (int i = 0; i<4; i++)
             texPoints[i] = straightImage[i];
+
+    //loading sprite tile
+
+    int tileColumn = userData->currentFrameN % userData->texture_p->columns;
+    int tileRow = userData->currentFrameN / userData->texture_p->columns;
     for (int i = 0; i < 4; ++i){
-        int x = userData->currentFrameN % userData->texture_p->columns;
-        int y = userData->currentFrameN / userData->texture_p->rows;
+
         texPoints[i].x /= userData->texture_p->columns;
         texPoints[i].y /= userData->texture_p->rows;
-        texPoints[i].x += (float) x/userData->texture_p->columns;
-        texPoints[i].y += (float) y/userData->texture_p->rows;
+        texPoints[i].x += (float) tileColumn/userData->texture_p->columns;
+        texPoints[i].y += (float) tileRow/userData->texture_p->rows;
     }
+
     glPushMatrix();
     glColor3f(1, 1 ,1);
     if(!userData->isPlayer)

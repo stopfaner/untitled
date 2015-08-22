@@ -1,5 +1,5 @@
 #include "userdata.h"
-
+#include <QDebug>
 UserData::UserData(){
     isMirrored = false;
     isPlayer = false;
