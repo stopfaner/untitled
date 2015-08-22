@@ -102,7 +102,7 @@ b2Body *GameWidget::addBot(Bot* bot) {
 
     b2FixtureDef fixturedef;
     fixturedef.shape = &shape;
-    fixturedef.density = 1.0;
+    fixturedef.density = 0.0;
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
     mainFixture->SetUserData( (void*)1 );
@@ -318,7 +318,7 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
 
     glRotatef(angle*180.0/M_PI,0,0,1);
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, userData->texture_p->id);//TOCHANGE?
+    glBindTexture(GL_TEXTURE_2D, userData->texture_p->id);
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++){
         glTexCoord2f(texPoints[i].x, texPoints[i].y);

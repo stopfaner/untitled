@@ -61,7 +61,8 @@ void Bot::applyForce(){
 void Bot::jump(){
     if(canJump && onGround()) {
         canJump = false;
-        body->ApplyLinearImpulse(b2Vec2(0,body->GetMass()*10),b2Vec2(0,0),true);
+       // body->ApplyLinearImpulse(b2Vec2(0,body->GetMass()*10),b2Vec2(0,0),true);
+        body->ApplyLinearImpulse(b2Vec2(0,10),b2Vec2(0,0),true);
     }
 }
 

@@ -14,7 +14,8 @@ public:
         BOT,
         BACKGROUND,
         TEST1, TEST2, TEST3,
-        RUN
+        RUN,
+        JUMP
     };
     struct Texture {
         GLuint id;
