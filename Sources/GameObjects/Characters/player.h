@@ -1,11 +1,11 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include <Box2D/Box2D.h>
-#include "Sources/GameObjects/userdata.h"
+#include "Sources/GameObjects/entity.h"
 
 class MyContactListener;
 
-class Player
+class Player :  public Entity
 {
 public:
     enum MoveState{
@@ -14,9 +14,7 @@ public:
         MS_RIGHT
     };
     MoveState moveState;
-
-    Player();
-
+    Player(Textures::Texture* texture_p);
   //  void moveLeft();
  //   void moveRight();
     void jump();
@@ -27,7 +25,6 @@ public:
     void setBody (b2Body* body);
     //MyContactListener *contactListener;
     b2Body *body;
-    UserData *userData;
 private:
     bool canJump;
 };

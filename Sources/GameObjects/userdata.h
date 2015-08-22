@@ -15,9 +15,10 @@ public:
     int framesQuantity;
     int frameDelay;
     int frameDelayMax;
-
     void changeFrame ();
     void setTexture (Textures::Texture *texture_p);
+
+
 };
 
 #endif // USERDATA_H

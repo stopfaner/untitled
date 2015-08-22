@@ -21,7 +21,7 @@
 
 /**
  * @brief The GameInstance class - class of main game instance
- * @author - Denys Lytvinyuk
+ * @author -
  */
 class GameInstance {
 

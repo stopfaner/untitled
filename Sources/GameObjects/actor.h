@@ -1,8 +1,9 @@
 #ifndef ACTOR_H
 #define ACTOR_H
+#include "Sources/GameObjects/userdata.h"
 
 
-class Actor
+class Actor : public UserData
 {
 public:
     Actor();

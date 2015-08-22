@@ -16,7 +16,6 @@
 
 #include "gamewidget.h"
 #include <QDebug>
-#include "GameObjects/userdata.h"
 #define M_PI		3.14159265358979323846
 
 
@@ -38,7 +37,7 @@ void GameWidget::createWorld(){
     b2AABB *borderWorld = new b2AABB();
     borderWorld->lowerBound.Set(-1000.0, -1000.0);
     borderWorld->upperBound.Set(1000.0, 1000.0);
-    player = new Player();
+    player = new Player(textures.getTexture(Textures::Type::RUN));
     addPlayer();
     // world->SetContactListener(player->contactListener);
     addRect(0,-1000,1000,2,false,Textures::Type::WALL);
@@ -57,7 +56,7 @@ void GameWidget::createWorld(){
 
 
     Bot *bot;
-    bot = new Bot();
+    bot = new Bot(textures.getTexture(Textures::Type::BOT));
     bot->setBody(addBot(bot));
     AI *ai;
     ai = new AI(player,bot);
@@ -71,9 +70,8 @@ void GameWidget::addPlayer (){
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
-    player->userData = new UserData (textures.getTexture(Textures::Type::RUN));
-    player->userData->isPlayer = true;
-    body->SetUserData((void*) player->userData);
+    player->isPlayer = true;
+    body->SetUserData((void*) player);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
 
@@ -101,8 +99,7 @@ b2Body *GameWidget::addBot(Bot* bot) {
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
-    bot->userData = new UserData (textures.getTexture(Textures::Type::BOT));
-    body->SetUserData((void*) bot->userData);
+    body->SetUserData((void*) bot);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
 
@@ -134,25 +131,25 @@ void GameWidget::updateGame(){
         temp->bot->updateBotJump();
 
         if (temp->bot->moveState == Player::MoveState::MS_LEFT)
-            temp->bot->userData->isMirrored = true;
+            temp->bot->isMirrored = true;
         if (temp->bot->moveState == Player::MoveState::MS_RIGHT)
-            temp->bot->userData->isMirrored = false;
+            temp->bot->isMirrored = false;
     }
 
     //setting animation type
 
     if (player->moveState == Player::MoveState::MS_LEFT)
-        player->userData->isMirrored = true;
+        player->isMirrored = true;
     if (player->moveState == Player::MoveState::MS_RIGHT)
-        player->userData->isMirrored = false;
+        player->isMirrored = false;
     if (player->moveState == Player::MoveState::MS_LEFT
             || player->moveState == Player::MoveState::MS_RIGHT){
-        if (player->userData->texture_p->type != Textures::Type::RUN)
-        player->userData->setTexture(textures.getTexture(Textures::Type::RUN));
+        if (player->texture_p->type != Textures::Type::RUN)
+        player->setTexture(textures.getTexture(Textures::Type::RUN));
     }
     else
-        if (player->userData->texture_p->type != Textures::Type::PLAYER)
-            player->userData->setTexture(textures.getTexture(Textures::Type::PLAYER));
+        if (player->texture_p->type != Textures::Type::PLAYER)
+            player->setTexture(textures.getTexture(Textures::Type::PLAYER));
 }
 
 void GameWidget::initializeGL() {

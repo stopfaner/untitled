@@ -76,7 +76,12 @@ SOURCES += main.cpp \
     SOIL/SOIL.c \
     SOIL/stb_image_aug.c \
     Sources/UserInterface/textures.cpp \
-    Sources/GameObjects/userdata.cpp
+    Sources/GameObjects/userdata.cpp \
+    Sources/GameObjects/noninteractive.cpp \
+    Sources/GameObjects/Rooms/room.cpp \
+    Sources/GameObjects/DynamicObjects/dynamicobject.cpp \
+    Sources/GameObjects/Characters/npc.cpp \
+    Sources/GameObjects/InteractiveObjects/interactiveobject.cpp
 HEADERS  += \
     Sources/gamewidget.h \
     Sources/gameinstance.h \
@@ -144,7 +149,12 @@ HEADERS  += \
     SOIL/stbi_DDS_aug.h \
     SOIL/stbi_DDS_aug_c.h \
     Sources/UserInterface/textures.h \
-    Sources/GameObjects/userdata.h
+    Sources/GameObjects/userdata.h \
+    Sources/GameObjects/noninteractive.h \
+    Sources/GameObjects/Rooms/room.h \
+    Sources/GameObjects/DynamicObjects/dynamicobject.h \
+    Sources/GameObjects/Characters/npc.h \
+    Sources/GameObjects/InteractiveObjects/interactiveobject.h
 
 
 

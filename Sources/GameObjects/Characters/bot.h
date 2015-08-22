@@ -2,10 +2,10 @@
 #define BOT_H
 #include <Box2D/Box2D.h>
 #include "player.h"
-#include "Sources/GameObjects/userdata.h"
+#include "Sources/GameObjects/entity.h"
 class AI;
 
-class Bot
+class Bot : public Entity
 {
 public:
     enum MoveState{
@@ -14,10 +14,8 @@ public:
         MS_RIGHT
     };
     MoveState moveState;
-
-    Bot();
-    Bot(int x, int y, b2World *world);
-
+    Bot(Textures::Texture* texture_p);
+    Bot(int x, int y, b2World *world, Textures::Texture* texture_p);
     void jump();
     bool onGround();
     void allowJump();
@@ -25,7 +23,6 @@ public:
     void applyForce();
     void setBody (b2Body* body);
     b2Body *body;
-    UserData *userData;
 private:
     bool canJump;
 };

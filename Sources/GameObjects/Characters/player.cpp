@@ -1,6 +1,6 @@
 #include "player.h"
 #include <QDebug>
-Player::Player()
+Player::Player(Textures::Texture* texture_p) : Entity (texture_p)
 {
     canJump = true;
     moveState = MS_STAND;

@@ -1,7 +1,7 @@
 #include "Bot.h"
 #include <QDebug>
 
-Bot::Bot()
+Bot::Bot(Textures::Texture* texture_p) : Entity (texture_p)
 {
     canJump = true;
     moveState = MS_STAND;
@@ -11,8 +11,7 @@ void Bot::setBody (b2Body* body){
     this->body = body;
 }
 
-Bot::Bot(int x, int y, b2World *world) : Bot() {
-    Bot();
+Bot::Bot(int x, int y, b2World *world, Textures::Texture* texture_p) : Bot(texture_p) {
     b2BodyDef bodydef;
     bodydef.position.Set(x/20,y/20);
     bodydef.type = b2_dynamicBody;
