@@ -75,6 +75,13 @@ private:
     int WIDTH = 600;
     int HEIGHT = 600;
 
+    enum plaseDoor {
+        LEFT,
+        RIGHT,
+        LEFT_RIGHT,
+
+    };
+
     float M2P = 40;
     float P2M=1/M2P;
 
@@ -97,6 +104,29 @@ private:
     void keyPressEvent(QKeyEvent* event);
     void keyReleaseEvent(QKeyEvent* event);
 
+    void addBox(int pos_x,int pos_y){
+        addRect(pos_x,pos_y,2,2,true,Textures::Type::CRATE);
+    }
+    void addRoom(int pos_x,int pos_y,float size_x,float size_y, plaseDoor plase){
+        addRect(pos_x,pos_y+size_y/2,size_x+1,1,false,Textures::Type::WALL);
+        addRect(pos_x,pos_y-size_y/2,size_x+1,1,false,Textures::Type::WALL);
+        switch (plase) {
+        case LEFT:
+            addRect(pos_x+size_x/2,pos_y,1,size_y+1,false,Textures::Type::WALL);
+            addRect(pos_x-size_x/2,pos_y+2.5,1,size_y-5,false,Textures::Type::WALL);
+            break;
+        case RIGHT:
+            addRect(pos_x+size_x/2,pos_y+2.5,1,size_y-5,false,Textures::Type::WALL);
+            addRect(pos_x-size_x/2,pos_y,1,size_y+1,false,Textures::Type::WALL);
+            break;
+        case LEFT_RIGHT:
+            addRect(pos_x+size_x/2,pos_y+2.5,1,size_y-5,false,Textures::Type::WALL);
+            addRect(pos_x-size_x/2,pos_y+2.5,1,size_y-5,false,Textures::Type::WALL);
+            break;
+        }
+    }
+
+    void addBigBox();
     b2Body* addRect(float x, float y, float width, float height, bool dyn, Textures::Type type);
 
     b2Body* addSpecRect ();

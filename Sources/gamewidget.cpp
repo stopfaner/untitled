@@ -35,20 +35,26 @@ void GameWidget::createWorld(){
     connect (timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     timer->start(10);
     world=new b2World(b2Vec2(0.0,-9.81));
+    b2AABB *borderWorld = new b2AABB();
+    borderWorld->lowerBound.Set(-1000.0, -1000.0);
+    borderWorld->upperBound.Set(1000.0, 1000.0);
     player = new Player();
     addPlayer();
     // world->SetContactListener(player->contactListener);
-    addRect(0,-HEIGHT*P2M,1000,3,false,Textures::Type::CRATE);
-    addRect(0,HEIGHT*P2M,1000,3,false,Textures::Type::CRATE);
-    //addRect(-WIDTH*P2M,0,3,10000,false,Textures::Type::BOT);
-    //addRect(WIDTH*P2M,0,3,10000,false,Textures::Type::PLAYER);
-    //addRect(100,100,100,100,false,Textures::Type::CRATE);
-    //addRect(0,-HEIGHT,WIDTH*8,50,false);
-    //addRect(0,HEIGHT,WIDTH*8,50,false);
-    // addRect(-WIDTH,0,50,HEIGHT*2,false);
-    // addRect(WIDTH,0,50,HEIGHT*2,false);
-    //addRect(0,0,40,40,false);
-    addSpecRect();
+    addRect(0,-1000,1000,2,false,Textures::Type::WALL);
+    addRect(0,1000,1000,2,false,Textures::Type::WALL);
+    addRect(-1000,0,2,1000,false,Textures::Type::WALL);
+    addRect(1000,0,2,10000,false,Textures::Type::WALL);
+    addRect(0,-5,100,1,false,Textures::Type::WALL);
+    addRoom(15,-1,16,8,LEFT);
+    //addRoom(-15,-1,10,6,LEFT_RIGHT);
+    //addRoom(0,-1,10,6,LEFT_RIGHT);
+    //addRoom(-30,-1,10,6,LEFT_RIGHT);
+    //addRoom(-45,-1,10,6,RIGHT);
+    //addRoom(-45,5,10,6,LEFT_RIGHT);
+    //addRoom(-55,5,10,6,LEFT_RIGHT);
+    //addSpecRect();
+
 
     Bot *bot;
     bot = new Bot();
@@ -150,6 +156,7 @@ void GameWidget::updateGame(){
 }
 
 void GameWidget::initializeGL() {
+
     resize(WIDTH, HEIGHT);
     glMatrixMode(GL_PROJECTION);
     glOrtho(0,WIDTH,HEIGHT,0,-1,1);
@@ -334,7 +341,7 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color col
 
     glColor4f(color.red, color.green, color.blue, color.alpha);
     glPushMatrix();
-    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/2,center.y*M2P/WIDTH+player->body->GetWorldCenter().y*M2P/2,0);
+    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
     glRotatef(angle*180.0/M_PI,0,0,1);
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++)
