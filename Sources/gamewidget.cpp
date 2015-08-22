@@ -61,9 +61,11 @@ void GameWidget::createWorld(){
     AI *ai;
     ai = new AI(player,bot);
     Ai.push_back(ai);
+
 }
 
 void GameWidget::addPlayer (){
+    float playerWidth = 2; float playerHeight = 4;
     b2BodyDef bodydef;
     bodydef.position.Set(0, 0);
     bodydef.type = b2_dynamicBody;
@@ -73,7 +75,7 @@ void GameWidget::addPlayer (){
     player->isPlayer = true;
     body->SetUserData((void*) player);
     b2PolygonShape shape;
-    shape.SetAsBox(1,2);
+    shape.SetAsBox(playerWidth/2, playerHeight/2);
 
     b2FixtureDef fixturedef;
     // fixturedef.friction = 5;
@@ -91,6 +93,18 @@ void GameWidget::addPlayer (){
     //footSensorFixture->SetUserData((void*) new UserData (Textures::Type::TEST2));
 
     footSensorFixture->SetUserData( (void*)3 );
+
+//joint example
+  /*  b2Body* body1 = addRect(2, 0, 4, 0.6, true, Textures::Type::CRATE);
+    b2WeldJointDef jointDef;
+
+    jointDef.Initialize(player->body, body1,
+                        b2Vec2(player->body->GetWorldCenter().x + playerWidth/2,
+                               player->body->GetWorldCenter().y));
+
+    b2WeldJointDef* joint = (b2WeldJointDef*)world->CreateJoint( &jointDef );
+    */
+
 }
 
 b2Body *GameWidget::addBot(Bot* bot) {
@@ -145,7 +159,7 @@ void GameWidget::updateGame(){
     if (player->moveState == Player::MoveState::MS_LEFT
             || player->moveState == Player::MoveState::MS_RIGHT){
         if (player->texture_p->type != Textures::Type::RUN)
-        player->setTexture(textures.getTexture(Textures::Type::RUN));
+            player->setTexture(textures.getTexture(Textures::Type::RUN));
     }
     else
         if (player->texture_p->type != Textures::Type::PLAYER)
@@ -223,9 +237,21 @@ void GameWidget::paintGL() {
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
-    //addRect((event->pos().x()-WIDTH/2)*2, -(event->pos().y()-HEIGHT/2)*2, 80, 80, true, Textures::Type::CRATE);
-    addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2*P2M,
-            -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2*P2M, 2, 2, true, Textures::Type::CRATE);
+    Qt::MouseButtons mouseButtons = event->buttons();
+    if (mouseButtons == Qt::LeftButton)
+        addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2*P2M,
+                -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2*P2M, 2, 2, true, Textures::Type::CRATE);
+    else
+        if (mouseButtons == Qt::RightButton){
+            b2Body* body1 = addRect(0, 6, 10, 2, true, Textures::Type::CRATE);
+            b2Body* body2 = addRect(0, 6, 2, 10, true, Textures::Type::CRATE);
+            b2WeldJointDef jointDef;
+           // jointDef.bodyA = body1;
+           // jointDef.bodyB = body2;
+           // jointDef.collideConnected = false;
+            jointDef.Initialize(body1, body2, b2Vec2(0, 6));
+            b2WeldJointDef* joint = (b2WeldJointDef*)world->CreateJoint( &jointDef );
+        }
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
