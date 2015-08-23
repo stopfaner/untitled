@@ -106,6 +106,7 @@ private:
 
     void drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData *userData);
     void drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color);
+    void drawCircle(float radius, b2Vec2 center, Color color);
 
     void addPlayer ();
     void createWorld();

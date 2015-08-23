@@ -43,14 +43,21 @@ void GameWidget::createWorld(){
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
-    addRect(0,-255,500,500,false,Textures::Type::WALL);
+    addRect(0,-260,500,500,false,Textures::Type::WALL);
     Room room(&textures,world);
-    room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 10, 10);
-    room.CreateRoom(b2Vec2(6, 1), b2Vec2(20, 20), 0.5, 10, 10);
+   // room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 13, 10);
+    room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 2, 15);
+    room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 2);
     //addSpecRect();
 
+    Bot *bot;
+    bot = new Bot(textures.getTexture(Textures::Type::BOT));
+    bot->setBody(addBot(bot));
+    AI *ai;
+    ai = new AI(player,bot);
+    Ai.push_back(ai);
 
-
+    //car
 
     b2Body* mainPlank = addRect(0, 0, 5, 0.5, true, Textures::Type::CRATE);
     b2Body* littlePlank1 = addRect(2.5, 0, 0.5, 3, true, Textures::Type::CRATE);
@@ -67,15 +74,32 @@ void GameWidget::createWorld(){
     world->CreateJoint( &jointDef );
 
 
+    b2Body* mainPlank2 = addRect(0, 5, 5, 0.5, true, Textures::Type::CRATE);
+    //circle
+    b2BodyDef bodydef;
+    bodydef.position.Set(2.5, 5);
+    bodydef.type = b2_dynamicBody;
+    b2Body* circle = world->CreateBody(&bodydef);
 
+    b2CircleShape circleShape;
+    circleShape.m_p.Set(0, 0);
+    circleShape.m_radius = 1;
 
+    b2FixtureDef fixturedef;
+    fixturedef.shape = &circleShape;
+    fixturedef.density = 1.0;
 
-    Bot *bot;
-    bot = new Bot(textures.getTexture(Textures::Type::BOT));
-    bot->setBody(addBot(bot));
-    AI *ai;
-    ai = new AI(player,bot);
-    Ai.push_back(ai);
+    circle->CreateFixture(&fixturedef);
+    //
+    bodydef.position.Set(-2.5, 5);
+    b2Body* circle2 = world->CreateBody(&bodydef);
+    circle2->CreateFixture(&fixturedef);
+
+    jointDef.Initialize(mainPlank2, circle, b2Vec2(2.5, 5));
+    world->CreateJoint( &jointDef );
+    jointDef.Initialize(mainPlank2, circle2, b2Vec2(-2.5, 5));
+    world->CreateJoint( &jointDef );
+
 
 }
 
@@ -110,8 +134,9 @@ void GameWidget::addPlayer (){
 
     footSensorFixture->SetUserData( (void*)3 );
 
-//joint example
-  /*  b2Body* body1 = addRect(2, 0, 4, 0.6, true, Textures::Type::CRATE);
+    //joint example
+    /*
+    b2Body* body1 = addRect(2, 0, 4, 0.6, true, Textures::Type::CRATE);
     b2WeldJointDef jointDef;
 
     jointDef.Initialize(player->body, body1,
@@ -119,7 +144,7 @@ void GameWidget::addPlayer (){
                                player->body->GetWorldCenter().y));
 
     b2WeldJointDef* joint = (b2WeldJointDef*)world->CreateJoint( &jointDef );
-    */
+*/
 
 }
 
@@ -225,20 +250,18 @@ void GameWidget::paintGL() {
     {
         b2Fixture* curFixture = tmp->GetFixtureList();
         while(curFixture){
-            for(int i=0;i<4;i++){
-                points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
-            }
-            Color bodyColor;
-            switch (tmp->GetType())
-            {
-            case b2_staticBody: bodyColor.setColor (80, 80, 80); break;
-            case b2_dynamicBody: bodyColor.setColor (50, 50, 170); break;
-            default: break;
-            }
-            UserData* data = static_cast<UserData*>(tmp->GetUserData());
+            if (curFixture->GetShape()->GetType() !=  b2Shape::e_circle){
+                for(int i=0;i<4;i++){
+                    points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
+                }
 
-            drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), data);
-            data->changeFrame();
+                UserData* data = static_cast<UserData*>(tmp->GetUserData());
+
+                drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), data);
+                data->changeFrame();
+            }
+            else
+                drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), Color(255, 255, 0, 150));
             curFixture=curFixture->GetNext();
         }
         tmp=tmp->GetNext();
@@ -250,7 +273,6 @@ void GameWidget::paintGL() {
     b2Vec2 points1[4] = {b2Vec2(-1,-2),b2Vec2(0,-2),
                          b2Vec2(0,-2.5),b2Vec2(-1,-2.5)};
     drawSquare (points1,b2Vec2(0,0),0, Color(255, 255, 0, 100));
-
 
     //update Box2D
 
@@ -387,7 +409,7 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
     glPopMatrix();
 }
 
-void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color) {
+void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color) {
 
     glColor4f(color.red, color.green, color.blue, color.alpha);
     glPushMatrix();
@@ -401,4 +423,21 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color col
     glPopMatrix();
 }
 
+void GameWidget::drawCircle(float radius, b2Vec2 center, Color color)
+{
+    glColor4f(color.red, color.green, color.blue, color.alpha);
+    glPushMatrix();
 
+    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+
+    glBegin(GL_LINE_LOOP);
+
+    for (int i=0; i < 360; i++)
+    {
+        float rad = i*M_PI/180.0f;
+        glVertex2f(cos(rad)*radius*M2P/WIDTH, sin(rad)*radius*M2P/WIDTH);
+    }
+
+    glEnd();
+    glPopMatrix();
+}
