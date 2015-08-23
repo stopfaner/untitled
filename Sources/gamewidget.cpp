@@ -44,14 +44,8 @@ void GameWidget::createWorld(){
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
-    addRect(0,-5,100,1,false,Textures::Type::WALL);
-    addRoom(15,-1,16,8,LEFT);
-    //addRoom(-15,-1,10,6,LEFT_RIGHT);
-    //addRoom(0,-1,10,6,LEFT_RIGHT);
-    //addRoom(-30,-1,10,6,LEFT_RIGHT);
-    //addRoom(-45,-1,10,6,RIGHT);
-    //addRoom(-45,5,10,6,LEFT_RIGHT);
-    //addRoom(-55,5,10,6,LEFT_RIGHT);
+    Room room(&textures,world);
+    room.CreateRoom(15,0);
     //addSpecRect();
 
 
@@ -213,21 +207,26 @@ void GameWidget::paintGL() {
     b2Vec2 points[4];
     while(tmp)
     {
-        for(int i=0;i<4;i++){
-            points[i]=((b2PolygonShape*)tmp->GetFixtureList()->GetShape())->GetVertex(i);
-        }
-        Color bodyColor;
-        switch (tmp->GetType())
-        {
-        case b2_staticBody: bodyColor.setColor (80, 80, 80); break;
-        case b2_dynamicBody: bodyColor.setColor (50, 50, 170); break;
-        default: break;
-        }
-        UserData* data = static_cast<UserData*>(tmp->GetUserData());
+        b2Fixture* curFixture = tmp->GetFixtureList();
+        while(curFixture){
+            for(int i=0;i<4;i++){
+                points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
+            }
+            Color bodyColor;
+            switch (tmp->GetType())
+            {
+            case b2_staticBody: bodyColor.setColor (80, 80, 80); break;
+            case b2_dynamicBody: bodyColor.setColor (50, 50, 170); break;
+            default: break;
+            }
+            UserData* data = static_cast<UserData*>(tmp->GetUserData());
 
-        drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), data);
-        data->changeFrame();
+            drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), data);
+            data->changeFrame();
+            curFixture=curFixture->GetNext();
+        }
         tmp=tmp->GetNext();
+
     }
 
     //update Box2D
@@ -271,6 +270,8 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
          ||(key == Qt::Key_Right || key == Qt::Key_D) && player->moveState == Player::MS_RIGHT )
         player->moveState = Player::MS_STAND;
 }
+
+
 
 b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textures::Type type) {
     b2BodyDef bodydef;
@@ -372,3 +373,5 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color col
     glEnd();
     glPopMatrix();
 }
+
+

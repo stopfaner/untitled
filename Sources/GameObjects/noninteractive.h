@@ -5,7 +5,7 @@
 class NonInteractive : public UserData
 {
 public:
-    NonInteractive();
+    NonInteractive(Textures::Texture* texture_p);
 };
 
 #endif // NONINTERACTIVE_H

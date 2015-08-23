@@ -5,7 +5,7 @@
 class DynamicObject : public NonInteractive
 {
 public:
-    DynamicObject();
+    DynamicObject(Textures::Texture* texture_p);
 };
 
 #endif // DYNAMICOBJECT_H

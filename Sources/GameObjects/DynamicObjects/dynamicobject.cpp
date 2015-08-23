@@ -1,6 +1,6 @@
 #include "dynamicobject.h"
 
-DynamicObject::DynamicObject()
+DynamicObject::DynamicObject(Textures::Texture* texture_p) : NonInteractive(texture_p)
 {
 
 }
