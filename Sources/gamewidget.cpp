@@ -45,10 +45,29 @@ void GameWidget::createWorld(){
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
     addRect(0,-255,500,500,false,Textures::Type::WALL);
     Room room(&textures,world);
-    room.CreateRoom(b2Vec2(0, 2), b2Vec2(18, 10), 0.5, 0, 0);
-    room.CreateRoom(b2Vec2(18, 2), b2Vec2(18, 10), 0.5, 0, 0);
-    room.CreateRoom(b2Vec2(0, 13), b2Vec2(18, 8), 1, 0, 0);
+    room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 10, 10);
+    room.CreateRoom(b2Vec2(6, 1), b2Vec2(20, 20), 0.5, 10, 10);
     //addSpecRect();
+
+
+
+
+    b2Body* mainPlank = addRect(0, 0, 5, 0.5, true, Textures::Type::CRATE);
+    b2Body* littlePlank1 = addRect(2.5, 0, 0.5, 3, true, Textures::Type::CRATE);
+    b2Body* littlePlank2 = addRect(-2.5, 0, 0.5, 3, true, Textures::Type::CRATE);
+    b2RevoluteJointDef jointDef;
+
+    jointDef.maxMotorTorque = 1000.0f;
+    jointDef.motorSpeed = 5.0f;
+    jointDef.enableMotor = true;
+
+    jointDef.Initialize(mainPlank, littlePlank1, b2Vec2(2.5, 0));
+    world->CreateJoint( &jointDef );
+    jointDef.Initialize(mainPlank, littlePlank2, b2Vec2(-2.5, 0));
+    world->CreateJoint( &jointDef );
+
+
+
 
 
     Bot *bot;
@@ -63,7 +82,7 @@ void GameWidget::createWorld(){
 void GameWidget::addPlayer (){
     float playerWidth = 2; float playerHeight = 4;
     b2BodyDef bodydef;
-    bodydef.position.Set(-15, 10);
+    bodydef.position.Set(0, 0);
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
@@ -83,7 +102,7 @@ void GameWidget::addPlayer (){
     //mainFixture->SetUserData((void*) new UserData (Textures::Type::TEST1));
 
     b2PolygonShape sensorShape;
-    sensorShape.SetAsBox(0.7, 0.1, b2Vec2(0,-2), 0);
+    sensorShape.SetAsBox(playerWidth/2*0.7, 0.1, b2Vec2(0,-2), 0);
     fixturedef.shape = &sensorShape;
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
@@ -249,9 +268,6 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
             b2Body* body1 = addRect(0, 6, 10, 2, true, Textures::Type::CRATE);
             b2Body* body2 = addRect(0, 6, 2, 10, true, Textures::Type::CRATE);
             b2WeldJointDef jointDef;
-           // jointDef.bodyA = body1;
-           // jointDef.bodyB = body2;
-           // jointDef.collideConnected = false;
             jointDef.Initialize(body1, body2, b2Vec2(0, 6));
             b2WeldJointDef* joint = (b2WeldJointDef*)world->CreateJoint( &jointDef );
         }
@@ -334,7 +350,7 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
         for (int i = 0; i<4; i++)
             texPoints[i] = straightImage[i];
 
-    //loading sprite tile
+    //choosing sprite tile
 
     int tileColumn = userData->currentFrameN % userData->texture_p->columns;
     int tileRow = userData->currentFrameN / userData->texture_p->columns;
@@ -346,23 +362,29 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
         texPoints[i].y += (float) tileRow/userData->texture_p->rows;
     }
 
+    //drawing texture
+
     glPushMatrix();
     glColor3f(1, 1 ,1);
+
     if(!userData->isPlayer)
         glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
 
     glRotatef(angle*180.0/M_PI,0,0,1);
+
     glEnable(GL_TEXTURE_2D);
+
     glBindTexture(GL_TEXTURE_2D, userData->texture_p->id);
+
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++){
         glTexCoord2f(texPoints[i].x, texPoints[i].y);
         glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
     }
     glEnd();
+
     glDisable(GL_TEXTURE_2D);
     glPopMatrix();
-    glColor3f(1, 1 ,1);
 }
 
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color) {
