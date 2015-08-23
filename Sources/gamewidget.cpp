@@ -39,16 +39,15 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
     player = new Player(textures.getTexture(Textures::Type::RUN));
     addPlayer();
-    //world->SetContactListener(player->contactListener);
     addRect(0,-1000,1000,2,false,Textures::Type::WALL);
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
     addRect(0,-255,500,500,false,Textures::Type::WALL);
     Room room(&textures,world);
-    room.CreateRoom(b2Vec2(0, 2), b2Vec2(18, 10), 0.5, 6, 8);
-    room.CreateRoom(b2Vec2(18, 2), b2Vec2(18, 10), 0.5, 8, 5);
-    room.CreateRoom(b2Vec2(0, 13), b2Vec2(18, 8), 1, 4.5, 4.5);
+    room.CreateRoom(b2Vec2(0, 2), b2Vec2(18, 10), 0.5, 0, 0);
+    room.CreateRoom(b2Vec2(18, 2), b2Vec2(18, 10), 0.5, 0, 0);
+    room.CreateRoom(b2Vec2(0, 13), b2Vec2(18, 8), 1, 0, 0);
     //addSpecRect();
 
 
@@ -64,7 +63,7 @@ void GameWidget::createWorld(){
 void GameWidget::addPlayer (){
     float playerWidth = 2; float playerHeight = 4;
     b2BodyDef bodydef;
-    bodydef.position.Set(0, 0);
+    bodydef.position.Set(-15, 10);
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
@@ -83,8 +82,9 @@ void GameWidget::addPlayer (){
     mainFixture->SetUserData( (void*)1 );
     //mainFixture->SetUserData((void*) new UserData (Textures::Type::TEST1));
 
-    b2PolygonShape polygonShape;
-    polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
+    b2PolygonShape sensorShape;
+    sensorShape.SetAsBox(0.7, 0.1, b2Vec2(0,-2), 0);
+    fixturedef.shape = &sensorShape;
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
     //footSensorFixture->SetUserData((void*) new UserData (textures.getTexture(Textures::Type::TEST2)));
@@ -131,10 +131,10 @@ b2Body *GameWidget::addBot(Bot* bot) {
 }
 
 void GameWidget::updateGame(){
-    // updateGL();
-    // paintGL();
-    player->updatePlayerJump();
+
     player->applyForce();
+    if (player->jumpCooldown) --player->jumpCooldown;
+
     for(unsigned int i = 0; i < Ai.size(); i++) {
         AI *temp = Ai.at(i);
         temp->updateAI();
