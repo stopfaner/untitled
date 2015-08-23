@@ -39,13 +39,16 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
     player = new Player(textures.getTexture(Textures::Type::RUN));
     addPlayer();
-    // world->SetContactListener(player->contactListener);
+    //world->SetContactListener(player->contactListener);
     addRect(0,-1000,1000,2,false,Textures::Type::WALL);
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
+    addRect(0,-255,500,500,false,Textures::Type::WALL);
     Room room(&textures,world);
-    room.CreateRoom(15,0);
+    room.CreateRoom(b2Vec2(0, 2), b2Vec2(18, 10), 0.5, 6, 8);
+    room.CreateRoom(b2Vec2(18, 2), b2Vec2(18, 10), 0.5, 8, 5);
+    room.CreateRoom(b2Vec2(0, 13), b2Vec2(18, 8), 1, 4.5, 4.5);
     //addSpecRect();
 
 
@@ -84,7 +87,7 @@ void GameWidget::addPlayer (){
     polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
-    //footSensorFixture->SetUserData((void*) new UserData (Textures::Type::TEST2));
+    //footSensorFixture->SetUserData((void*) new UserData (textures.getTexture(Textures::Type::TEST2)));
 
     footSensorFixture->SetUserData( (void*)3 );
 
@@ -195,12 +198,6 @@ void GameWidget::paintGL() {
                                   b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
     drawSquare (pointsBackground,b2Vec2(0,0),0, data1);
 
-    //transparent square
-
-    b2Vec2 points1[4] = {b2Vec2(-5,-5),b2Vec2(5,-5),
-                         b2Vec2(5,5),b2Vec2(-5,5)};
-    drawSquare (points1,b2Vec2(0,0),0, Color(255, 255, 0, 100));
-
     //bodies
 
     b2Body* tmp=world->GetBodyList();
@@ -228,6 +225,13 @@ void GameWidget::paintGL() {
         tmp=tmp->GetNext();
 
     }
+
+    //meter rectangle
+
+    b2Vec2 points1[4] = {b2Vec2(-1,-2),b2Vec2(0,-2),
+                         b2Vec2(0,-2.5),b2Vec2(-1,-2.5)};
+    drawSquare (points1,b2Vec2(0,0),0, Color(255, 255, 0, 100));
+
 
     //update Box2D
 
@@ -365,7 +369,8 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color col
 
     glColor4f(color.red, color.green, color.blue, color.alpha);
     glPushMatrix();
-    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+    //glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+    glTranslatef (center.x*M2P/WIDTH, center.y*M2P/WIDTH, 0);
     glRotatef(angle*180.0/M_PI,0,0,1);
     glBegin(GL_QUADS);
     for(int i=0;i<4;i++)

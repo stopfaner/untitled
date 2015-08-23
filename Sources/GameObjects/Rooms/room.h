@@ -10,18 +10,9 @@ public:
     bool hasEnemys;
     bool hasLight;
 
-    class Point{
-    public:
-        float x;
-        float y;
-        Point(float x,float y){
-            this->x = x;
-            this->y = y;
-        }
-
-    };
     b2Body* room;
-    b2Body* CreateRoom(float x,float y);
+    b2Body* CreateRoom(b2Vec2 center, b2Vec2 size = b2Vec2(18, 8),
+                       float wallWidth = 1, float pasageHeightLeft = 6, float passageHeightRight = 6);
     enum TypeRoom {
         LEFT_DOOR,
         RIGHT_DOOR,

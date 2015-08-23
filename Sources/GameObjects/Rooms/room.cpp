@@ -1,38 +1,40 @@
 #include "room.h"
 
-
-b2Body *Room::CreateRoom(float x,float y)
+#include <QDebug>
+b2Body *Room::CreateRoom(b2Vec2 center, b2Vec2 size, float wallWidth, float passageHeightLeft, float passageHeightRight)
 {
-    Point size(18,8);
-    Point pos(x,y);
     b2BodyDef bodydef;
-    bodydef.position.Set(pos.x,pos.y);
+    bodydef.position.Set(center.x, center.y);
     room=world->CreateBody(&bodydef);
     b2PolygonShape shape;
     b2FixtureDef fixturedef;
     b2Fixture* fixture;
 
-    shape.SetAsBox(1,size.y-3,b2Vec2(-size.x,2.25),0.0f);
+float hL = size.y - 2*wallWidth - passageHeightLeft;
+    shape.SetAsBox(wallWidth/2, hL/2,
+                   b2Vec2 (-size.x/2 + wallWidth/2, size.y/2 - wallWidth -hL/2), 0.0f);
     fixturedef.shape=&shape;
-    fixturedef.density=3.0;
+    fixturedef.density = 3.0;
     fixture = room->CreateFixture(&fixturedef);
     fixture->SetUserData((void*) new UserData (texture_p->getTexture(Textures::Type::WALL)));
 
-    shape.SetAsBox(1,size.y-3,b2Vec2(size.x,2.25),0.0f);
+float hR = size.y - 2*wallWidth - passageHeightRight;
+    shape.SetAsBox(wallWidth/2, hR/2,
+                   b2Vec2 (size.x/2 - wallWidth/2, size.y/2 - wallWidth -hR/2), 0.0f);
     fixturedef.shape=&shape;
-    fixturedef.density=3.0;
+    fixturedef.density = 3.0;
     fixture = room->CreateFixture(&fixturedef);
     fixture->SetUserData((void*) new UserData (texture_p->getTexture(Textures::Type::WALL)));
 
-    shape.SetAsBox(size.x,1,b2Vec2(0,size.y),0.0f);
+    shape.SetAsBox(size.x/2, wallWidth/2, b2Vec2(0, size.y/2 - wallWidth/2), 0.0f);
     fixturedef.shape=&shape;
-    fixturedef.density=3.0;
+    fixturedef.density = 3.0;
     fixture = room->CreateFixture(&fixturedef);
     fixture->SetUserData((void*) new UserData (texture_p->getTexture(Textures::Type::WALL)));
 
-    shape.SetAsBox(size.x+1,1,b2Vec2(0,-size.y),0.0f);
+    shape.SetAsBox(size.x/2, wallWidth/2, b2Vec2(0, - size.y/2 + wallWidth/2), 0.0f);
     fixturedef.shape=&shape;
-    fixturedef.density=3.0;
+    fixturedef.density = 3.0;
     fixture = room->CreateFixture(&fixturedef);
     fixture->SetUserData((void*) new UserData (texture_p->getTexture(Textures::Type::WALL)));
 
