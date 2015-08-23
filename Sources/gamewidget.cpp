@@ -75,6 +75,7 @@ void GameWidget::createWorld(){
 
 
     b2Body* mainPlank2 = addRect(0, 5, 5, 0.5, true, Textures::Type::CRATE);
+    b2Body* rule = addRect(0, 6.5, 0.5, 3, true, Textures::Type::CRATE);
     //circle
     b2BodyDef bodydef;
     bodydef.position.Set(2.5, 5);
@@ -99,6 +100,9 @@ void GameWidget::createWorld(){
     world->CreateJoint( &jointDef );
     jointDef.Initialize(mainPlank2, circle2, b2Vec2(-2.5, 5));
     world->CreateJoint( &jointDef );
+    b2WeldJointDef weldJointDef;
+    weldJointDef.Initialize(rule, mainPlank2, b2Vec2(0, 5));
+    world->CreateJoint( &weldJointDef );
 
 
 }
@@ -261,7 +265,7 @@ void GameWidget::paintGL() {
                 data->changeFrame();
             }
             else
-                drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), Color(255, 255, 0, 150));
+                drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), Color(80, 120, 90, 150));
             curFixture=curFixture->GetNext();
         }
         tmp=tmp->GetNext();
