@@ -16,36 +16,44 @@ Build::Build(Textures* texture_p, b2World* world)
 
 
 
-void Build::genBuild(b2Vec2 center)
+void Build::generationDangeon(b2Vec2 center, int maxNumberRoomInHeight, int maxNumberRoomInWidth)
 {
     bool isExit;
     int end;
-    int planBuild[maxNumberRoomInHeight][maxNumberRoomInWigth];
+    planBuild=new TypeRoom *[maxNumberRoomInHeight];
     for(int i=0;i<maxNumberRoomInHeight;i++){
-        for(int j=0;j<maxNumberRoomInWigth;j++){
-            planBuild[0][0]=EMPTY;
+        planBuild[i] = new TypeRoom[maxNumberRoomInWidth];
+        for(int j=0;j<maxNumberRoomInWidth;j++){
+            planBuild[i][j]=EMPTY;
         }
     }
     planBuild[0][3]=DOWN_DOOR;
     for(int i=1;i<maxNumberRoomInHeight;i++){
-        for(int j=0;j<maxNumberRoomInWigth;j++){
+        for(int j=0;j<maxNumberRoomInWidth;j++){
             if(planBuild[i-1][j]==DOWN_DOOR || planBuild[i-1][j]==UP_AND_DOWN_DOOR )
             {
-                switch(rand()%3){
-                case 0:
-                    planBuild[i][j]=UP_AND_DOWN_DOOR;
-                    break;
-                case 1:
-                case 2:
-                    planBuild[i][j]=UP_DOOR;
-                    break;
+                if(i!=maxNumberRoomInHeight-1){
+                    switch(rand()%3){
+                    case 0:
+                        planBuild[i][j]=UP_AND_DOWN_DOOR;
+                        break;
+                    case 1:
+                    case 2:
+                        planBuild[i][j]=UP_DOOR;
+                        break;
+                    }
                 }
+                else{
+                    planBuild[i][j]=UP_DOOR;
+                }
+
+
             }
         }
-        for(int j=0;j<maxNumberRoomInWigth;j++){
+        for(int j=0;j<maxNumberRoomInWidth;j++){
             if(planBuild[i][j]==EMPTY){
-                if(j!=0 && j!=maxNumberRoomInWigth-1){
-                   if((planBuild[i][j-1]==EMPTY  || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]==EMPTY && j+2<=maxNumberRoomInWigth){
+                if(j!=0 && j!=maxNumberRoomInWidth-1){
+                   if((planBuild[i][j-1]==EMPTY  || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]==EMPTY && j+2<=maxNumberRoomInWidth){
                        switch (rand()%2) {
                        case 0:
                            planBuild[i][j]=EMPTY;
@@ -59,7 +67,7 @@ void Build::genBuild(b2Vec2 center)
                        if(planBuild[i][j-1]==EMPTY && planBuild[i][j+1]!=EMPTY && planBuild[i][j+1]!=RIGHT_DOOR){
                            planBuild[i][j]=RIGHT_DOOR;
                        }
-                       if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR )
+                       if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR && i!=maxNumberRoomInHeight-1 )
                        {
                            isExit=false;
                            end=0;
@@ -70,13 +78,14 @@ void Build::genBuild(b2Vec2 center)
                                }
                            }
                            for(int k=end;k<j;k++){
-                               if(planBuild[i][k]==DOWN_DOOR || planBuild[i][k]==UP_DOOR || planBuild[i][k]==UP_AND_DOWN_DOOR){
+                               if(planBuild[i][k]==DOWN_DOOR  || planBuild[i][k]==UP_AND_DOWN_DOOR){
                                    isExit=true;
                                }
                            }
                            if(isExit){
                                switch (rand()%3) {
                                case 0:
+
                                    planBuild[i][j]=DOWN_DOOR;
                                    break;
                                case 1:
@@ -98,7 +107,7 @@ void Build::genBuild(b2Vec2 center)
                                }
                            }
                        }
-                       if(j+2>maxNumberRoomInWigth){
+                       if(j+2>maxNumberRoomInWidth && i!=maxNumberRoomInHeight-1){
                            for(int k=j;k<0;k--){
                                if(planBuild[i][k]==RIGHT_DOOR) {
                                    end=k;
@@ -127,6 +136,47 @@ void Build::genBuild(b2Vec2 center)
                                planBuild[i][j]=DOWN_DOOR;
                            }
                        }
+                       if(i==maxNumberRoomInHeight-1){
+                           if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR)
+                           {
+                               isExit=false;
+                               end=0;
+                               for(int k=j;k<0;k--){
+                                   if(planBuild[i][k]==RIGHT_DOOR) {
+                                       end=k;
+                                       break;
+                                   }
+                               }
+                               for(int k=end;k<j;k++){
+                                   if(planBuild[i][k]==UP_DOOR){
+                                       isExit=true;
+                                   }
+                               }
+                               if(isExit){
+                                   switch (rand()%2) {
+                                   case 0:
+                                       planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                                       break;
+                                   case 1:
+                                       planBuild[i][j]=LEFT_DOOR;
+                                       break;
+                                   }
+                               }
+                               else{
+                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                               }
+                           }
+                           if(j+2>maxNumberRoomInWidth){
+                               switch (rand()%2) {
+                               case 0:
+                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                                   break;
+                               case 1:
+                                   planBuild[i][j]=LEFT_DOOR;
+                                   break;
+                               }
+                           }
+                       }
                    }
                 }
                 else{
@@ -140,7 +190,7 @@ void Build::genBuild(b2Vec2 center)
                             break;
                         }
                     }
-                    if(j==maxNumberRoomInWigth-1 && planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=RIGHT_DOOR ){
+                    if(j==maxNumberRoomInWidth-1 && planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=RIGHT_DOOR ){
                         planBuild[i][j]=RIGHT_DOOR;
                         }
                     else{

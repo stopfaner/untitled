@@ -6,10 +6,7 @@
 class Build
 {
 private:
-    int maxNumberRoomInHeight;
-    int maxNumberRoomInWigth;
-
-    enum TypeRoom {
+     enum TypeRoom {
         EMPTY,
         LEFT_DOOR,
         RIGHT_DOOR,
@@ -19,17 +16,18 @@ private:
         UP_AND_DOWN_DOOR
     };
     TypeRoom type;
+    TypeRoom **planBuild;
     FactoryDownDoorRoom* downDoorRooms;
     FactoryUpDoorRoom* upDoorRooms;
     FactoryRightDoorRoom* rightDoorRooms;
     FactoryLeftDoorRoom* leftDoorRooms;
     FactoryUpAndDownDoorRoom* upAndDownDoorRooms;
     FactoryLeftAndRightDoorRoom* leftAndRightDoorRooms;
-
     Textures* texture_p;
     b2World* world;
+public:
     Build(Textures * texture_p, b2World *world);
-    void genBuild(b2Vec2 center);
+    void generationDangeon(b2Vec2 center,int maxNumberRoomInHeight,int maxNumberRoomInWidth);
 
 };
 
