@@ -166,7 +166,6 @@ void GameWidget::createWorld(){
     body->SetUserData(ladderData);
     ladderFixture->SetUserData(ladderData);
 
-
 }
 
 void GameWidget::addPlayer (){
@@ -386,6 +385,8 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->moveStateVertical = Player::MSV_UP;
     if (key == Qt::Key_Down || key == Qt::Key_S)
         player->moveStateVertical = Player::MSV_DOWN;
+    if (key == Qt::Key_Space)
+        player->isJumping = true;
     if (key == Qt::Key_E)
         player->useObject();
     if (key == Qt::Key_Escape) this->close();
@@ -399,6 +400,8 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
     if ( (key == Qt::Key_Up || key == Qt::Key_W) && player->moveStateVertical == Player::MSV_UP
             ||(key == Qt::Key_Down || key == Qt::Key_S) && player->moveStateVertical == Player::MSV_DOWN )
         player->moveStateVertical = Player::MSV_STAND;
+    if ( (key == Qt::Key_Space) && player->isJumping)
+        player->isJumping = false;
 }
 
 

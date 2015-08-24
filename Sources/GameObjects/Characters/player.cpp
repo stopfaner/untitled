@@ -5,8 +5,9 @@ Player::Player(Textures::Texture* texture_p) : Entity (texture_p)
     moveState = MS_STAND;
     moveStateVertical = MSV_STAND;
     isOnLadder = false;
+    isJumping = false;
     jumpCooldown = 0;
-    jumpCooldownMax = 30;
+    jumpCooldownMax = 50;
 }
 
 void Player::useObject(){
@@ -28,7 +29,7 @@ void Player::useObject(){
         }
 }
 
-void Player::checkForLadder(){
+bool Player::checkForLadder(){
     bool isLadder = false;
     for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
     {
@@ -42,7 +43,7 @@ void Player::checkForLadder(){
             break;
         }
     }
-    if (!isLadder) isOnLadder = false;
+    return isLadder;
 }
 
 void Player::setBody (b2Body* body){
@@ -52,8 +53,13 @@ void Player::setBody (b2Body* body){
 void Player::chooseTexture(Textures *textures)
 {
     if (isOnLadder){
-        if (texture_p->type != Textures::Type::CLIMBING)
-            setTexture(textures->getTexture(Textures::Type::CLIMBING));
+        if (moveStateVertical == MSV_STAND){
+            if (texture_p->type != Textures::Type::CLIMBING_STOP)
+                setTexture(textures->getTexture(Textures::Type::CLIMBING_STOP));
+        }
+        else
+            if (texture_p->type != Textures::Type::CLIMBING)
+                setTexture(textures->getTexture(Textures::Type::CLIMBING));
     }
     else{
         if (moveState == MS_LEFT)
@@ -73,6 +79,11 @@ void Player::chooseTexture(Textures *textures)
 }
 
 void Player::applyForce(){
+    if (isJumping){
+        isOnLadder = false;
+        jump();
+    }
+
     //horizontal forces
     b2Vec2 vel = body->GetLinearVelocity();
     float desiredVel = 0;
@@ -98,7 +109,7 @@ void Player::applyForce(){
     }
     else{
         if (moveStateVertical == MSV_UP)
-            jump();
+            if (checkForLadder()) isOnLadder = true;
         if (moveStateVertical == MSV_DOWN)
             crouch();
     }
@@ -108,6 +119,7 @@ void Player::applyForce(){
 void Player::crouch(){}
 
 void Player::jump(){
+
     if (!jumpCooldown){
         jumpCooldown = jumpCooldownMax;
         for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
@@ -133,7 +145,11 @@ void Player::jump(){
 
 void Player::update(Textures* textures)
 {
-    if (isOnLadder) checkForLadder();
+    if (isOnLadder && !checkForLadder()) {
+        isOnLadder = false;
+        b2Vec2 speed = body->GetLinearVelocity();
+        //body->SetLinearVelocity(b2Vec2(speed.x*2, speed.y*2));
+    }
     applyForce();
     chooseTexture(textures);
 }

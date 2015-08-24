@@ -17,6 +17,7 @@ void Textures::loadAll (){
     loadTexture(JUMP, "jump.png", 1, 5);
     loadTexture(LADDER, "ladder.png");
     loadTexture(CLIMBING, "climbing.png", 1, 2);
+    loadTexture(CLIMBING_STOP, "climbingstop.png");
 }
 
 void Textures::loadTexture (Type type, std::string path, int rows, int columns){

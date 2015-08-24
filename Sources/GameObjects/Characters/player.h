@@ -24,6 +24,7 @@ public:
         MSV_DOWN,
     };
     bool isOnLadder;
+    bool isJumping;
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Player(Textures::Texture* texture_p);
@@ -35,7 +36,7 @@ public:
     b2Body *body;
     int jumpCooldown;
     int jumpCooldownMax;
-    void checkForLadder();
+    bool checkForLadder();
 private:
     void chooseTexture(Textures *textures);
     void applyForce();
