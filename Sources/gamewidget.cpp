@@ -83,10 +83,10 @@ void GameWidget::createWorld(){
     chain->SetUserData(chainData);
 
 
-    Room room(&textures,world);
+   // Room room(&textures,world);
     // room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 13, 10);
-    room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 6, 15);
-    room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 5);
+   // room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 6, 15);
+//    room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 5);
     addSpecRect();
 
     Bot *bot;
@@ -112,6 +112,7 @@ void GameWidget::createWorld(){
     jointDef.Initialize(mainPlank, littlePlank2, b2Vec2(-2.5, 0));
     world->CreateJoint( &jointDef );
 
+//second car
 
     b2Body* mainPlank2 = addRect(0, 5, 5, 0.5, true, Textures::Type::CRATE);
     b2Body* rule = addRect(0, 6.5, 0.5, 3, true, Textures::Type::CRATE);
