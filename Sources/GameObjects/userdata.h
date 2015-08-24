@@ -9,6 +9,7 @@ public:
     UserData(Textures::Texture* texture_p);
 
     Textures::Texture* texture_p;
+    bool hasTexture;
     bool isMirrored;
     bool isPlayer;
     int currentFrameN;

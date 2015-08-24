@@ -16,7 +16,7 @@
 
 #include "gamewidget.h"
 #include <QDebug>
-#include <time.h>
+
 #define M_PI		3.14159265358979323846
 
 
@@ -45,6 +45,8 @@ void GameWidget::createWorld(){
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
     // addRect(0,-260,500,500,false,Textures::Type::WALL);
+
+    //creatin chain
 
     srand( time(0) );
 
@@ -81,7 +83,7 @@ void GameWidget::createWorld(){
     // room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 13, 10);
     room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 6, 15);
     room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 5);
-    //addSpecRect();
+    addSpecRect();
 
     Bot *bot;
     bot = new Bot(textures.getTexture(Textures::Type::BOT));
@@ -97,7 +99,7 @@ void GameWidget::createWorld(){
     b2Body* littlePlank2 = addRect(-2.5, 0, 0.5, 3, true, Textures::Type::CRATE);
     b2RevoluteJointDef jointDef;
 
-    jointDef.maxMotorTorque = 1000.0f;
+    jointDef.maxMotorTorque = 1500.0f;
     jointDef.motorSpeed = 5.0f;
     jointDef.enableMotor = true;
 
@@ -195,6 +197,7 @@ b2Body *GameWidget::addBot(Bot* bot) {
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
 
+
     b2FixtureDef fixturedef;
     fixturedef.shape = &shape;
     fixturedef.density = 0.0;
@@ -277,7 +280,7 @@ void GameWidget::paintGL() {
     UserData* data1 = new UserData (textures.getTexture(Textures::Type::BACKGROUND));
     b2Vec2 pointsBackground[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
                                   b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
-    drawSquare (pointsBackground,b2Vec2(0,0),0, data1);
+    drawPolygon (pointsBackground, 4, b2Vec2(0, 0), 0, data1);
 
     //bodies
 
@@ -289,15 +292,18 @@ void GameWidget::paintGL() {
         while(curFixture){
             b2Shape::Type curShapeType = curFixture->GetShape()->GetType();
             if (curShapeType ==  b2Shape::e_polygon){
-                b2Vec2 points[4];
-                for(int i=0;i<4;i++){
+                int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
+                b2Vec2 points[count];
+                for(int i=0; i < count; i++){
                     points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
                 }
 
                 UserData* data = static_cast<UserData*>(tmp->GetUserData());
-
-                drawSquare (points, tmp->GetWorldCenter(), tmp->GetAngle(), data);
-                data->changeFrame();
+                if (data->hasTexture){
+                    drawPolygon (points, count, tmp->GetWorldCenter(), tmp->GetAngle(), data);
+                    data->changeFrame();
+                }
+                else drawPolygon (points, count, tmp->GetPosition(), tmp->GetAngle(), Color());
             }
             else
                 if (curShapeType == b2Shape::e_circle)
@@ -333,13 +339,13 @@ void GameWidget::paintGL() {
 
     //meter rectangle
 
-    b2Vec2 points1[4] = {b2Vec2(-1,-2),b2Vec2(0,-2),
-                         b2Vec2(0,-2.5),b2Vec2(-1,-2.5)};
-    drawSquare (points1,b2Vec2(0,0),0, Color(255, 255, 0, 100));
+    b2Vec2 points1[4] = {b2Vec2(-1, -2),b2Vec2(0, -2),
+                         b2Vec2(0, -2.5),b2Vec2(-1, -2.5)};
+    drawPolygon (points1, 4, b2Vec2(0, 0), 0, Color(255, 255, 0, 100));
 
     //update Box2D
 
-    world->Step(1.0/30.0,8,3);
+    world->Step(1.0/30.0, 8, 3);
     updateGame();
 }
 
@@ -386,12 +392,12 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
     b2Body* body=world->CreateBody(&bodydef);
     body->SetAngularVelocity(0.5);
     b2PolygonShape shape;
-    shape.SetAsBox(w/2,h/2);
+    shape.SetAsBox(w/2, h/2);
 
     b2FixtureDef fixturedef;
-    fixturedef.shape=&shape;
-    fixturedef.density=3.0;
-    fixturedef.filter.groupIndex=1;
+    fixturedef.shape = &shape;
+    fixturedef.density = 3.0;
+    fixturedef.filter.groupIndex = 1;
 
     body->CreateFixture(&fixturedef);
 
@@ -401,13 +407,26 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
 
 b2Body* GameWidget::addSpecRect() {
     b2BodyDef bodydef;
-    bodydef.position.Set(0,0);
+    bodydef.position.Set(0, 0);
 
     bodydef.type=b2_dynamicBody;
     b2Body* body=world->CreateBody(&bodydef);
-    body->SetAngularVelocity(-5);
+
     b2PolygonShape shape;
-    shape.SetAsBox(3,3);
+
+    b2Vec2 vertices [5];
+    float sizeK = 0.3;
+    vertices[0].Set(-1, -1);
+    vertices[1].Set(-1, 1);
+    vertices[2].Set(1, 1);
+    vertices[3].Set(2, 0);
+    vertices[4].Set(1, -1);
+    for (int i = 0; i < 5; i++){
+        vertices[i].x *= sizeK;
+        vertices[i].y *= sizeK;
+    }
+    shape.Set(vertices, 5);
+
 
     b2FixtureDef fixturedef;
     fixturedef.shape=&shape;
@@ -416,11 +435,13 @@ b2Body* GameWidget::addSpecRect() {
 
     body->CreateFixture(&fixturedef);
 
-    body->SetUserData((void*) new UserData (textures.getTexture(Textures::Type::CRATE)));
+    body->ApplyLinearImpulse(b2Vec2(-body->GetMass() * 100, 0), b2Vec2(0, 0), true);
+
+    body->SetUserData((void*) new UserData ());
     return body;
 }
 
-void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData* userData) {
+void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, UserData* userData) {
 
     //setting texture's points
 
@@ -450,7 +471,7 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
     //drawing texture
 
     glPushMatrix();
-    glColor3f(1, 1 ,1);
+    glColor3f(1, 1, 1);
 
     if(!userData->isPlayer)
         glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
@@ -461,8 +482,8 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
 
     glBindTexture(GL_TEXTURE_2D, userData->texture_p->id);
 
-    glBegin(GL_QUADS);
-    for(int i=0;i<4;i++){
+    glBegin(GL_POLYGON);
+    for(int i = 0; i < count; i++){
         glTexCoord2f(texPoints[i].x, texPoints[i].y);
         glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
     }
@@ -485,15 +506,15 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, Color color
     glPopMatrix();
 }
 
-void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color) {
+void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, Color color) {
 
     glColor4f(color.red, color.green, color.blue, color.alpha);
     glPushMatrix();
-    //glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
-    glTranslatef (center.x*M2P/WIDTH, center.y*M2P/WIDTH, 0);
-    glRotatef(angle*180.0/M_PI,0,0,1);
-    glBegin(GL_QUADS);
-    for(int i=0;i<4;i++)
+    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+    //glTranslatef (center.x*M2P/WIDTH, center.y*M2P/WIDTH, 0);
+    glRotatef(angle*180.0/M_PI, 0, 0, 1);
+    glBegin(GL_POLYGON);
+    for(int i=0;i<count;i++)
         glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
     glEnd();
     glPopMatrix();

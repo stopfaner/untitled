@@ -18,23 +18,27 @@
 #define GAMEWIDGET_H
 
 #include <QGLWidget>
-
 #include <QMouseEvent>
-#include <Box2D/Box2D.h>
 #include <QTimer>
-#include "GameObjects/Characters/player.h"
-#include "GameObjects/Characters/bot.h"
+
+#include <Box2D/Box2D.h>
+
 #include <SOIL.h>
 #include <vector>
+#include <time.h>
+
 #include "Sources/UserInterface/textures.h"
-#include "GameObjects/userdata.h"
+#include "GameObjects/Characters/bot.h"
+#include "GameObjects/Characters/player.h"
 #include "GameObjects/Rooms/room.h"
+#include "GameObjects/userdata.h"
+
 
 /**
  * @brief The GameWidget class describes main window activity
  */
 using namespace std;
-//TOMOVE
+
 class Color
 {
 public:
@@ -76,8 +80,6 @@ private:
     int WIDTH = 600;
     int HEIGHT = 600;
 
-
-
     float M2P = 40;
     float P2M=1/M2P;
 
@@ -104,8 +106,8 @@ private:
 
     b2Body* addSpecRect ();
 
-    void drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData *userData);
-    void drawSquare(b2Vec2* points, b2Vec2 center,float angle, Color color);
+    void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, UserData *userData);
+    void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, Color color);
     void drawCircle(float radius, b2Vec2 center, Color color);
     void drawChain(b2Vec2* points, b2Vec2 center, int count, Color color);
 
@@ -113,8 +115,6 @@ private:
     void createWorld();
 
     b2Body *addBot(Bot* bot);
-
-
 
     GLuint tex;
     Textures textures;
