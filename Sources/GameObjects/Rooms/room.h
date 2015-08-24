@@ -63,13 +63,13 @@ public:
         this->isDownWall=true;
         this->isUpWall=true;
         this->passageHeightLeft=5;
-        CreateRoom(b2Vec2(center.x-5, center.y));
+        CreateRoom(b2Vec2(center.x-6, center.y));
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=5;
-        CreateRoom(b2Vec2(center.x+5, center.y));
+        CreateRoom(b2Vec2(center.x+6, center.y));
     }
 };
 
@@ -86,13 +86,13 @@ public:
         this->isDownWall=true;
         this->isUpWall=true;
         this->passageHeightLeft=5;
-        CreateRoom(b2Vec2(center.x-5, center.y));
+        CreateRoom(b2Vec2(center.x-6, center.y));
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=5;
-        CreateRoom(b2Vec2(center.x+5, center.y));
+        CreateRoom(b2Vec2(center.x+6, center.y));
     }
 };
 
@@ -110,13 +110,13 @@ public:
         this->isDownWall=true;
         this->isUpWall=true;
         this->passageHeightLeft=5;
-        CreateRoom(b2Vec2(center.x-5, center.y));
+        CreateRoom(b2Vec2(center.x-6, center.y));
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=5;
-        CreateRoom(b2Vec2(center.x+5, center.y));
+        CreateRoom(b2Vec2(center.x+6, center.y));
 
     }
 };

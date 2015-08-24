@@ -3,6 +3,8 @@
 #include <Box2D/Box2D.h>
 #include "Sources/GameObjects/Rooms/room.h"
 #include <vector>
+#include <time.h>
+
 class Build
 {
 private:
@@ -17,6 +19,7 @@ private:
     };
     TypeRoom type;
     TypeRoom **planBuild;
+    Room* room;
     FactoryDownDoorRoom* downDoorRooms;
     FactoryUpDoorRoom* upDoorRooms;
     FactoryRightDoorRoom* rightDoorRooms;
@@ -27,7 +30,8 @@ private:
     b2World* world;
 public:
     Build(Textures * texture_p, b2World *world);
-    void generationDangeon(b2Vec2 center,int maxNumberRoomInHeight,int maxNumberRoomInWidth);
+    void generationDangeon(int maxNumberRoomInHeight, int maxNumberRoomInWidth);
+    void paint(b2Vec2 center,int maxNumberRoomInHeight,int maxNumberRoomInWidth);
 
 };
 
