@@ -15,18 +15,9 @@ public:
     float passageHeightRight = 5;
     bool isUpWall=true;
     bool isDownWall=true;
-
     b2Body* room;
     b2Body* CreateRoom(b2Vec2 center);
-    enum TypeRoom {
-        LEFT_DOOR,
-        RIGHT_DOOR,
-        LEFT_RIGHT_DOOR,
-        UP_DOOR,
-        DOWN_DOOR,
-        UP_DOWN_DOOR
-    };
-    TypeRoom type;
+
     Textures* texture_p;
     b2World *world;
     Room(Textures * texture_p, b2World *world);
@@ -71,10 +62,13 @@ public:
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
+        this->passageHeightLeft=5;
         CreateRoom(b2Vec2(center.x-5, center.y));
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
+        this->passageHeightLeft=size.y-2*wallWidth;
+        this->passageHeightRight=5;
         CreateRoom(b2Vec2(center.x+5, center.y));
     }
 };
@@ -91,10 +85,13 @@ public:
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
+        this->passageHeightLeft=5;
         CreateRoom(b2Vec2(center.x-5, center.y));
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
+        this->passageHeightLeft=size.y-2*wallWidth;
+        this->passageHeightRight=5;
         CreateRoom(b2Vec2(center.x+5, center.y));
     }
 };
@@ -112,10 +109,13 @@ public:
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
+        this->passageHeightLeft=5;
         CreateRoom(b2Vec2(center.x-5, center.y));
         this->size.x=6;
         this->isDownWall=true;
         this->isUpWall=true;
+        this->passageHeightLeft=size.y-2*wallWidth;
+        this->passageHeightRight=5;
         CreateRoom(b2Vec2(center.x+5, center.y));
 
     }

@@ -9,6 +9,16 @@ private:
     int maxNumberRoomInHeight;
     int maxNumberRoomInWigth;
 
+    enum TypeRoom {
+        EMPTY,
+        LEFT_DOOR,
+        RIGHT_DOOR,
+        LEFT_AND_RIGHT_DOOR,
+        UP_DOOR,
+        DOWN_DOOR,
+        UP_AND_DOWN_DOOR
+    };
+    TypeRoom type;
     FactoryDownDoorRoom* downDoorRooms;
     FactoryUpDoorRoom* upDoorRooms;
     FactoryRightDoorRoom* rightDoorRooms;
