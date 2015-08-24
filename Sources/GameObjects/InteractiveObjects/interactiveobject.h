@@ -2,10 +2,13 @@
 #define INTERACTIVEOBJECT_H
 #include "Sources/GameObjects/noninteractive.h"
 
-class InteractiveObject : public NonInteractive
-{
+class Player;
+
+class InteractiveObject : public NonInteractive{
+
 public:
     InteractiveObject(Textures::Texture* texture_p);
+    virtual void use (Player* player) = 0;
 };
 
 #endif // INTERACTIVEOBJECT_H

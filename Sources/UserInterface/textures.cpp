@@ -15,6 +15,8 @@ void Textures::loadAll (){
     loadTexture(TEST3, "3.png");
     loadTexture(RUN, "run.png", 1, 4);
     loadTexture(JUMP, "jump.png", 1, 5);
+    loadTexture(LADDER, "ladder.png");
+    loadTexture(CLIMBING, "climbing.png", 1, 2);
 }
 
 void Textures::loadTexture (Type type, std::string path, int rows, int columns){
@@ -28,12 +30,12 @@ void Textures::loadTexture (Type type, std::string path, int rows, int columns){
     glGenTextures(1, &tex->id);
     glBindTexture(GL_TEXTURE_2D, tex->id);
 
-
     tex->id = SOIL_load_OGL_texture(
                 path.c_str(),
                 SOIL_LOAD_AUTO,
                 SOIL_CREATE_NEW_ID,
                 SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_NTSC_SAFE_RGB | SOIL_FLAG_COMPRESS_TO_DXT);
+    
     vec.push_back(tex);
 }
 

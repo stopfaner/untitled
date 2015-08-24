@@ -19,6 +19,7 @@ public:
     void changeFrame ();
     void setTexture (Textures::Texture *texture_p);
 
+    virtual void use();
 
 };
 

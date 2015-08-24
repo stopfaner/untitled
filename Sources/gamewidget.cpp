@@ -34,7 +34,7 @@ void GameWidget::createWorld(){
     timer = new QTimer;
     connect (timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     timer->start(10);
-    world=new b2World(b2Vec2(0.0,-9.81));
+    world = new b2World(b2Vec2(0.0,-9.81));
     b2AABB *borderWorld = new b2AABB();
     borderWorld->lowerBound.Set(-1000.0, -1000.0);
     borderWorld->upperBound.Set(1000.0, 1000.0);
@@ -69,6 +69,9 @@ void GameWidget::createWorld(){
 
     b2ChainShape chainShape;
 
+    void* chainData =(void*) new UserData();
+    chain->SetUserData(chainData);
+
     chainShape.CreateChain(vs, i);
 
     b2FixtureDef chainFixtureDef;
@@ -77,6 +80,7 @@ void GameWidget::createWorld(){
 
     chain->CreateFixture(&chainFixtureDef);
 
+    chain->SetUserData(chainData);
 
 
     Room room(&textures,world);
@@ -140,6 +144,28 @@ void GameWidget::createWorld(){
     world->CreateJoint( &weldJointDef );
 
 
+    //creating ladder
+
+    b2BodyDef bodydefLadder;
+    bodydefLadder.position.Set(-25, -10);
+    bodydefLadder.type=b2_staticBody;
+    b2Body* body=world->CreateBody(&bodydefLadder);
+
+    b2PolygonShape shape;
+    shape.SetAsBox(1, 10);
+
+    b2FixtureDef fixturedefLadder;
+    fixturedefLadder.shape = &shape;
+    fixturedefLadder.isSensor = true;
+    fixturedefLadder.density = 3.0;
+    fixturedefLadder.filter.groupIndex = 1;
+
+    b2Fixture* ladderFixture = body->CreateFixture(&fixturedefLadder);
+    void* ladderData = new Ladder (textures.getTexture(Textures::Type::LADDER));
+    body->SetUserData(ladderData);
+    ladderFixture->SetUserData(ladderData);
+
+
 }
 
 void GameWidget::addPlayer (){
@@ -161,17 +187,14 @@ void GameWidget::addPlayer (){
     fixturedef.density = 1.0;
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
-    mainFixture->SetUserData( (void*)1 );
-    //mainFixture->SetUserData((void*) new UserData (Textures::Type::TEST1));
+    mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::MainFixture));
 
     b2PolygonShape sensorShape;
     sensorShape.SetAsBox(playerWidth/2*0.7, 0.1, b2Vec2(0,-2), 0);
     fixturedef.shape = &sensorShape;
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
-    //footSensorFixture->SetUserData((void*) new UserData (textures.getTexture(Textures::Type::TEST2)));
-
-    footSensorFixture->SetUserData( (void*)3 );
+    footSensorFixture->SetUserData((void*) new BodyPart (BodyPart::Type::FootSensor));
 
     //joint example
     /*
@@ -203,20 +226,20 @@ b2Body *GameWidget::addBot(Bot* bot) {
     fixturedef.density = 0.0;
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
-    mainFixture->SetUserData( (void*)1 );
+
+    mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::MainFixture));
 
     b2PolygonShape polygonShape;
     polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
 
-    footSensorFixture->SetUserData( (void*)3 );
+    footSensorFixture->SetUserData((void*) new BodyPart (BodyPart::Type::FootSensor));
     return body;
 }
 
 void GameWidget::updateGame(){
-
-    player->applyForce();
+    player->update(&textures);
     if (player->jumpCooldown) --player->jumpCooldown;
 
     for(unsigned int i = 0; i < Ai.size(); i++) {
@@ -233,18 +256,6 @@ void GameWidget::updateGame(){
 
     //setting animation type
 
-    if (player->moveState == Player::MoveState::MS_LEFT)
-        player->isMirrored = true;
-    if (player->moveState == Player::MoveState::MS_RIGHT)
-        player->isMirrored = false;
-    if (player->moveState == Player::MoveState::MS_LEFT
-            || player->moveState == Player::MoveState::MS_RIGHT){
-        if (player->texture_p->type != Textures::Type::RUN)
-            player->setTexture(textures.getTexture(Textures::Type::RUN));
-    }
-    else
-        if (player->texture_p->type != Textures::Type::PLAYER)
-            player->setTexture(textures.getTexture(Textures::Type::PLAYER));
 }
 
 void GameWidget::initializeGL() {
@@ -371,7 +382,11 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
     if (key == Qt::Key_Right || key == Qt::Key_D)
         player->moveState = Player::MS_RIGHT;
     if (key == Qt::Key_Up || key == Qt::Key_W)
-        player->jump();
+        player->moveStateVertical = Player::MSV_UP;
+    if (key == Qt::Key_Down || key == Qt::Key_S)
+        player->moveStateVertical = Player::MSV_DOWN;
+    if (key == Qt::Key_E)
+        player->useObject();
     if (key == Qt::Key_Escape) this->close();
 }
 
@@ -380,6 +395,9 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
     if ( (key == Qt::Key_Left || key == Qt::Key_A) && player->moveState == Player::MS_LEFT
          ||(key == Qt::Key_Right || key == Qt::Key_D) && player->moveState == Player::MS_RIGHT )
         player->moveState = Player::MS_STAND;
+    if ( (key == Qt::Key_Up || key == Qt::Key_W) && player->moveStateVertical == Player::MSV_UP
+            ||(key == Qt::Key_Down || key == Qt::Key_S) && player->moveStateVertical == Player::MSV_DOWN )
+        player->moveStateVertical = Player::MSV_STAND;
 }
 
 

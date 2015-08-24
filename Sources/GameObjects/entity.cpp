@@ -4,4 +4,3 @@ Entity::Entity(Textures::Texture* texture_p) : UserData (texture_p)
 {
 
 }
-

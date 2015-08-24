@@ -15,7 +15,9 @@ public:
         BACKGROUND,
         TEST1, TEST2, TEST3,
         RUN,
-        JUMP
+        JUMP,
+        LADDER,
+        CLIMBING
     };
     struct Texture {
         GLuint id;

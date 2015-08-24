@@ -1,5 +1,5 @@
 #include "userdata.h"
-#include <QDebug>
+
 UserData::UserData(){
     hasTexture = false;
     isMirrored = false;
@@ -30,4 +30,8 @@ void UserData::setTexture(Textures::Texture* texture_p){
     currentFrameN = 0;
     this->texture_p = texture_p;
     framesQuantity = texture_p->framesQuantity;
+}
+
+void UserData::use(){
+
 }

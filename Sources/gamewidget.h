@@ -30,8 +30,10 @@
 #include "Sources/UserInterface/textures.h"
 #include "GameObjects/Characters/bot.h"
 #include "GameObjects/Characters/player.h"
+#include "GameObjects/Characters/bodypart.h"
 #include "GameObjects/Rooms/room.h"
 #include "GameObjects/userdata.h"
+#include "GameObjects/InteractiveObjects/ladder.h"
 
 
 /**
