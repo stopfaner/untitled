@@ -78,10 +78,11 @@ SOURCES += main.cpp \
     Sources/UserInterface/textures.cpp \
     Sources/GameObjects/userdata.cpp \
     Sources/GameObjects/noninteractive.cpp \
-    Sources/GameObjects/Rooms/room.cpp \
     Sources/GameObjects/DynamicObjects/dynamicobject.cpp \
     Sources/GameObjects/Characters/npc.cpp \
-    Sources/GameObjects/InteractiveObjects/interactiveobject.cpp
+    Sources/GameObjects/InteractiveObjects/interactiveobject.cpp \
+    Sources/GameObjects/Rooms/room.cpp \
+    Sources/GameObjects/Builds/build.cpp
 HEADERS  += \
     Sources/gamewidget.h \
     Sources/gameinstance.h \
@@ -154,7 +155,8 @@ HEADERS  += \
     Sources/GameObjects/Rooms/room.h \
     Sources/GameObjects/DynamicObjects/dynamicobject.h \
     Sources/GameObjects/Characters/npc.h \
-    Sources/GameObjects/InteractiveObjects/interactiveobject.h
+    Sources/GameObjects/InteractiveObjects/interactiveobject.h \
+    Sources/GameObjects/Builds/build.h
 
 
 
