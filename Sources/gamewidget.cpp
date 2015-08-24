@@ -16,6 +16,7 @@
 
 #include "gamewidget.h"
 #include <QDebug>
+#include <time.h>
 #define M_PI		3.14159265358979323846
 
 
@@ -43,11 +44,43 @@ void GameWidget::createWorld(){
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
-    addRect(0,-260,500,500,false,Textures::Type::WALL);
+    // addRect(0,-260,500,500,false,Textures::Type::WALL);
+
+    srand( time(0) );
+
+    b2BodyDef chaindef;
+    chaindef.position.Set(0, 0);
+    chaindef.type = b2_staticBody;
+    b2Body* chain = world->CreateBody(&chaindef);
+
+    b2Vec2 vs[300];
+    float x = -1000;
+    int i = 0;
+    while (x < 1000){
+        float dx = rand()%5 + 5;
+        float dy = rand()%4 - 2;
+        x += dx;
+        vs[i].Set(x, dy - 15.0f);
+        ++i;
+
+    }
+
+    b2ChainShape chainShape;
+
+    chainShape.CreateChain(vs, i);
+
+    b2FixtureDef chainFixtureDef;
+    chainFixtureDef.shape = &chainShape;
+    chainFixtureDef.density = 1.0;
+
+    chain->CreateFixture(&chainFixtureDef);
+
+
+
     Room room(&textures,world);
-   // room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 13, 10);
-    room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 2, 15);
-    room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 2);
+    // room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 13, 10);
+    room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 6, 15);
+    room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 5);
     //addSpecRect();
 
     Bot *bot;
@@ -249,12 +282,14 @@ void GameWidget::paintGL() {
     //bodies
 
     b2Body* tmp=world->GetBodyList();
-    b2Vec2 points[4];
+
     while(tmp)
     {
         b2Fixture* curFixture = tmp->GetFixtureList();
         while(curFixture){
-            if (curFixture->GetShape()->GetType() !=  b2Shape::e_circle){
+            b2Shape::Type curShapeType = curFixture->GetShape()->GetType();
+            if (curShapeType ==  b2Shape::e_polygon){
+                b2Vec2 points[4];
                 for(int i=0;i<4;i++){
                     points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
                 }
@@ -265,7 +300,31 @@ void GameWidget::paintGL() {
                 data->changeFrame();
             }
             else
-                drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), Color(80, 120, 90, 150));
+                if (curShapeType == b2Shape::e_circle)
+                    drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), Color(80, 120, 90, 150));
+                else
+                    if (curShapeType == b2Shape::e_chain){
+                        int edgeCount = ((b2ChainShape*)curFixture->GetShape())->GetChildCount();
+                        //one element for start point
+                        b2Vec2 points [edgeCount+1];
+
+
+                        b2EdgeShape firstEdge;
+                        ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&firstEdge, 0);
+                        points[0] = firstEdge.m_vertex1;
+                        points[1] = firstEdge.m_vertex2;
+
+
+                        for (int i = 1; i < edgeCount; ++i){
+                            b2EdgeShape edge;
+                            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
+                            points[i+1] = edge.m_vertex2;
+
+                        }
+
+                        drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, Color(255, 100, 0, 255));
+
+                    }
             curFixture=curFixture->GetNext();
         }
         tmp=tmp->GetNext();
@@ -413,6 +472,19 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, UserData
     glPopMatrix();
 }
 
+void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, Color color) {
+
+    glColor4f(color.red, color.green, color.blue, color.alpha);
+    glPushMatrix();
+    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+
+    glBegin(GL_LINE_STRIP);
+    for(int i = 0; i < count; i++)
+        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
+    glEnd();
+    glPopMatrix();
+}
+
 void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color color) {
 
     glColor4f(color.red, color.green, color.blue, color.alpha);
@@ -427,8 +499,8 @@ void GameWidget::drawSquare(b2Vec2* points, b2Vec2 center, float angle, Color co
     glPopMatrix();
 }
 
-void GameWidget::drawCircle(float radius, b2Vec2 center, Color color)
-{
+void GameWidget::drawCircle(float radius, b2Vec2 center, Color color){
+
     glColor4f(color.red, color.green, color.blue, color.alpha);
     glPushMatrix();
 
