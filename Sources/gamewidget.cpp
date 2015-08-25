@@ -46,41 +46,44 @@ void GameWidget::createWorld(){
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
     // addRect(0,-260,500,500,false,Textures::Type::WALL);
 
+   Build * build = new Build(&textures,world);
+   build->paint(b2Vec2(-15,0),10,10);
+
     //creatin chain
 
-    srand( time(0) );
+//    srand( time(0) );
 
-    b2BodyDef chaindef;
-    chaindef.position.Set(0, 0);
-    chaindef.type = b2_staticBody;
-    b2Body* chain = world->CreateBody(&chaindef);
+//    b2BodyDef chaindef;
+//    chaindef.position.Set(0, 0);
+//    chaindef.type = b2_staticBody;
+//    b2Body* chain = world->CreateBody(&chaindef);
 
-    b2Vec2 vs[300];
-    float x = -1000;
-    int i = 0;
-    while (x < 1000){
-        float dx = rand()%5 + 5;
-        float dy = rand()%4 - 2;
-        x += dx;
-        vs[i].Set(x, dy - 15.0f);
-        ++i;
+//    b2Vec2 vs[300];
+//    float x = -1000;
+//    int i = 0;
+//    while (x < 1000){
+//        float dx = rand()%5 + 5;
+//        float dy = rand()%4 - 2;
+//        x += dx;
+//        vs[i].Set(x, dy - 15.0f);
+//        ++i;
 
-    }
+//    }
 
-    b2ChainShape chainShape;
+//    b2ChainShape chainShape;
 
-    void* chainData =(void*) new UserData();
-    chain->SetUserData(chainData);
+//    void* chainData =(void*) new UserData();
+//    chain->SetUserData(chainData);
 
-    chainShape.CreateChain(vs, i);
+//    chainShape.CreateChain(vs, i);
 
-    b2FixtureDef chainFixtureDef;
-    chainFixtureDef.shape = &chainShape;
-    chainFixtureDef.density = 1.0;
+//    b2FixtureDef chainFixtureDef;
+//    chainFixtureDef.shape = &chainShape;
+//    chainFixtureDef.density = 1.0;
 
-    chain->CreateFixture(&chainFixtureDef);
+//    chain->CreateFixture(&chainFixtureDef);
 
-    chain->SetUserData(chainData);
+//    chain->SetUserData(chainData);
 
 
    // Room room(&textures,world);
