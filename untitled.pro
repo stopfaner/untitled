@@ -84,7 +84,11 @@ SOURCES += main.cpp \
     Sources/GameObjects/InteractiveObjects/ladder.cpp \
     Sources/GameObjects/Characters/bodypart.cpp\
     Sources/GameObjects/Rooms/room.cpp \
-    Sources/GameObjects/Builds/build.cpp
+    Sources/GameObjects/Builds/build.cpp \
+    Sources/UserInterface/displaydata.cpp \
+    Sources/UserInterface/keylinedata.cpp \
+    Sources/UserInterface/texturedata.cpp \
+    Sources/UserInterface/color.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -161,7 +165,12 @@ HEADERS  += \
     Sources/GameObjects/InteractiveObjects/interactiveobject.h \
     Sources/GameObjects/InteractiveObjects/ladder.h \
     Sources/GameObjects/Characters/bodypart.h\
-    Sources/GameObjects/Builds/build.h
+    Sources/GameObjects/Builds/build.h \
+    Sources/UserInterface/displaydata.h \
+    Sources/UserInterface/Screen/keylinedata.h \
+    Sources/UserInterface/keylinedata.h \
+    Sources/UserInterface/texturedata.h \
+    Sources/UserInterface/color.h
 
 
 

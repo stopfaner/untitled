@@ -14,8 +14,8 @@ public:
         MS_RIGHT
     };
     MoveState moveState;
-    Bot(Textures::Texture* texture_p);
-    Bot(int x, int y, b2World *world, Textures::Texture* texture_p);
+    Bot(DisplayData* displayData);
+    Bot(int x, int y, b2World *world, DisplayData* displayData);
     void jump();
     bool onGround();
     void allowJump();

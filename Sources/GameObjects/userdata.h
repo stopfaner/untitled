@@ -1,23 +1,14 @@
 #ifndef USERDATA_H
 #define USERDATA_H
-#include "Sources/UserInterface/textures.h"
+
+#include "Sources/UserInterface/displaydata.h"
 
 class UserData
 {
 public:
-    UserData();
-    UserData(Textures::Texture* texture_p);
+    UserData (DisplayData* displayData);
 
-    Textures::Texture* texture_p;
-    bool hasTexture;
-    bool isMirrored;
-    bool isPlayer;
-    int currentFrameN;
-    int framesQuantity;
-    int frameDelay;
-    int frameDelayMax;
-    void changeFrame ();
-    void setTexture (Textures::Texture *texture_p);
+    DisplayData* displayData;
 
     virtual void use();
 

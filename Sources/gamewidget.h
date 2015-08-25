@@ -34,39 +34,17 @@
 #include "GameObjects/Rooms/room.h"
 #include "GameObjects/userdata.h"
 #include "GameObjects/InteractiveObjects/ladder.h"
-
+#include "UserInterface/color.h"
+#include "UserInterface/displaydata.h"
+#include "UserInterface/keylinedata.h"
+#include "UserInterface/texturedata.h"
 
 /**
  * @brief The GameWidget class describes main window activity
  */
 using namespace std;
 
-class Color
-{
-public:
-    GLfloat red;
-    GLfloat green;
-    GLfloat blue;
-    GLfloat alpha;
-    Color ()
-    {
-        red = 1;
-        green = 1;
-        blue = 1;
-        alpha = 1;
-    }
-    Color (short red, short green, short blue, short alpha = 255)
-    {
-        setColor (red, green, blue, alpha);
-    }
-    setColor (short red, short green, short blue, short alpha = 255)
-    {
-        this->red = (float) red / 255;
-        this->green = (float) green / 255;
-        this-> blue = (float) blue / 255;
-        this-> alpha = (float) alpha / 255;
-    }
-};
+
 
 class GameWidget : public QGLWidget {
 
@@ -108,17 +86,16 @@ private:
 
     b2Body* addSpecRect ();
 
-    void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, UserData *userData);
-    void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, Color color);
-    void drawCircle(float radius, b2Vec2 center, Color color);
-    void drawChain(b2Vec2* points, b2Vec2 center, int count, Color color);
+    void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, TextureData *textureData);
+    void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, KeyLineData *keyLineData);
+    void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData);
+    void drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData);
 
     void addPlayer ();
     void createWorld();
 
     b2Body *addBot(Bot* bot);
 
-    GLuint tex;
     Textures textures;
 };
 

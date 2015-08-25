@@ -1,6 +1,6 @@
 #include "ladder.h"
 
-Ladder::Ladder(Textures::Texture *texture_p) : InteractiveObject (texture_p){
+Ladder::Ladder(DisplayData *displayData) : InteractiveObject (displayData){
 
 }
 

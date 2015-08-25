@@ -8,7 +8,7 @@ class Player;
 class Ladder : public InteractiveObject{
 
 public:
-    Ladder(Textures::Texture* texture_p);
+    Ladder(DisplayData* displayData);
     void use(Player *player);
 };
 

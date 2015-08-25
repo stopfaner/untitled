@@ -1,11 +1,5 @@
 #include "bodypart.h"
 
-BodyPart::BodyPart(Type type) : UserData (){
+BodyPart::BodyPart(DisplayData* displayData, Type type) : UserData (displayData){
     this->type = type;
 }
-
-BodyPart::BodyPart(Textures::Texture* texture_p, Type type) : UserData (texture_p)
-{
-    this->type = type;
-}
-

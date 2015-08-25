@@ -18,7 +18,7 @@ public:
         JUMP,
         LADDER,
         CLIMBING,
-        CLIMBING_STOP
+        CLIMBING_IDLE
     };
     struct Texture {
         GLuint id;

@@ -1,6 +1,6 @@
 #include "npc.h"
 
-NPC::NPC(Textures::Texture* texture_p) : Entity (texture_p)
+NPC::NPC(DisplayData *displayData) : Entity (displayData)
 {
 
 }

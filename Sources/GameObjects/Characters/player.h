@@ -6,6 +6,7 @@
 #include "Sources/GameObjects/entity.h"
 #include "Sources/GameObjects/InteractiveObjects/interactiveobject.h"
 #include "Sources/GameObjects/InteractiveObjects/ladder.h"
+#include "Sources/UserInterface/texturedata.h"
 //class Ladder;
 
 class Player : public Entity
@@ -27,7 +28,8 @@ public:
     bool isJumping;
     MoveState moveState;
     MoveStateVertical moveStateVertical;
-    Player(Textures::Texture* texture_p);
+    Player(DisplayData *displayData);
+
     void useObject();
     void jump();
     void crouch();

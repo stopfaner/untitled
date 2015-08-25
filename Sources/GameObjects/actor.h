@@ -3,7 +3,7 @@
 #include "Sources/GameObjects/userdata.h"
 
 
-class Actor : public UserData
+class Actor
 {
 public:
     Actor();

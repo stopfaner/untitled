@@ -6,7 +6,7 @@
 class NPC : public Entity
 {
 public:
-    NPC(Textures::Texture* texture_p);
+    NPC(DisplayData* displayData);
 };
 
 #endif // NPC_H

@@ -7,12 +7,18 @@ class BodyPart : public UserData
 {
 public:
     enum Type {
-        FootSensor,
-        MainFixture
+        FOOT_SENSOR,
+        BODY,
+        HIP_LEFT,
+        HIP_RIGHT,
+        SHIN_LEFT,
+        SHIN_RIGHT,
+        ARM_RIGHT,
+        ARM_LEFT,
+        HEAD
     };
 
-    BodyPart (Textures::Texture* texture_p, Type type);
-    BodyPart (Type type);
+    BodyPart(DisplayData* displayData, Type type);
 
     Type type;
 };

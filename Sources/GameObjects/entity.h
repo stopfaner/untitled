@@ -6,7 +6,7 @@
 class Entity : public UserData
 {
 public:
-    Entity(Textures::Texture* texture_p);
+    Entity(DisplayData *displayData);
 };
 
 #endif // ENTITY_H

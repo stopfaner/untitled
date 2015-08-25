@@ -1,13 +1,13 @@
 #include "player.h"
 
-Player::Player(Textures::Texture* texture_p) : Entity (texture_p)
+Player::Player(DisplayData* displayData) : Entity (displayData)
 {
     moveState = MS_STAND;
     moveStateVertical = MSV_STAND;
     isOnLadder = false;
     isJumping = false;
     jumpCooldown = 0;
-    jumpCooldownMax = 50;
+    jumpCooldownMax = 40;
 }
 
 void Player::useObject(){
@@ -52,37 +52,36 @@ void Player::setBody (b2Body* body){
 
 void Player::chooseTexture(Textures *textures)
 {
+    TextureData* td = (TextureData*) displayData;
     if (isOnLadder){
         if (moveStateVertical == MSV_STAND){
-            if (texture_p->type != Textures::Type::CLIMBING_STOP)
-                setTexture(textures->getTexture(Textures::Type::CLIMBING_STOP));
+            if (td->texture_p->type != Textures::Type::CLIMBING_IDLE)
+                td->setTexture(textures->getTexture(Textures::Type::CLIMBING_IDLE));
         }
         else
-            if (texture_p->type != Textures::Type::CLIMBING)
-                setTexture(textures->getTexture(Textures::Type::CLIMBING));
+            if (td->texture_p->type != Textures::Type::CLIMBING)
+                td->setTexture(textures->getTexture(Textures::Type::CLIMBING));
     }
     else{
         if (moveState == MS_LEFT)
-            isMirrored = true;
+            td->isMirrored= true;
         if (moveState == MS_RIGHT)
-            isMirrored = false;
+            td->isMirrored = false;
         if (moveState == MS_LEFT
                 || moveState == MS_RIGHT){
-            if (texture_p->type != Textures::Type::RUN)
-                setTexture(textures->getTexture(Textures::Type::RUN));
+            if (td->texture_p->type != Textures::Type::RUN)
+                td->setTexture(textures->getTexture(Textures::Type::RUN));
         }
         else
-            if (texture_p->type != Textures::Type::PLAYER)
-                setTexture(textures->getTexture(Textures::Type::PLAYER));
+            if (td->texture_p->type != Textures::Type::PLAYER)
+                td->setTexture(textures->getTexture(Textures::Type::PLAYER));
     }
 
 }
 
 void Player::applyForce(){
-    if (isJumping){
-        isOnLadder = false;
+    if (isJumping)
         jump();
-    }
 
     //horizontal forces
     b2Vec2 vel = body->GetLinearVelocity();
@@ -111,7 +110,7 @@ void Player::applyForce(){
         if (moveStateVertical == MSV_UP)
             if (checkForLadder()) isOnLadder = true;
         if (moveStateVertical == MSV_DOWN)
-            crouch();
+            crouch();//TODO
     }
 
 }
@@ -119,7 +118,7 @@ void Player::applyForce(){
 void Player::crouch(){}
 
 void Player::jump(){
-
+    isOnLadder = false;
     if (!jumpCooldown){
         jumpCooldown = jumpCooldownMax;
         for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
@@ -128,14 +127,14 @@ void Player::jump(){
             UserData* dataA = (UserData*) c->GetFixtureA()->GetUserData();
             BodyPart* bodyPartA = dynamic_cast <BodyPart*> (dataA);
             if (bodyPartA)
-                if ( bodyPartA->type == BodyPart::Type::FootSensor) {
+                if ( bodyPartA->type == BodyPart::Type::FOOT_SENSOR) {
                     body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
                     break;
                 }
             UserData* dataB = (UserData*) c->GetFixtureB()->GetUserData();
             BodyPart* bodyPartB = dynamic_cast <BodyPart*> (dataB);
             if (bodyPartB)
-                if ( bodyPartB->type == BodyPart::Type::FootSensor) {
+                if ( bodyPartB->type == BodyPart::Type::FOOT_SENSOR) {
                     body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
                     break;
                 }
@@ -145,11 +144,7 @@ void Player::jump(){
 
 void Player::update(Textures* textures)
 {
-    if (isOnLadder && !checkForLadder()) {
-        isOnLadder = false;
-        b2Vec2 speed = body->GetLinearVelocity();
-        //body->SetLinearVelocity(b2Vec2(speed.x*2, speed.y*2));
-    }
+    if (isOnLadder && !checkForLadder()) isOnLadder = false;
     applyForce();
     chooseTexture(textures);
 }

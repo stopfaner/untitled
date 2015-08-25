@@ -38,7 +38,9 @@ void GameWidget::createWorld(){
     b2AABB *borderWorld = new b2AABB();
     borderWorld->lowerBound.Set(-1000.0, -1000.0);
     borderWorld->upperBound.Set(1000.0, 1000.0);
-    player = new Player(textures.getTexture(Textures::Type::RUN));
+
+
+
     addPlayer();
     addRect(0,-1000,1000,2,false,Textures::Type::WALL);
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
@@ -46,7 +48,7 @@ void GameWidget::createWorld(){
     addRect(1000,0,2,10000,false,Textures::Type::WALL);
     // addRect(0,-260,500,500,false,Textures::Type::WALL);
 
-    //creatin chain
+    //creating chain
 
     srand( time(0) );
 
@@ -69,8 +71,9 @@ void GameWidget::createWorld(){
 
     b2ChainShape chainShape;
 
-    void* chainData =(void*) new UserData();
-    chain->SetUserData(chainData);
+    DisplayData* chainDD = (DisplayData*) new KeyLineData (Color(255, 0, 0));
+    UserData* chainUD = new UserData(chainDD);
+    chain->SetUserData((void*)chainUD);
 
     chainShape.CreateChain(vs, i);
 
@@ -78,24 +81,19 @@ void GameWidget::createWorld(){
     chainFixtureDef.shape = &chainShape;
     chainFixtureDef.density = 1.0;
 
-    chain->CreateFixture(&chainFixtureDef);
+    b2Fixture* chainFix = chain->CreateFixture(&chainFixtureDef);
 
-    chain->SetUserData(chainData);
+    chainFix->SetUserData((void*)chainUD);
 
-
-   // Room room(&textures,world);
-    // room.CreateRoom(b2Vec2(-15, 1), b2Vec2(20, 20), 0.5, 13, 10);
-   // room.CreateRoom(b2Vec2(0, 0), b2Vec2(40, 20), 1, 6, 15);
-//    room.CreateRoom(b2Vec2(39, 0), b2Vec2(40, 20), 1, 15, 5);
     addSpecRect();
-
+    /*
     Bot *bot;
     bot = new Bot(textures.getTexture(Textures::Type::BOT));
     bot->setBody(addBot(bot));
     AI *ai;
     ai = new AI(player,bot);
     Ai.push_back(ai);
-
+*/
     //car
 
     b2Body* mainPlank = addRect(0, 0, 5, 0.5, true, Textures::Type::CRATE);
@@ -112,7 +110,7 @@ void GameWidget::createWorld(){
     jointDef.Initialize(mainPlank, littlePlank2, b2Vec2(-2.5, 0));
     world->CreateJoint( &jointDef );
 
-//second car
+    //second car
 
     b2Body* mainPlank2 = addRect(0, 5, 5, 0.5, true, Textures::Type::CRATE);
     b2Body* rule = addRect(0, 6.5, 0.5, 3, true, Textures::Type::CRATE);
@@ -130,12 +128,15 @@ void GameWidget::createWorld(){
     fixturedef.shape = &circleShape;
     fixturedef.density = 1.0;
 
-    circle->CreateFixture(&fixturedef);
+    b2Fixture* circleFix = circle->CreateFixture(&fixturedef);
+    DisplayData* circleDD = (DisplayData*) new KeyLineData(Color(100, 200, 100));
+    UserData* circleUD = new UserData(circleDD);
+    circleFix->SetUserData((void*)circleUD);
     //
     bodydef.position.Set(-2.5, 5);
     b2Body* circle2 = world->CreateBody(&bodydef);
-    circle2->CreateFixture(&fixturedef);
-
+  b2Fixture* circleFix2 =  circle2->CreateFixture(&fixturedef);
+circleFix2->SetUserData((void*)circleUD);
     jointDef.Initialize(mainPlank2, circle, b2Vec2(2.5, 5));
     world->CreateJoint( &jointDef );
     jointDef.Initialize(mainPlank2, circle2, b2Vec2(-2.5, 5));
@@ -162,13 +163,17 @@ void GameWidget::createWorld(){
     fixturedefLadder.filter.groupIndex = 1;
 
     b2Fixture* ladderFixture = body->CreateFixture(&fixturedefLadder);
-    void* ladderData = new Ladder (textures.getTexture(Textures::Type::LADDER));
-    body->SetUserData(ladderData);
-    ladderFixture->SetUserData(ladderData);
+
+    DisplayData* ladderDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::LADDER));
+    UserData* LadderUD = new Ladder (ladderDD);
+    body->SetUserData((void*)LadderUD);
+    ladderFixture->SetUserData((void*)LadderUD);
 
 }
 
 void GameWidget::addPlayer (){
+    DisplayData* playerDD = (DisplayData*) new TextureData (textures.getTexture(Textures::Type::PLAYER));
+    player = new Player(playerDD);
     float playerWidth = 2; float playerHeight = 4;
     b2BodyDef bodydef;
     bodydef.position.Set(0, 0);
@@ -176,10 +181,11 @@ void GameWidget::addPlayer (){
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
-    player->isPlayer = true;
-    body->SetUserData((void*) player);
+    playerDD->isPlayer = true;
+    UserData* playerUD = new UserData (playerDD);
+    body->SetUserData((void*) playerUD);
     b2PolygonShape shape;
-    shape.SetAsBox(playerWidth/2, playerHeight/2);
+    shape.SetAsBox(playerWidth/2.0f, playerHeight/2.0f);
 
     b2FixtureDef fixturedef;
     // fixturedef.friction = 5;
@@ -187,15 +193,36 @@ void GameWidget::addPlayer (){
     fixturedef.density = 1.0;
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
-    mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::MainFixture));
+
+    DisplayData* bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0));
+    UserData* bodyUD = new BodyPart(playerDD, BodyPart::Type::BODY);
+
+    mainFixture->SetUserData((void*) bodyUD);
 
     b2PolygonShape sensorShape;
     sensorShape.SetAsBox(playerWidth/2*0.7, 0.1, b2Vec2(0,-2), 0);
     fixturedef.shape = &sensorShape;
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
-    footSensorFixture->SetUserData((void*) new BodyPart (BodyPart::Type::FootSensor));
 
+    UserData* footUD = new BodyPart(bodyDD, BodyPart::Type::FOOT_SENSOR);
+
+    footSensorFixture->SetUserData((void*) footUD);
+    //hips
+    bodydef.position.Set(0, -0.6);
+    b2Body* leftHip = world->CreateBody(&bodydef);
+    shape.SetAsBox(0.25f/2.0f, 0.5f/2.0f);
+    //shins
+    bodydef.position.Set(0, -1.1);
+    b2Body* leftShin = world->CreateBody(&bodydef);
+    shape.SetAsBox(0.25f/2.0f, 0.5f/2.0f);
+    //joints
+    b2WeldJointDef wjd;
+    wjd.Initialize(body, leftHip, b2Vec2(0, -0.5f));
+    world->CreateJoint(&wjd);
+
+    wjd.Initialize(leftHip, leftShin, b2Vec2(0, -1.0f));
+    world->CreateJoint(&wjd);
     //joint example
     /*
     b2Body* body1 = addRect(2, 0, 4, 0.6, true, Textures::Type::CRATE);
@@ -210,13 +237,15 @@ void GameWidget::addPlayer (){
 
 }
 
-b2Body *GameWidget::addBot(Bot* bot) {
+b2Body *GameWidget::addBot(Bot* bot) {/*
     b2BodyDef bodydef;
     bodydef.position.Set(0, 0);
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
-    body->SetUserData((void*) bot);
+    DisplayData* bodyDD = new NonDrawable;
+    UserData* bodyUD = new UserData (bodyDD);
+    body->SetUserData((void*) bodyUD);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
 
@@ -227,21 +256,24 @@ b2Body *GameWidget::addBot(Bot* bot) {
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
 
-    mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::MainFixture));
+    DisplayData* dispData = (DisplayData*)TextureData(textures.getTexture(Textures::Type::));
+    UserData* userData = new BodyPart(dispData, BodyPart::Type::BODY);
+
+   mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::BODY));
 
     b2PolygonShape polygonShape;
     polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
 
-    footSensorFixture->SetUserData((void*) new BodyPart (BodyPart::Type::FootSensor));
-    return body;
+    footSensorFixture->SetUserData((void*) new BodyPart (BodyPart::Type::FOOT_SENSOR));
+    return body;*/
 }
 
 void GameWidget::updateGame(){
     player->update(&textures);
     if (player->jumpCooldown) --player->jumpCooldown;
-
+/*
     for(unsigned int i = 0; i < Ai.size(); i++) {
         AI *temp = Ai.at(i);
         temp->updateAI();
@@ -253,7 +285,7 @@ void GameWidget::updateGame(){
         if (temp->bot->moveState == Player::MoveState::MS_RIGHT)
             temp->bot->isMirrored = false;
     }
-
+*/
     //setting animation type
 
 }
@@ -281,17 +313,14 @@ void GameWidget::resizeGL(int nWidth, int nHeight) {
 
 void GameWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT);
-    //glViewport(-player->body->GetWorldCenter().x*M2P/2,
-    //           -player->body->GetWorldCenter().y*M2P/2, WIDTH, HEIGHT);
 
     glLoadIdentity();
 
     //background
-
-    UserData* data1 = new UserData (textures.getTexture(Textures::Type::BACKGROUND));
+    TextureData* backgroundTD = new TextureData (textures.getTexture(Textures::Type::BACKGROUND));
     b2Vec2 pointsBackground[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
                                   b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
-    drawPolygon (pointsBackground, 4, b2Vec2(0, 0), 0, data1);
+    drawPolygon (pointsBackground, 4, b2Vec2(0, 0), 0, backgroundTD);
 
     //bodies
 
@@ -302,29 +331,37 @@ void GameWidget::paintGL() {
         b2Fixture* curFixture = tmp->GetFixtureList();
         while(curFixture){
             b2Shape::Type curShapeType = curFixture->GetShape()->GetType();
+            UserData* userData = (UserData*)curFixture->GetUserData();
+            DisplayData* displayData = userData->displayData;
             if (curShapeType ==  b2Shape::e_polygon){
                 int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
                 b2Vec2 points[count];
                 for(int i=0; i < count; i++){
                     points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
                 }
-
-                UserData* data = static_cast<UserData*>(tmp->GetUserData());
-                if (data->hasTexture){
-                    drawPolygon (points, count, tmp->GetWorldCenter(), tmp->GetAngle(), data);
-                    data->changeFrame();
-                }
-                else drawPolygon (points, count, tmp->GetPosition(), tmp->GetAngle(), Color());
+                NonDrawable* ND_p = dynamic_cast<NonDrawable*>(displayData);
+                TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
+                KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
+                if (!ND_p)
+                    if (TD_p){
+                        drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
+                        TD_p->changeFrame();
+                    }
+                    else
+                        if (KLD_p)
+                            drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
             }
             else
-                if (curShapeType == b2Shape::e_circle)
-                    drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), Color(80, 120, 90, 150));
+                if (curShapeType == b2Shape::e_circle){
+                    KeyLineData* KLD_p = (KeyLineData*) displayData;
+                    drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), KLD_p);
+                }
                 else
                     if (curShapeType == b2Shape::e_chain){
+                        KeyLineData* KLD_p = (KeyLineData*) displayData;
                         int edgeCount = ((b2ChainShape*)curFixture->GetShape())->GetChildCount();
                         //one element for start point
                         b2Vec2 points [edgeCount+1];
-
 
                         b2EdgeShape firstEdge;
                         ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&firstEdge, 0);
@@ -339,7 +376,7 @@ void GameWidget::paintGL() {
 
                         }
 
-                        drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, Color(255, 100, 0, 255));
+                        drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, KLD_p);
 
                     }
             curFixture=curFixture->GetNext();
@@ -347,13 +384,6 @@ void GameWidget::paintGL() {
         tmp=tmp->GetNext();
 
     }
-
-    //meter rectangle
-
-    b2Vec2 points1[4] = {b2Vec2(-1, -2),b2Vec2(0, -2),
-                         b2Vec2(0, -2.5),b2Vec2(-1, -2.5)};
-    drawPolygon (points1, 4, b2Vec2(0, 0), 0, Color(255, 255, 0, 100));
-
     //update Box2D
 
     world->Step(1.0/30.0, 8, 3);
@@ -398,7 +428,7 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
          ||(key == Qt::Key_Right || key == Qt::Key_D) && player->moveState == Player::MS_RIGHT )
         player->moveState = Player::MS_STAND;
     if ( (key == Qt::Key_Up || key == Qt::Key_W) && player->moveStateVertical == Player::MSV_UP
-            ||(key == Qt::Key_Down || key == Qt::Key_S) && player->moveStateVertical == Player::MSV_DOWN )
+         ||(key == Qt::Key_Down || key == Qt::Key_S) && player->moveStateVertical == Player::MSV_DOWN )
         player->moveStateVertical = Player::MSV_STAND;
     if ( (key == Qt::Key_Space) && player->isJumping)
         player->isJumping = false;
@@ -421,9 +451,12 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
     fixturedef.density = 3.0;
     fixturedef.filter.groupIndex = 1;
 
-    body->CreateFixture(&fixturedef);
+    b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
 
-    body->SetUserData((void*) new UserData (textures.getTexture(type)));
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures.getTexture(type));
+    UserData* bodyUD = new UserData (bodyDD);
+    bodyFix->SetUserData((void*) bodyUD);
+    body->SetUserData((void*) bodyUD);
     return body;
 }
 
@@ -455,15 +488,18 @@ b2Body* GameWidget::addSpecRect() {
     fixturedef.density=1.0;
     fixturedef.filter.groupIndex=1;
 
-    body->CreateFixture(&fixturedef);
+    b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
 
     body->ApplyLinearImpulse(b2Vec2(-body->GetMass() * 100, 0), b2Vec2(0, 0), true);
 
-    body->SetUserData((void*) new UserData ());
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::CRATE));
+    UserData* bodyUD = new UserData (bodyDD);
+bodyFix->SetUserData((void*) bodyUD);
+    body->SetUserData((void*) bodyUD);
     return body;
 }
 
-void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, UserData* userData) {
+void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, TextureData* textureData) {
 
     //setting texture's points
 
@@ -471,7 +507,7 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     point  texPoints [4];
     point  straightImage [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0f}};
     point  mirroredImage [4] = {{1.0f, 0.0f},{0.0f, 0.0f},{0.0f, 1.0f},{1.0f, 1.0f}};
-    if (userData->isMirrored)
+    if (textureData->isMirrored)
         for (int i = 0; i<4; i++)
             texPoints[i] = mirroredImage[i];
     else
@@ -480,14 +516,14 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
 
     //choosing sprite tile
 
-    int tileColumn = userData->currentFrameN % userData->texture_p->columns;
-    int tileRow = userData->currentFrameN / userData->texture_p->columns;
+    int tileColumn = textureData->currentFrameN % textureData->texture_p->columns;
+    int tileRow = textureData->currentFrameN / textureData->texture_p->columns;
     for (int i = 0; i < 4; ++i){
 
-        texPoints[i].x /= userData->texture_p->columns;
-        texPoints[i].y /= userData->texture_p->rows;
-        texPoints[i].x += (float) tileColumn/userData->texture_p->columns;
-        texPoints[i].y += (float) tileRow/userData->texture_p->rows;
+        texPoints[i].x /= textureData->texture_p->columns;
+        texPoints[i].y /= textureData->texture_p->rows;
+        texPoints[i].x += (float) tileColumn/textureData->texture_p->columns;
+        texPoints[i].y += (float) tileRow/textureData->texture_p->rows;
     }
 
     //drawing texture
@@ -495,14 +531,14 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glPushMatrix();
     glColor3f(1, 1, 1);
 
-    if(!userData->isPlayer)
+    if(!textureData->isPlayer)
         glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
 
     glRotatef(angle*180.0/M_PI,0,0,1);
 
     glEnable(GL_TEXTURE_2D);
 
-    glBindTexture(GL_TEXTURE_2D, userData->texture_p->id);
+    glBindTexture(GL_TEXTURE_2D, textureData->texture_p->id);
 
     glBegin(GL_POLYGON);
     for(int i = 0; i < count; i++){
@@ -515,11 +551,12 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glPopMatrix();
 }
 
-void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, Color color) {
+void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData) {
 
-    glColor4f(color.red, color.green, color.blue, color.alpha);
+    glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
     glPushMatrix();
-    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+    if(!keyLineData->isPlayer)
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
 
     glBegin(GL_LINE_STRIP);
     for(int i = 0; i < count; i++)
@@ -528,11 +565,11 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, Color color
     glPopMatrix();
 }
 
-void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, Color color) {
-
-    glColor4f(color.red, color.green, color.blue, color.alpha);
+void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, KeyLineData *keyLineData) {
     glPushMatrix();
-    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+    glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
+    if(!keyLineData->isPlayer)
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
     //glTranslatef (center.x*M2P/WIDTH, center.y*M2P/WIDTH, 0);
     glRotatef(angle*180.0/M_PI, 0, 0, 1);
     glBegin(GL_POLYGON);
@@ -542,12 +579,11 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glPopMatrix();
 }
 
-void GameWidget::drawCircle(float radius, b2Vec2 center, Color color){
-
-    glColor4f(color.red, color.green, color.blue, color.alpha);
+void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData){
     glPushMatrix();
-
-    glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+    glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
+    if(!keyLineData->isPlayer)
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
 
     glBegin(GL_LINE_LOOP);
 

@@ -7,7 +7,7 @@ class Player;
 class InteractiveObject : public NonInteractive{
 
 public:
-    InteractiveObject(Textures::Texture* texture_p);
+    InteractiveObject(DisplayData* displayData);
     virtual void use (Player* player) = 0;
 };
 

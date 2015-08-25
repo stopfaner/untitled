@@ -2,7 +2,7 @@
 
 #include <QDebug>
 b2Body *Room::CreateRoom(b2Vec2 center)
-{
+{/*
     b2BodyDef bodydef;
     bodydef.position.Set(center.x, center.y);
     room=world->CreateBody(&bodydef);
@@ -44,7 +44,7 @@ float hR = size.y - 2*wallWidth - passageHeightRight;
 
 
     room->SetUserData((void*) new UserData (texture_p->getTexture(Textures::Type::WALL)));
-    return room;
+    return room;*/
 }
 
 Room::Room(Textures *texture_p, b2World *world){

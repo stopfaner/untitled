@@ -1,7 +1,7 @@
 #include "noninteractive.h"
 
 
-NonInteractive::NonInteractive(Textures::Texture* texture_p) : UserData(texture_p)
+NonInteractive::NonInteractive(DisplayData* displayData) : UserData(displayData)
 {
 
 }
