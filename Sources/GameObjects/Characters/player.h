@@ -6,6 +6,7 @@
 #include "Sources/GameObjects/entity.h"
 #include "Sources/GameObjects/InteractiveObjects/interactiveobject.h"
 #include "Sources/GameObjects/InteractiveObjects/ladder.h"
+#include "Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h"
 #include "Sources/UserInterface/texturedata.h"
 //class Ladder;
 
@@ -29,6 +30,7 @@ public:
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Player(DisplayData *displayData);
+    Vehicle* vehicle;
 
     void useObject();
     void jump();

@@ -7,6 +7,7 @@ class Player;
 class InteractiveObject : public NonInteractive{
 
 public:
+    InteractiveObject();
     InteractiveObject(DisplayData* displayData);
     virtual void use (Player* player) = 0;
 };

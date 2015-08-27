@@ -3,8 +3,6 @@
 #include "interactiveobject.h"
 #include "Sources/GameObjects/Characters/player.h"
 
-class Player;
-
 class Ladder : public InteractiveObject{
 
 public:

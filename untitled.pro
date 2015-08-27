@@ -88,7 +88,10 @@ SOURCES += main.cpp \
     Sources/UserInterface/displaydata.cpp \
     Sources/UserInterface/keylinedata.cpp \
     Sources/UserInterface/texturedata.cpp \
-    Sources/UserInterface/color.cpp
+    Sources/UserInterface/color.cpp \
+    Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.cpp \
+    Sources/GameObjects/InteractiveObjects/Vehicles/car.cpp \
+    Sources/UserInterface/nondrawable.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -170,7 +173,10 @@ HEADERS  += \
     Sources/UserInterface/Screen/keylinedata.h \
     Sources/UserInterface/keylinedata.h \
     Sources/UserInterface/texturedata.h \
-    Sources/UserInterface/color.h
+    Sources/UserInterface/color.h \
+    Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h \
+    Sources/GameObjects/InteractiveObjects/Vehicles/car.h \
+    Sources/UserInterface/nondrawable.h
 
 
 

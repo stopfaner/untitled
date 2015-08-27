@@ -6,6 +6,7 @@
 class UserData
 {
 public:
+    UserData();
     UserData (DisplayData* displayData);
 
     DisplayData* displayData;

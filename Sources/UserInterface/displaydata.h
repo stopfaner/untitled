@@ -12,6 +12,4 @@ private:
     virtual void virtualMethod();
 };
 
-class NonDrawable : public DisplayData{};
-
 #endif // DISPLAYDATA_H

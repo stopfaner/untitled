@@ -34,10 +34,12 @@
 #include "GameObjects/Rooms/room.h"
 #include "GameObjects/userdata.h"
 #include "GameObjects/InteractiveObjects/ladder.h"
+#include "GameObjects/InteractiveObjects/Vehicles/car.h"
 #include "UserInterface/color.h"
 #include "UserInterface/displaydata.h"
 #include "UserInterface/keylinedata.h"
 #include "UserInterface/texturedata.h"
+#include "UserInterface/nondrawable.h"
 
 /**
  * @brief The GameWidget class describes main window activity

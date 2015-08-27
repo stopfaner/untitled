@@ -5,6 +5,7 @@
 class NonInteractive : public UserData
 {
 public:
+    NonInteractive();
     NonInteractive(DisplayData *displayData);
 };
 

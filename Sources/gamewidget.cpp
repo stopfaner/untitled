@@ -57,17 +57,23 @@ void GameWidget::createWorld(){
     chaindef.type = b2_staticBody;
     b2Body* chain = world->CreateBody(&chaindef);
 
-    b2Vec2 vs[300];
+    b2Vec2 vs[1000];
     float x = -1000;
     int i = 0;
     while (x < 1000){
         float dx = rand()%5 + 5;
         float dy = rand()%4 - 2;
         x += dx;
+        if (i>0){
+            vs[i].Set(x - dx / 2, ((vs[i-1].y + (dy-15.0f)) /2));
+            ++i;
+        }
         vs[i].Set(x, dy - 15.0f);
         ++i;
-
     }
+    vs[0].x = -1000;
+    vs[i].x = 1000;
+
 
     b2ChainShape chainShape;
 
@@ -94,56 +100,8 @@ void GameWidget::createWorld(){
     ai = new AI(player,bot);
     Ai.push_back(ai);
 */
-    //car
 
-    b2Body* mainPlank = addRect(0, 0, 5, 0.5, true, Textures::Type::CRATE);
-    b2Body* littlePlank1 = addRect(2.5, 0, 0.5, 3, true, Textures::Type::CRATE);
-    b2Body* littlePlank2 = addRect(-2.5, 0, 0.5, 3, true, Textures::Type::CRATE);
-    b2RevoluteJointDef jointDef;
-
-    jointDef.maxMotorTorque = 1500.0f;
-    jointDef.motorSpeed = 5.0f;
-    jointDef.enableMotor = true;
-
-    jointDef.Initialize(mainPlank, littlePlank1, b2Vec2(2.5, 0));
-    world->CreateJoint( &jointDef );
-    jointDef.Initialize(mainPlank, littlePlank2, b2Vec2(-2.5, 0));
-    world->CreateJoint( &jointDef );
-
-    //second car
-
-    b2Body* mainPlank2 = addRect(0, 5, 5, 0.5, true, Textures::Type::CRATE);
-    b2Body* rule = addRect(0, 6.5, 0.5, 3, true, Textures::Type::CRATE);
-    //circle
-    b2BodyDef bodydef;
-    bodydef.position.Set(2.5, 5);
-    bodydef.type = b2_dynamicBody;
-    b2Body* circle = world->CreateBody(&bodydef);
-
-    b2CircleShape circleShape;
-    circleShape.m_p.Set(0, 0);
-    circleShape.m_radius = 1;
-
-    b2FixtureDef fixturedef;
-    fixturedef.shape = &circleShape;
-    fixturedef.density = 1.0;
-
-    b2Fixture* circleFix = circle->CreateFixture(&fixturedef);
-    DisplayData* circleDD = (DisplayData*) new KeyLineData(Color(100, 200, 100));
-    UserData* circleUD = new UserData(circleDD);
-    circleFix->SetUserData((void*)circleUD);
-    //
-    bodydef.position.Set(-2.5, 5);
-    b2Body* circle2 = world->CreateBody(&bodydef);
-  b2Fixture* circleFix2 =  circle2->CreateFixture(&fixturedef);
-circleFix2->SetUserData((void*)circleUD);
-    jointDef.Initialize(mainPlank2, circle, b2Vec2(2.5, 5));
-    world->CreateJoint( &jointDef );
-    jointDef.Initialize(mainPlank2, circle2, b2Vec2(-2.5, 5));
-    world->CreateJoint( &jointDef );
-    b2WeldJointDef weldJointDef;
-    weldJointDef.Initialize(rule, mainPlank2, b2Vec2(0, 5));
-    world->CreateJoint( &weldJointDef );
+    Car car(world, &textures);
 
 
     //creating ladder
@@ -176,7 +134,7 @@ void GameWidget::addPlayer (){
     player = new Player(playerDD);
     float playerWidth = 2; float playerHeight = 4;
     b2BodyDef bodydef;
-    bodydef.position.Set(0, 0);
+    bodydef.position.Set(0, 10);
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
@@ -273,7 +231,7 @@ b2Body *GameWidget::addBot(Bot* bot) {/*
 void GameWidget::updateGame(){
     player->update(&textures);
     if (player->jumpCooldown) --player->jumpCooldown;
-/*
+    /*
     for(unsigned int i = 0; i < Ai.size(); i++) {
         AI *temp = Ai.at(i);
         temp->updateAI();
@@ -420,6 +378,16 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
     if (key == Qt::Key_E)
         player->useObject();
     if (key == Qt::Key_Escape) this->close();
+    if (key == Qt::Key_X) {
+        player->vehicle->motor->SetMaxMotorTorque(
+                    player->vehicle->motor->GetMaxMotorTorque()*1.2);
+        qDebug()<<player->vehicle->motor->GetMaxMotorTorque();
+    }
+    if (key == Qt::Key_Z) {
+        player->vehicle->motor->SetMaxMotorTorque(
+                    player->vehicle->motor->GetMaxMotorTorque()*1.0f/1.2);
+        qDebug()<<player->vehicle->motor->GetMaxMotorTorque();
+    }
 }
 
 void GameWidget::keyReleaseEvent(QKeyEvent *event) {
@@ -494,7 +462,7 @@ b2Body* GameWidget::addSpecRect() {
 
     DisplayData* bodyDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::CRATE));
     UserData* bodyUD = new UserData (bodyDD);
-bodyFix->SetUserData((void*) bodyUD);
+    bodyFix->SetUserData((void*) bodyUD);
     body->SetUserData((void*) bodyUD);
     return body;
 }
@@ -596,3 +564,4 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
     glEnd();
     glPopMatrix();
 }
+

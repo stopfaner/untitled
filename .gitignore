@@ -1,4 +1,6 @@
 *.user
+*.autosave
+*.user.*
 
 # Compiled Object files
 *.slo
