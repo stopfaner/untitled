@@ -6,7 +6,7 @@
 class Ladder : public InteractiveObject{
 
 public:
-    Ladder(DisplayData* displayData);
+    Ladder();
     void use(Player *player);
 };
 

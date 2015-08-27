@@ -1,12 +1,12 @@
 #ifndef ENTITY_H
 #define ENTITY_H
-#include "Sources/GameObjects/userdata.h"
+#include "Sources/GameObjects/gameobject.h"
 
 
-class Entity : public UserData
+class Entity : public GameObject
 {
 public:
-    Entity(DisplayData *displayData);
+    Entity();
 };
 
 #endif // ENTITY_H

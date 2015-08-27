@@ -1,7 +1,5 @@
 #include "npc.h"
 
-NPC::NPC(DisplayData *displayData) : Entity (displayData)
-{
-
+NPC::NPC() : Entity (){
 }
 

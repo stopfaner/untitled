@@ -6,7 +6,7 @@
 class NPC : public Entity
 {
 public:
-    NPC(DisplayData* displayData);
+    NPC();
 };
 
 #endif // NPC_H

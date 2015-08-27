@@ -8,6 +8,7 @@
 #include "Sources/GameObjects/InteractiveObjects/ladder.h"
 #include "Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h"
 #include "Sources/UserInterface/texturedata.h"
+#include "Sources/userdata.h"
 //class Ladder;
 
 class Player : public Entity
@@ -31,6 +32,7 @@ public:
     MoveStateVertical moveStateVertical;
     Player(DisplayData *displayData);
     Vehicle* vehicle;
+    DisplayData* displayData;
 
     void useObject();
     void jump();
@@ -38,10 +40,10 @@ public:
     void update(Textures* textures);
     void setBody (b2Body* body);
     b2Body *body;
-    int jumpCooldown;
-    int jumpCooldownMax;
     bool checkForLadder();
 private:
+    int jumpCooldown, jumpCooldownMax;
+    int useCooldown, useCooldownMax;
     void chooseTexture(Textures *textures);
     void applyForce();
 };

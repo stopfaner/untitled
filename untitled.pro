@@ -76,7 +76,7 @@ SOURCES += main.cpp \
     SOIL/SOIL.c \
     SOIL/stb_image_aug.c \
     Sources/UserInterface/textures.cpp \
-    Sources/GameObjects/userdata.cpp \
+    Sources/GameObjects/gameobject.cpp \
     Sources/GameObjects/noninteractive.cpp \
     Sources/GameObjects/DynamicObjects/dynamicobject.cpp \
     Sources/GameObjects/Characters/npc.cpp \
@@ -91,7 +91,8 @@ SOURCES += main.cpp \
     Sources/UserInterface/color.cpp \
     Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.cpp \
     Sources/GameObjects/InteractiveObjects/Vehicles/car.cpp \
-    Sources/UserInterface/nondrawable.cpp
+    Sources/UserInterface/nondrawable.cpp \
+    Sources/userdata.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -160,7 +161,7 @@ HEADERS  += \
     SOIL/stbi_DDS_aug.h \
     SOIL/stbi_DDS_aug_c.h \
     Sources/UserInterface/textures.h \
-    Sources/GameObjects/userdata.h \
+    Sources/GameObjects/gameobject.h \
     Sources/GameObjects/noninteractive.h \
     Sources/GameObjects/Rooms/room.h \
     Sources/GameObjects/DynamicObjects/dynamicobject.h \
@@ -176,7 +177,8 @@ HEADERS  += \
     Sources/UserInterface/color.h \
     Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h \
     Sources/GameObjects/InteractiveObjects/Vehicles/car.h \
-    Sources/UserInterface/nondrawable.h
+    Sources/UserInterface/nondrawable.h \
+    Sources/userdata.h
 
 
 

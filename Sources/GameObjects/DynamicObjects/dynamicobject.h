@@ -5,7 +5,7 @@
 class DynamicObject : public NonInteractive
 {
 public:
-    DynamicObject(DisplayData* displayData);
+    DynamicObject();
 };
 
 #endif // DYNAMICOBJECT_H

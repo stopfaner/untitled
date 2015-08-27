@@ -32,7 +32,7 @@
 #include "GameObjects/Characters/player.h"
 #include "GameObjects/Characters/bodypart.h"
 #include "GameObjects/Rooms/room.h"
-#include "GameObjects/userdata.h"
+#include "GameObjects/gameobject.h"
 #include "GameObjects/InteractiveObjects/ladder.h"
 #include "GameObjects/InteractiveObjects/Vehicles/car.h"
 #include "UserInterface/color.h"
@@ -40,6 +40,7 @@
 #include "UserInterface/keylinedata.h"
 #include "UserInterface/texturedata.h"
 #include "UserInterface/nondrawable.h"
+#include "userdata.h"
 
 /**
  * @brief The GameWidget class describes main window activity

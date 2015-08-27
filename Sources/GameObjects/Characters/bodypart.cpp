@@ -1,5 +1,6 @@
 #include "bodypart.h"
 
-BodyPart::BodyPart(DisplayData* displayData, Type type) : UserData (displayData){
+BodyPart::BodyPart(Entity *entity, Type type) : GameObject (){
     this->type = type;
+    this->entity = entity;
 }

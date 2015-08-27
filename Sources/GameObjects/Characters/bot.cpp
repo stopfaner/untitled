@@ -1,7 +1,7 @@
 #include "Bot.h"
 #include <QDebug>
 
-Bot::Bot(DisplayData *displayData) : Entity (displayData)
+Bot::Bot(DisplayData *displayData) : Entity ()
 {
     canJump = true;
     moveState = MS_STAND;

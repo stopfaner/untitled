@@ -4,7 +4,7 @@
 #include "Sources/GameObjects/Rooms/room.h"
 #include <vector>
 #include <time.h>
-
+/*
 class Build
 {
 private:
@@ -34,5 +34,5 @@ public:
     void paint(b2Vec2 center,int maxNumberRoomInHeight,int maxNumberRoomInWidth);
 
 };
-
+*/
 #endif // BUILD_H

@@ -11,7 +11,6 @@ public:
     Vehicle();
     b2RevoluteJoint* motor;
     b2Body* centerBody;
-    Vehicle(DisplayData *displayData);
 };
 
 #endif // VEHICLE_H

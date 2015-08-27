@@ -1,6 +1,8 @@
 #include "player.h"
 
-Player::Player(DisplayData* displayData) : Entity (displayData)
+#include <qdebug.h>
+
+Player::Player(DisplayData* displayData) : Entity ()
 {
     moveState = MS_STAND;
     moveStateVertical = MSV_STAND;
@@ -8,28 +10,41 @@ Player::Player(DisplayData* displayData) : Entity (displayData)
     isJumping = false;
     jumpCooldown = 0;
     jumpCooldownMax = 40;
+    useCooldown = 0;
+    useCooldownMax = 10;
     vehicle = nullptr;
+    this->displayData = displayData;
 }
 
 void Player::useObject(){
-    if (vehicle) vehicle = nullptr;
-    else
-        if (isOnLadder) isOnLadder = false;
+    if (!useCooldown){
+        useCooldown = useCooldownMax;
+        if (vehicle) vehicle = nullptr;
         else
-            for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
-            {
-                b2Contact* c = ce->contact;
-                UserData* dataA = (UserData*)(c->GetFixtureA()->GetUserData());
-                InteractiveObject* objA = dynamic_cast<InteractiveObject*> (dataA);
-                if (objA){
-                    objA->use(this);
+            if (isOnLadder) isOnLadder = false;
+            else
+                for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
+                {
+                    b2Contact* c = ce->contact;
+                    UserData* dataA = static_cast<UserData*>(c->GetFixtureA()->GetUserData());
+                    if (dataA->gameObject){
+                        InteractiveObject* objA = dynamic_cast<InteractiveObject*> (dataA->gameObject);
+                        if (objA){
+                            objA->use(this);
+                            break;
+                        }
+                    }
+
+                    UserData* dataB = static_cast<UserData*>(c->GetFixtureB()->GetUserData());
+                    if (dataB->gameObject){
+                        InteractiveObject* objB = dynamic_cast<InteractiveObject*> (dataB->gameObject);
+                        if (objB){
+                            objB->use(this);
+                            break;
+                        }
+                    }
                 }
-                UserData* dataB = (UserData*)(c->GetFixtureB()->GetUserData());
-                InteractiveObject* objB = dynamic_cast<InteractiveObject*> (dataB);
-                if (objB){
-                    objB->use(this);
-                }
-            }
+    }
 }
 
 bool Player::checkForLadder(){
@@ -37,11 +52,15 @@ bool Player::checkForLadder(){
     for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
     {
         b2Contact* c = ce->contact;
-        UserData* dataA = (UserData*)(c->GetFixtureA()->GetUserData());
-        Ladder* objA = dynamic_cast<Ladder*> (dataA);
-        UserData* dataB = (UserData*)(c->GetFixtureB()->GetUserData());
-        Ladder* objB = dynamic_cast<Ladder*> (dataB);
-        if (objA || objB){
+        UserData* dataA = static_cast<UserData*>(c->GetFixtureA()->GetUserData());
+        GameObject* objA = dataA->gameObject;
+        Ladder* ladderA = dynamic_cast<Ladder*> (objA);
+
+        UserData* dataB = static_cast<UserData*>(c->GetFixtureB()->GetUserData());
+        GameObject* objB = dataB->gameObject;
+        Ladder* ladderB = dynamic_cast<Ladder*> (objB);
+
+        if (ladderA || ladderB){
             isLadder = true;
             break;
         }
@@ -55,7 +74,7 @@ void Player::setBody (b2Body* body){
 
 void Player::chooseTexture(Textures *textures)
 {
-    TextureData* td = (TextureData*) displayData;
+    TextureData* td = static_cast<TextureData*>(displayData);
     if (isOnLadder){
         if (moveStateVertical == MSV_STAND){
             if (td->texture_p->type != Textures::Type::CLIMBING_IDLE)
@@ -81,7 +100,6 @@ void Player::chooseTexture(Textures *textures)
     }
 
 }
-#include <qdebug.h>
 #define M_PI		3.14159265358979323846
 void Player::applyForce(){
     if (vehicle){
@@ -93,8 +111,8 @@ void Player::applyForce(){
         case MS_STAND:  desiredVel =  0; break;
         case MS_RIGHT: desiredVel =  -desiredVelMax; break;
         }
-    //    float velChange = desiredVel - vehicle->motor->GetMotorSpeed();
-    //    vehicle->motor->SetMotorSpeed(velChange);
+        //    float velChange = desiredVel - vehicle->motor->GetMotorSpeed();
+        //    vehicle->motor->SetMotorSpeed(velChange);
         vehicle->motor->SetMotorSpeed(desiredVel);
     }
     else {
@@ -142,30 +160,40 @@ void Player::jump(){
         for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
         {
             b2Contact* c = ce->contact;
-            UserData* dataA = (UserData*) c->GetFixtureA()->GetUserData();
-            BodyPart* bodyPartA = dynamic_cast <BodyPart*> (dataA);
-            if (bodyPartA)
+
+            UserData* dataA = static_cast<UserData*>(c->GetFixtureA()->GetUserData());
+            GameObject* objA = dataA->gameObject;
+            BodyPart* bodyPartA = dynamic_cast <BodyPart*> (objA);
+            if (bodyPartA){
                 if ( bodyPartA->type == BodyPart::Type::FOOT_SENSOR) {
                     body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
                     break;
                 }
-            UserData* dataB = (UserData*) c->GetFixtureB()->GetUserData();
-            BodyPart* bodyPartB = dynamic_cast <BodyPart*> (dataB);
-            if (bodyPartB)
-                if ( bodyPartB->type == BodyPart::Type::FOOT_SENSOR) {
-                    body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
-                    break;
-                }
+            }
+            else{
+                UserData* dataB = static_cast<UserData*>(c->GetFixtureB()->GetUserData());
+                GameObject* objB = dataB->gameObject;
+                BodyPart* bodyPartB = dynamic_cast <BodyPart*> (objB);
+                if (bodyPartB)
+                    if ( bodyPartB->type == BodyPart::Type::FOOT_SENSOR) {
+                        body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
+                        break;
+                    }
+            }
         }
     }
 }
 
 void Player::update(Textures* textures)
 {
+    if (jumpCooldown) --jumpCooldown;
+    if (useCooldown) --useCooldown;
     if (isOnLadder && !checkForLadder()) isOnLadder = false;
     if (vehicle && ((body->GetWorldCenter().x - vehicle->centerBody->GetWorldCenter().x > 5)
-                    || (body->GetWorldCenter().y - vehicle->centerBody->GetWorldCenter().y > 5) ))
+                    || (body->GetWorldCenter().y - vehicle->centerBody->GetWorldCenter().y > 5) )){
         vehicle = nullptr;
+        qDebug()<<"left vehicle";
+    }
     applyForce();
     chooseTexture(textures);
 }

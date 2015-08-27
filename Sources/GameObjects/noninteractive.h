@@ -1,12 +1,11 @@
 #ifndef NONINTERACTIVE_H
 #define NONINTERACTIVE_H
-#include "Sources/GameObjects/userdata.h"
+#include "Sources/GameObjects/gameobject.h"
 
-class NonInteractive : public UserData
+class NonInteractive : public GameObject
 {
 public:
     NonInteractive();
-    NonInteractive(DisplayData *displayData);
 };
 
 #endif // NONINTERACTIVE_H

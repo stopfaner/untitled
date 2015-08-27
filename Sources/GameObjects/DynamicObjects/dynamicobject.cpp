@@ -1,6 +1,6 @@
 #include "dynamicobject.h"
 
-DynamicObject::DynamicObject(DisplayData *displayData) : NonInteractive(displayData)
+DynamicObject::DynamicObject() : NonInteractive()
 {
 
 }

@@ -2,7 +2,7 @@
 #define ROOM_H
 #include "Sources/GameObjects/noninteractive.h"
 #include <Box2D/Box2D.h>
-class Room{
+/*class Room{
 public:
     bool hasNPC;
     bool hasChest;
@@ -21,8 +21,8 @@ public:
     Textures* texture_p;
     b2World *world;
     Room(Textures * texture_p, b2World *world);
-};
-
+};*/
+/*
 class LeftAndRightDoorRoom : public Room{
 public:
     LeftAndRightDoorRoom(b2Vec2 center, Textures* texture_p, b2World* world) : Room (texture_p,world)
@@ -182,5 +182,5 @@ public:
         return new UpAndDownDoorRoom(center, texture_p,world);
     }
 };
-
+*/
 #endif // ROOM_H

@@ -1,6 +1,6 @@
 #include "ladder.h"
 
-Ladder::Ladder(DisplayData *displayData) : InteractiveObject (displayData){
+Ladder::Ladder() : InteractiveObject (){
 
 }
 

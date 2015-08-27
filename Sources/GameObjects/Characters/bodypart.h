@@ -1,9 +1,10 @@
 #ifndef BODYPART_H
 #define BODYPART_H
 
-#include "Sources/GameObjects/userdata.h"
+#include "Sources/GameObjects/gameobject.h"
+#include "Sources/GameObjects/entity.h"
 
-class BodyPart : public UserData
+class BodyPart : public GameObject
 {
 public:
     enum Type {
@@ -18,9 +19,10 @@ public:
         HEAD
     };
 
-    BodyPart(DisplayData* displayData, Type type);
+    BodyPart(Entity* entity, Type type);
 
     Type type;
+    Entity* entity;
 };
 
 #endif // BODY_H

@@ -1,5 +1,5 @@
 #include "build.h"
-
+/*
 Build::Build( Textures* texture_p, b2World* world)
 {
    this->texture_p=texture_p;
@@ -233,3 +233,4 @@ void Build::paint(b2Vec2 center, int maxNumberRoomInHeight, int maxNumberRoomInW
         }
     }
 }
+*/

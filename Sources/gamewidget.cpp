@@ -77,9 +77,7 @@ void GameWidget::createWorld(){
 
     b2ChainShape chainShape;
 
-    DisplayData* chainDD = (DisplayData*) new KeyLineData (Color(255, 0, 0));
-    UserData* chainUD = new UserData(chainDD);
-    chain->SetUserData((void*)chainUD);
+    chain->SetUserData((void*) new UserData);
 
     chainShape.CreateChain(vs, i);
 
@@ -89,19 +87,12 @@ void GameWidget::createWorld(){
 
     b2Fixture* chainFix = chain->CreateFixture(&chainFixtureDef);
 
-    chainFix->SetUserData((void*)chainUD);
+    DisplayData* chainDD = (DisplayData*) new KeyLineData (Color(0, 0, 255));
+    chainFix->SetUserData((void*) new UserData (new GameObject, chainDD));
 
     addSpecRect();
-    /*
-    Bot *bot;
-    bot = new Bot(textures.getTexture(Textures::Type::BOT));
-    bot->setBody(addBot(bot));
-    AI *ai;
-    ai = new AI(player,bot);
-    Ai.push_back(ai);
-*/
 
-    Car car(world, &textures);
+    new Car (world, &textures);
 
 
     //creating ladder
@@ -122,10 +113,9 @@ void GameWidget::createWorld(){
 
     b2Fixture* ladderFixture = body->CreateFixture(&fixturedefLadder);
 
+    body->SetUserData((void*) new UserData);
     DisplayData* ladderDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::LADDER));
-    UserData* LadderUD = new Ladder (ladderDD);
-    body->SetUserData((void*)LadderUD);
-    ladderFixture->SetUserData((void*)LadderUD);
+    ladderFixture->SetUserData((void*) new UserData(new Ladder, ladderDD));
 
 }
 
@@ -140,8 +130,8 @@ void GameWidget::addPlayer (){
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
     playerDD->isPlayer = true;
-    UserData* playerUD = new UserData (playerDD);
-    body->SetUserData((void*) playerUD);
+
+    //  body->SetUserData((void*) UserData(player, playerDD));
     b2PolygonShape shape;
     shape.SetAsBox(playerWidth/2.0f, playerHeight/2.0f);
 
@@ -153,9 +143,9 @@ void GameWidget::addPlayer (){
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
 
     DisplayData* bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0));
-    UserData* bodyUD = new BodyPart(playerDD, BodyPart::Type::BODY);
+    GameObject* bodyPart = new BodyPart(player, BodyPart::Type::BODY);
 
-    mainFixture->SetUserData((void*) bodyUD);
+    mainFixture->SetUserData((void*) new UserData (bodyPart, playerDD));
 
     b2PolygonShape sensorShape;
     sensorShape.SetAsBox(playerWidth/2*0.7, 0.1, b2Vec2(0,-2), 0);
@@ -163,35 +153,9 @@ void GameWidget::addPlayer (){
     fixturedef.isSensor = true;
     b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
 
-    UserData* footUD = new BodyPart(bodyDD, BodyPart::Type::FOOT_SENSOR);
+    GameObject* footPart = new BodyPart(player, BodyPart::Type::FOOT_SENSOR);
 
-    footSensorFixture->SetUserData((void*) footUD);
-    //hips
-    bodydef.position.Set(0, -0.6);
-    b2Body* leftHip = world->CreateBody(&bodydef);
-    shape.SetAsBox(0.25f/2.0f, 0.5f/2.0f);
-    //shins
-    bodydef.position.Set(0, -1.1);
-    b2Body* leftShin = world->CreateBody(&bodydef);
-    shape.SetAsBox(0.25f/2.0f, 0.5f/2.0f);
-    //joints
-    b2WeldJointDef wjd;
-    wjd.Initialize(body, leftHip, b2Vec2(0, -0.5f));
-    world->CreateJoint(&wjd);
-
-    wjd.Initialize(leftHip, leftShin, b2Vec2(0, -1.0f));
-    world->CreateJoint(&wjd);
-    //joint example
-    /*
-    b2Body* body1 = addRect(2, 0, 4, 0.6, true, Textures::Type::CRATE);
-    b2WeldJointDef jointDef;
-
-    jointDef.Initialize(player->body, body1,
-                        b2Vec2(player->body->GetWorldCenter().x + playerWidth/2,
-                               player->body->GetWorldCenter().y));
-
-    b2WeldJointDef* joint = (b2WeldJointDef*)world->CreateJoint( &jointDef );
-*/
+    footSensorFixture->SetUserData((void*) new UserData (footPart, bodyDD));
 
 }
 
@@ -202,7 +166,7 @@ b2Body *GameWidget::addBot(Bot* bot) {/*
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     DisplayData* bodyDD = new NonDrawable;
-    UserData* bodyUD = new UserData (bodyDD);
+    GameObject* bodyUD = new GameObject (bodyDD);
     body->SetUserData((void*) bodyUD);
     b2PolygonShape shape;
     shape.SetAsBox(1,2);
@@ -215,7 +179,7 @@ b2Body *GameWidget::addBot(Bot* bot) {/*
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
 
     DisplayData* dispData = (DisplayData*)TextureData(textures.getTexture(Textures::Type::));
-    UserData* userData = new BodyPart(dispData, BodyPart::Type::BODY);
+    GameObject* GameObject = new BodyPart(dispData, BodyPart::Type::BODY);
 
    mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::BODY));
 
@@ -230,7 +194,7 @@ b2Body *GameWidget::addBot(Bot* bot) {/*
 
 void GameWidget::updateGame(){
     player->update(&textures);
-    if (player->jumpCooldown) --player->jumpCooldown;
+
     /*
     for(unsigned int i = 0; i < Ai.size(); i++) {
         AI *temp = Ai.at(i);
@@ -288,55 +252,56 @@ void GameWidget::paintGL() {
     {
         b2Fixture* curFixture = tmp->GetFixtureList();
         while(curFixture){
-            b2Shape::Type curShapeType = curFixture->GetShape()->GetType();
-            UserData* userData = (UserData*)curFixture->GetUserData();
-            DisplayData* displayData = userData->displayData;
-            if (curShapeType ==  b2Shape::e_polygon){
-                int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
-                b2Vec2 points[count];
-                for(int i=0; i < count; i++){
-                    points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
-                }
-                NonDrawable* ND_p = dynamic_cast<NonDrawable*>(displayData);
-                TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
-                KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
-                if (!ND_p)
-                    if (TD_p){
-                        drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
-                        TD_p->changeFrame();
+            b2Shape::Type curFixtureType = curFixture->GetShape()->GetType();
+            DisplayData* displayData = static_cast<UserData*>(curFixture->GetUserData())->displayData;
+            if (displayData){
+                if (curFixtureType ==  b2Shape::e_polygon){
+                    int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
+                    b2Vec2 points[count];
+                    for(int i=0; i < count; i++){
+                        points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
                     }
-                    else
-                        if (KLD_p)
-                            drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
-            }
-            else
-                if (curShapeType == b2Shape::e_circle){
-                    KeyLineData* KLD_p = (KeyLineData*) displayData;
-                    drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), KLD_p);
+                    NonDrawable* ND_p = dynamic_cast<NonDrawable*>(displayData);
+                    TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
+                    KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
+                    if (!ND_p)
+                        if (TD_p){
+                            drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
+                            TD_p->changeFrame();
+                        }
+                        else
+                            if (KLD_p)
+                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
                 }
                 else
-                    if (curShapeType == b2Shape::e_chain){
+                    if (curFixtureType == b2Shape::e_circle){
                         KeyLineData* KLD_p = (KeyLineData*) displayData;
-                        int edgeCount = ((b2ChainShape*)curFixture->GetShape())->GetChildCount();
-                        //one element for start point
-                        b2Vec2 points [edgeCount+1];
+                        drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), KLD_p);
+                    }
+                    else
+                        if (curFixtureType == b2Shape::e_chain){
+                            KeyLineData* KLD_p = (KeyLineData*) displayData;
+                            int edgeCount = ((b2ChainShape*)curFixture->GetShape())->GetChildCount();
+                            //one element for start point
+                            b2Vec2 points [edgeCount+1];
 
-                        b2EdgeShape firstEdge;
-                        ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&firstEdge, 0);
-                        points[0] = firstEdge.m_vertex1;
-                        points[1] = firstEdge.m_vertex2;
+                            b2EdgeShape firstEdge;
+                            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&firstEdge, 0);
+                            points[0] = firstEdge.m_vertex1;
+                            points[1] = firstEdge.m_vertex2;
 
 
-                        for (int i = 1; i < edgeCount; ++i){
-                            b2EdgeShape edge;
-                            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
-                            points[i+1] = edge.m_vertex2;
+                            for (int i = 1; i < edgeCount; ++i){
+                                b2EdgeShape edge;
+                                ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
+                                points[i+1] = edge.m_vertex2;
+
+                            }
+
+                            drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, KLD_p);
 
                         }
-
-                        drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, KLD_p);
-
-                    }
+            }
             curFixture=curFixture->GetNext();
         }
         tmp=tmp->GetNext();
@@ -422,9 +387,9 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
     b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
 
     DisplayData* bodyDD = (DisplayData*) new TextureData(textures.getTexture(type));
-    UserData* bodyUD = new UserData (bodyDD);
-    bodyFix->SetUserData((void*) bodyUD);
-    body->SetUserData((void*) bodyUD);
+
+    bodyFix->SetUserData((void*) new UserData(bodyDD));
+    body->SetUserData((void*) new UserData);
     return body;
 }
 
@@ -461,9 +426,8 @@ b2Body* GameWidget::addSpecRect() {
     body->ApplyLinearImpulse(b2Vec2(-body->GetMass() * 100, 0), b2Vec2(0, 0), true);
 
     DisplayData* bodyDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::CRATE));
-    UserData* bodyUD = new UserData (bodyDD);
-    bodyFix->SetUserData((void*) bodyUD);
-    body->SetUserData((void*) bodyUD);
+    bodyFix->SetUserData((void*) new UserData(bodyDD));
+    body->SetUserData((void*) new UserData);
     return body;
 }
 

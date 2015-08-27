@@ -1,6 +1,6 @@
 #ifndef ACTOR_H
 #define ACTOR_H
-#include "Sources/GameObjects/userdata.h"
+#include "Sources/GameObjects/gameobject.h"
 
 
 class Actor
