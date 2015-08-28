@@ -1,7 +1,10 @@
 #include "car.h"
 
-Car::Car(b2World *world, Textures* textures) : Vehicle()
+Car::Car(b2World *world, Textures* textures) : Vehicle(world)
 {
+    playerJoint = nullptr;
+
+    GameObject* carPart = new GameObject;
     DisplayData* circleDD = new KeyLineData(Color(0, 255, 255));
 
     b2RevoluteJointDef jointDef;
@@ -10,8 +13,8 @@ Car::Car(b2World *world, Textures* textures) : Vehicle()
     jointDef.motorSpeed = 0.0f;
     jointDef.enableMotor = true;
 
-    b2Body* mainPlank = addRect(0, 5*2, 10*2, 0.5*2, true, Textures::Type::CRATE, world, textures);
-    b2Body* rule = addRect(0, 6.5*2-1.5, 0.5*2, 3, true, Textures::Type::CRATE, world, textures);
+    b2Body* mainPlank = addRect(0, 5*2, 10*2, 0.5*2, true);
+    b2Body* rule = addRect(0, 6.5*2-1.5, 0.5*2, 3, true);
 
     centerBody = rule;
 
@@ -19,7 +22,7 @@ Car::Car(b2World *world, Textures* textures) : Vehicle()
     bodydef.position.Set(2.5*2*2, 5*2);
     bodydef.type = b2_dynamicBody;
     b2Body* circle1 = world->CreateBody(&bodydef);
-    circle1->SetUserData((void*) new UserData (static_cast<GameObject*>(this), circleDD));
+    circle1->SetUserData((void*) new UserData (carPart, circleDD));
 
     b2CircleShape circleShape;
     circleShape.m_p.Set(0, 0);
@@ -30,15 +33,15 @@ Car::Car(b2World *world, Textures* textures) : Vehicle()
     fixturedef.density = 0.8;
 
     b2Fixture* circleFix = circle1->CreateFixture(&fixturedef);
-    circleFix->SetUserData((void*) new UserData (static_cast<GameObject*>(this), circleDD));
+    circleFix->SetUserData((void*) new UserData (carPart, circleDD));
 
     fixturedef.density = 0.8;
 
     bodydef.position.Set(-10, 10);
     b2Body* circle2 = world->CreateBody(&bodydef);
-    circle2->SetUserData((void*) new UserData (static_cast<GameObject*>(this)));
+    circle2->SetUserData((void*) new UserData (carPart));
     b2Fixture* circleFix2 =  circle2->CreateFixture(&fixturedef);
-    circleFix2->SetUserData((void*) new UserData (static_cast<GameObject*>(this), circleDD));
+    circleFix2->SetUserData((void*) new UserData (carPart, circleDD));
     jointDef.Initialize(mainPlank, circle1, b2Vec2(2.5*2*2, 5*2));
     motor = (b2RevoluteJoint*) world->CreateJoint( &jointDef );
     jointDef.Initialize(mainPlank, circle2, b2Vec2(-2.5*2*2, 5*2));
@@ -46,9 +49,16 @@ Car::Car(b2World *world, Textures* textures) : Vehicle()
     b2WeldJointDef weldJointDef;
     weldJointDef.Initialize(rule, mainPlank, b2Vec2(0, 5*2));
     world->CreateJoint( &weldJointDef );
+
+
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE));
+    mainPlank->SetUserData((void*) new UserData (carPart, bodyDD));
+    mainPlank->GetFixtureList()->SetUserData((void*) new UserData (carPart, bodyDD));
+    rule->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
+    rule->GetFixtureList()->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
 }
 
-b2Body* Car::addRect(float x, float y, float w, float h, bool dyn, Textures::Type type, b2World *world, Textures *textures) {
+b2Body* Car::addRect(float x, float y, float w, float h, bool dyn) {
     b2BodyDef bodydef;
     bodydef.position.Set(x,y);
     if(dyn)
@@ -62,19 +72,27 @@ b2Body* Car::addRect(float x, float y, float w, float h, bool dyn, Textures::Typ
     fixturedef.density = 0.5;
     fixturedef.filter.groupIndex = 1;
 
-    b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
+    body->CreateFixture(&fixturedef);
 
-    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(type));
 
-    bodyFix->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
-    body->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
     return body;
 }
-#include <qdebug.h>
+
 void Car::use(Player *player){
-    qDebug()<<"using car";
-    if (player->vehicle)
-        player->vehicle = nullptr;
-    else
+    player->body->SetFixedRotation(false);
+    if (fabs(centerBody->GetWorldCenter().y - player->body->GetWorldCenter().y) < 1){
         player->vehicle = static_cast<Vehicle*>(this);
+        b2WeldJointDef playerJointDef;
+        playerJointDef.Initialize(player->body, centerBody,
+                                  b2Vec2(player->body->GetWorldCenter().x, player->body->GetWorldCenter().y));
+        playerJoint = static_cast<b2WeldJoint*>( world->CreateJoint(&playerJointDef));
+    }
+
+}
+
+void Car::left(Player* player){
+    player->body->SetAngularVelocity(0.5);
+    player->vehicle = nullptr;
+    world->DestroyJoint(playerJoint);
+    playerJoint = nullptr;
 }

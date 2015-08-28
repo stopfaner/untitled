@@ -1,5 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
+
 #include <Box2D/Box2D.h>
 
 #include "Sources/GameObjects/Characters/bodypart.h"
@@ -11,9 +12,10 @@
 #include "Sources/userdata.h"
 //class Ladder;
 
+
+
 class Player : public Entity
 {
-
 public:
 
     enum MoveState{

@@ -2,6 +2,9 @@
 
 #include <qdebug.h>
 
+#define M_PI		3.14159265358979323846
+
+
 Player::Player(DisplayData* displayData) : Entity ()
 {
     moveState = MS_STAND;
@@ -19,7 +22,7 @@ Player::Player(DisplayData* displayData) : Entity ()
 void Player::useObject(){
     if (!useCooldown){
         useCooldown = useCooldownMax;
-        if (vehicle) vehicle = nullptr;
+        if (vehicle) vehicle->left(this);
         else
             if (isOnLadder) isOnLadder = false;
             else
@@ -186,14 +189,20 @@ void Player::jump(){
 
 void Player::update(Textures* textures)
 {
+    if (!vehicle){
+        qDebug()<<body->GetAngle();
+        if (body->GetAngle() > 0)
+            body->SetAngularVelocity(-0.2);
+        else
+            if (body->GetAngle() < 0)
+                body->SetAngularVelocity(0.2);
+        if (body->GetAngle() < 0.01 && body->GetAngle() > - 0.01)
+            body->SetFixedRotation(true);
+    }
     if (jumpCooldown) --jumpCooldown;
     if (useCooldown) --useCooldown;
     if (isOnLadder && !checkForLadder()) isOnLadder = false;
-    if (vehicle && ((body->GetWorldCenter().x - vehicle->centerBody->GetWorldCenter().x > 5)
-                    || (body->GetWorldCenter().y - vehicle->centerBody->GetWorldCenter().y > 5) )){
-        vehicle = nullptr;
-        qDebug()<<"left vehicle";
-    }
+
     applyForce();
     chooseTexture(textures);
 }

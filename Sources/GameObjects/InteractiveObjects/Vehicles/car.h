@@ -12,11 +12,11 @@
 class Car : public Vehicle
 {
 public:
-    Car(b2World* world, Textures *textures);
-    b2Body *addRect(float x, float y, float w, float h, bool dyn, Textures::Type type,
-                    b2World* world, Textures* textures);
+    Car(b2World *world, Textures *textures);
+    b2Body *addRect(float x, float y, float w, float h, bool dyn);
+
     void use(Player* player);
-    b2Body * rule;
+    void left(Player* player);
 };
 
 #endif // CAR_H
