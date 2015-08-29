@@ -78,28 +78,29 @@ void Player::setBody (b2Body* body){
 void Player::chooseTexture(Textures *textures)
 {
     TextureData* td = static_cast<TextureData*>(displayData);
+
     if (isOnLadder){
         if (moveStateVertical == MSV_STAND){
-            if (td->texture_p->type != Textures::Type::CLIMBING_IDLE)
-                td->setTexture(textures->getTexture(Textures::Type::CLIMBING_IDLE));
+            td->setTexture(textures->getTexture(Textures::Type::CLIMBING_IDLE));
         }
         else
-            if (td->texture_p->type != Textures::Type::CLIMBING)
-                td->setTexture(textures->getTexture(Textures::Type::CLIMBING));
+            td->setTexture(textures->getTexture(Textures::Type::CLIMBING));
     }
     else{
-        if (moveState == MS_LEFT)
-            td->isMirrored = true;
-        if (moveState == MS_RIGHT)
-            td->isMirrored = false;
-        if (moveState == MS_LEFT
-                || moveState == MS_RIGHT){
-            if (td->texture_p->type != Textures::Type::RUN)
+        if (vehicle)
+            td->setTexture(textures->getTexture(Textures::Type::VEHICLE));
+        else{
+            if (moveState == MS_LEFT)
+                td->isMirrored = true;
+            if (moveState == MS_RIGHT)
+                td->isMirrored = false;
+            if (moveState == MS_LEFT
+                    || moveState == MS_RIGHT){
                 td->setTexture(textures->getTexture(Textures::Type::RUN));
-        }
-        else
-            if (td->texture_p->type != Textures::Type::PLAYER)
+            }
+            else
                 td->setTexture(textures->getTexture(Textures::Type::PLAYER));
+        }
     }
 
 }
@@ -156,7 +157,17 @@ void Player::applyForce(){
 
 void Player::crouch(){}
 
+void Player::fall()
+{
+    body->SetFixedRotation(false);
+    body->ApplyTorque(30000, true);
+}
+
 void Player::jump(){
+    float jumpHeight;
+    if (body->IsFixedRotation())
+        jumpHeight = 10;
+    else jumpHeight = 0;
     isOnLadder = false;
     if (!jumpCooldown){
         jumpCooldown = jumpCooldownMax;
@@ -169,7 +180,7 @@ void Player::jump(){
             BodyPart* bodyPartA = dynamic_cast <BodyPart*> (objA);
             if (bodyPartA){
                 if ( bodyPartA->type == BodyPart::Type::FOOT_SENSOR) {
-                    body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
+                    body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*jumpHeight), b2Vec2(0,0), true);
                     break;
                 }
             }
@@ -179,7 +190,7 @@ void Player::jump(){
                 BodyPart* bodyPartB = dynamic_cast <BodyPart*> (objB);
                 if (bodyPartB)
                     if ( bodyPartB->type == BodyPart::Type::FOOT_SENSOR) {
-                        body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*10), b2Vec2(0,0), true);
+                        body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*jumpHeight), b2Vec2(0,0), true);
                         break;
                     }
             }
@@ -189,7 +200,7 @@ void Player::jump(){
 
 void Player::update(Textures* textures)
 {
-    if (!vehicle){
+    if (!vehicle && !body->IsFixedRotation()){
         qDebug()<<body->GetAngle();
         if (body->GetAngle() > 0)
             body->SetAngularVelocity(-0.2);

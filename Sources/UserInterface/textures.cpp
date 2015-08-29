@@ -15,13 +15,13 @@ void Textures::loadAll (){
     loadTexture(TEST3, "3.png");
     loadTexture(RUN, "run.png", 1, 4);
     loadTexture(JUMP, "jump.png", 1, 5);
+    loadTexture(VEHICLE, "vehicle.png");
     loadTexture(LADDER, "ladder.png");
     loadTexture(CLIMBING, "climbing.png", 1, 2);
     loadTexture(CLIMBING_IDLE, "climbingstop.png");
 }
 
 void Textures::loadTexture (Type type, std::string path, int rows, int columns){
-
     Texture* tex = new Texture;
     tex->rows = rows;
     tex->columns = columns;
@@ -44,6 +44,7 @@ Textures::Texture* Textures::getTexture (Type type){
     for (int i = 0; i < vec.size(); ++i)
         if (vec.at(i)->type == type)
             return vec[i];
+    return 0;
 }
 
 

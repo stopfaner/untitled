@@ -342,6 +342,8 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->isJumping = true;
     if (key == Qt::Key_E)
         player->useObject();
+    if (key == Qt::Key_F)
+        player->fall();
     if (key == Qt::Key_Escape) this->close();
     if (key == Qt::Key_X) {
         player->vehicle->motor->SetMaxMotorTorque(

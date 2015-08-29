@@ -2,6 +2,7 @@
 
 TextureData::TextureData() : DisplayData(){
     isMirrored = false;
+    texture_p = nullptr;
     currentFrameN = 0;
     frameDelay = 0;
     frameDelayMax = 10;
@@ -23,7 +24,9 @@ void TextureData::changeFrame (){
 }
 
 void TextureData::setTexture(Textures::Texture* texture_p){
+    if (!this->texture_p ||  this->texture_p->type != texture_p->type){
     currentFrameN = 0;
     this->texture_p = texture_p;
     framesQuantity = texture_p->framesQuantity;
+    }
 }

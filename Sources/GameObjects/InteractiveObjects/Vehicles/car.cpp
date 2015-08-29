@@ -80,12 +80,16 @@ b2Body* Car::addRect(float x, float y, float w, float h, bool dyn) {
 
 void Car::use(Player *player){
     player->body->SetFixedRotation(false);
-    if (fabs(centerBody->GetWorldCenter().y - player->body->GetWorldCenter().y) < 1){
+    if (fabs(centerBody->GetWorldCenter().y - player->body->GetWorldCenter().y) < 2){
+        if (player->body->GetWorldCenter().x > centerBody->GetWorldCenter().x)
+            static_cast<TextureData*>(player->displayData)->isMirrored = true;
+        else
+            static_cast<TextureData*>(player->displayData)->isMirrored = false;
         player->vehicle = static_cast<Vehicle*>(this);
-        b2WeldJointDef playerJointDef;
+        b2RevoluteJointDef playerJointDef;
         playerJointDef.Initialize(player->body, centerBody,
                                   b2Vec2(player->body->GetWorldCenter().x, player->body->GetWorldCenter().y));
-        playerJoint = static_cast<b2WeldJoint*>( world->CreateJoint(&playerJointDef));
+        playerJoint = static_cast<b2RevoluteJoint*>( world->CreateJoint(&playerJointDef));
     }
 
 }

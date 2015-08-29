@@ -18,7 +18,8 @@ public:
         JUMP,
         LADDER,
         CLIMBING,
-        CLIMBING_IDLE
+        CLIMBING_IDLE,
+        VEHICLE
     };
     struct Texture {
         GLuint id;

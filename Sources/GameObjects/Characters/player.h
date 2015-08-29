@@ -39,6 +39,7 @@ public:
     void useObject();
     void jump();
     void crouch();
+    void fall();
     void update(Textures* textures);
     void setBody (b2Body* body);
     b2Body *body;

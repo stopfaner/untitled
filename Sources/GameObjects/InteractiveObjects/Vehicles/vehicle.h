@@ -11,7 +11,7 @@ public:
     b2RevoluteJoint* motor;
     b2Body* centerBody;
     b2World* world;
-    b2WeldJoint* playerJoint;
+    b2RevoluteJoint* playerJoint;
 
     virtual void left(Player* player) = 0;
 };
