@@ -76,7 +76,7 @@ void Player::setBody (b2Body* body){
 }
 
 void Player::chooseTexture(Textures *textures)
-{
+{/*
     TextureData* td = static_cast<TextureData*>(displayData);
 
     if (isOnLadder){
@@ -102,7 +102,7 @@ void Player::chooseTexture(Textures *textures)
                 td->setTexture(textures->getTexture(Textures::Type::PLAYER));
         }
     }
-
+*/
 }
 #define M_PI		3.14159265358979323846
 void Player::applyForce(){

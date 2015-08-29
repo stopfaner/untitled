@@ -120,24 +120,24 @@ void GameWidget::createWorld(){
 }
 
 void GameWidget::addPlayer (){
-    DisplayData* playerDD = (DisplayData*) new TextureData (textures.getTexture(Textures::Type::PLAYER));
+    DisplayData* playerDD = (DisplayData*) new KeyLineData (Color());
     player = new Player(playerDD);
     float playerWidth = 2; float playerHeight = 4;
     b2BodyDef bodydef;
-    bodydef.position.Set(0, 10);
+    bodydef.position.Set(20, 10);
     bodydef.type = b2_dynamicBody;
     bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
     playerDD->isPlayer = true;
 
-    //  body->SetUserData((void*) UserData(player, playerDD));
+      body->SetUserData((void*) new UserData(player, playerDD));
     b2PolygonShape shape;
-    shape.SetAsBox(playerWidth/2.0f, playerHeight/2.0f);
+    shape.SetAsBox(playerWidth/4.0f, playerHeight/4.0f, b2Vec2(0, playerHeight/6), 0);
 
     b2FixtureDef fixturedef;
-    // fixturedef.friction = 5;
     fixturedef.shape = &shape;
+
     fixturedef.density = 1.0;
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
@@ -146,6 +146,91 @@ void GameWidget::addPlayer (){
     GameObject* bodyPart = new BodyPart(player, BodyPart::Type::BODY);
 
     mainFixture->SetUserData((void*) new UserData (bodyPart, playerDD));
+
+///
+    b2BodyDef bodydef1;
+    bodydef1.position.Set(20, 10);
+    bodydef1.type = b2_dynamicBody;
+    bodydef1.fixedRotation = false;
+    b2Body* body1 = world->CreateBody(&bodydef1);
+    shape.SetAsBox(playerWidth/8.0f, playerHeight/4.0f, b2Vec2(0, -playerHeight/3), 0);
+
+    fixturedef.shape = &shape;
+
+    mainFixture = body1->CreateFixture(&fixturedef);
+
+    bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0));
+     bodyPart = new BodyPart(player, BodyPart::Type::SHIN_LEFT);
+
+    mainFixture->SetUserData((void*) new UserData (bodyPart, playerDD));
+
+
+    b2RevoluteJointDef RJD1;
+    RJD1.enableLimit = true;
+    RJD1.upperAngle = 0.1;
+    RJD1.lowerAngle = -0.1;
+    RJD1.Initialize(body, body1, b2Vec2(body->GetPosition().x, body->GetPosition().y - playerHeight/2.0f));
+    world->CreateJoint(&RJD1);
+
+
+
+    b2BodyDef bodydef11;
+    bodydef11.position.Set(20, 10);
+    bodydef11.type = b2_dynamicBody;
+    bodydef11.fixedRotation = false;
+    b2Body* body11 = world->CreateBody(&bodydef11);
+    shape.SetAsBox(playerWidth/8.0f, playerHeight/4.0f, b2Vec2(0, -2*playerHeight/2), 0);
+
+    fixturedef.shape = &shape;
+
+    mainFixture = body11->CreateFixture(&fixturedef);
+
+    bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0));
+     bodyPart = new BodyPart(player, BodyPart::Type::SHIN_LEFT);
+
+    mainFixture->SetUserData((void*) new UserData (bodyPart, playerDD));
+
+
+    b2RevoluteJointDef RJD11;
+    RJD11.enableLimit = true;
+    RJD11.upperAngle = 0.1;
+    RJD11.lowerAngle = -0.1;
+    RJD11.Initialize(body1, body11, b2Vec2(body1->GetPosition().x, body1->GetPosition().y - playerHeight));
+    world->CreateJoint(&RJD11);
+
+
+///
+/*
+
+    b2BodyDef bodydef2;
+    bodydef2.position.Set(20, 10);
+    bodydef2.type = b2_dynamicBody;
+    bodydef2.fixedRotation = false;
+    b2Body* body2 = world->CreateBody(&bodydef2);
+    shape.SetAsBox(playerWidth/8.0f, playerHeight/4.0f, b2Vec2(0, -playerHeight/6), 0);
+
+    fixturedef.shape = &shape;
+
+    mainFixture = body2->CreateFixture(&fixturedef);
+
+    bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0));
+     bodyPart = new BodyPart(player, BodyPart::Type::SHIN_RIGHT);
+
+    mainFixture->SetUserData((void*) new UserData (bodyPart, playerDD));
+
+
+    b2RevoluteJointDef RJD2;
+    RJD2.enableLimit = true;
+    RJD2.upperAngle = 0.1;
+    RJD2.lowerAngle = -0.1;
+    RJD2.Initialize(body, body2, b2Vec2(body->GetPosition().x, body->GetPosition().y - playerHeight/4.0f));
+    world->CreateJoint(&RJD2);
+
+    b2RevoluteJointDef shins;
+    shins.Initialize(body1, body2, body1->GetPosition());
+*/
+
+
 
     b2PolygonShape sensorShape;
     sensorShape.SetAsBox(playerWidth/2*0.7, 0.1, b2Vec2(0,-2), 0);
@@ -276,7 +361,7 @@ void GameWidget::paintGL() {
                 else
                     if (curFixtureType == b2Shape::e_circle){
                         KeyLineData* KLD_p = (KeyLineData*) displayData;
-                        drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetWorldCenter(), KLD_p);
+                        drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius, tmp->GetPosition(), KLD_p);
                     }
                     else
                         if (curFixtureType == b2Shape::e_chain){
@@ -298,7 +383,7 @@ void GameWidget::paintGL() {
 
                             }
 
-                            drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, KLD_p);
+                            drawChain (points, tmp->GetPosition(), edgeCount + 1, KLD_p);
 
                         }
             }
@@ -316,8 +401,8 @@ void GameWidget::paintGL() {
 void GameWidget::mousePressEvent(QMouseEvent *event) {
     Qt::MouseButtons mouseButtons = event->buttons();
     if (mouseButtons == Qt::LeftButton)
-        addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2*P2M,
-                -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2*P2M, 2, 2, true, Textures::Type::CRATE);
+        addRect((event->pos().x()+player->body->GetPosition().x*M2P/2-WIDTH/2)*2*P2M,
+                -(event->pos().y()-player->body->GetPosition().y*M2P/2-HEIGHT/2)*2*P2M, 2, 2, true, Textures::Type::CRATE);
     else
         if (mouseButtons == Qt::RightButton){
             b2Body* body1 = addRect(0, 6, 10, 2, true, Textures::Type::CRATE);
@@ -466,7 +551,7 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glColor3f(1, 1, 1);
 
     if(!textureData->isPlayer)
-        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetPosition().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetPosition().y*M2P/WIDTH,0);
 
     glRotatef(angle*180.0/M_PI,0,0,1);
 
@@ -490,7 +575,7 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
     glPushMatrix();
     if(!keyLineData->isPlayer)
-        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetPosition().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetPosition().y*M2P/WIDTH,0);
 
     glBegin(GL_LINE_STRIP);
     for(int i = 0; i < count; i++)
@@ -503,7 +588,7 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glPushMatrix();
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
     if(!keyLineData->isPlayer)
-        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetPosition().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetPosition().y*M2P/WIDTH,0);
     //glTranslatef (center.x*M2P/WIDTH, center.y*M2P/WIDTH, 0);
     glRotatef(angle*180.0/M_PI, 0, 0, 1);
     glBegin(GL_POLYGON);
@@ -517,7 +602,7 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
     glPushMatrix();
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
     if(!keyLineData->isPlayer)
-        glTranslatef(center.x*M2P/WIDTH-player->body->GetWorldCenter().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetWorldCenter().y*M2P/WIDTH,0);
+        glTranslatef(center.x*M2P/WIDTH-player->body->GetPosition().x*M2P/WIDTH,center.y*M2P/WIDTH-player->body->GetPosition().y*M2P/WIDTH,0);
 
     glBegin(GL_LINE_LOOP);
 
