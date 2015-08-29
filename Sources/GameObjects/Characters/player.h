@@ -10,6 +10,7 @@
 #include "Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h"
 #include "Sources/UserInterface/texturedata.h"
 #include "Sources/userdata.h"
+#include "bodyparts.h"
 //class Ladder;
 
 
@@ -35,6 +36,7 @@ public:
     Player(DisplayData *displayData);
     Vehicle* vehicle;
     DisplayData* displayData;
+    BodyParts bodyParts;
 
     void useObject();
     void jump();

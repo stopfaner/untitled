@@ -92,7 +92,8 @@ SOURCES += main.cpp \
     Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.cpp \
     Sources/GameObjects/InteractiveObjects/Vehicles/car.cpp \
     Sources/UserInterface/nondrawable.cpp \
-    Sources/userdata.cpp
+    Sources/userdata.cpp \
+    Sources/GameObjects/Characters/bodyparts.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -178,7 +179,8 @@ HEADERS  += \
     Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h \
     Sources/GameObjects/InteractiveObjects/Vehicles/car.h \
     Sources/UserInterface/nondrawable.h \
-    Sources/userdata.h
+    Sources/userdata.h \
+    Sources/GameObjects/Characters/bodyparts.h
 
 
 

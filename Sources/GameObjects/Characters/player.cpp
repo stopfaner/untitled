@@ -171,16 +171,19 @@ void Player::jump(){
     isOnLadder = false;
     if (!jumpCooldown){
         jumpCooldown = jumpCooldownMax;
-        for (b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next)
+        for (b2ContactEdge* ce = bodyParts.foot->GetContactList(); ce; ce = ce->next)
         {
+            body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), b2Vec2(0,0), true);
+            break;
+            /*
             b2Contact* c = ce->contact;
 
             UserData* dataA = static_cast<UserData*>(c->GetFixtureA()->GetUserData());
             GameObject* objA = dataA->gameObject;
             BodyPart* bodyPartA = dynamic_cast <BodyPart*> (objA);
             if (bodyPartA){
-                if ( bodyPartA->type == BodyPart::Type::FOOT_SENSOR) {
-                    body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*jumpHeight), b2Vec2(0,0), true);
+                if ( bodyPartA->type == BodyPart::Type::FOOT) {
+                    body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()* jumpHeight), b2Vec2(0,0), true);
                     break;
                 }
             }
@@ -189,11 +192,12 @@ void Player::jump(){
                 GameObject* objB = dataB->gameObject;
                 BodyPart* bodyPartB = dynamic_cast <BodyPart*> (objB);
                 if (bodyPartB)
-                    if ( bodyPartB->type == BodyPart::Type::FOOT_SENSOR) {
-                        body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()*jumpHeight), b2Vec2(0,0), true);
+                    if ( bodyPartB->type == BodyPart::Type::FOOT) {
+                        body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), b2Vec2(0,0), true);
                         break;
                     }
             }
+            */
         }
     }
 }
