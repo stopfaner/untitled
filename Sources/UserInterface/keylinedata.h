@@ -7,7 +7,7 @@
 class KeyLineData : public DisplayData
 {
 public:
-    KeyLineData(Color color);
+    KeyLineData(Color color, Layer layer);
     Color color;
 };
 

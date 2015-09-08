@@ -17,11 +17,17 @@
 #ifndef UIELEMENT_H
 #define UIELEMENT_H
 
+#include "displaydata.h"
+#include "texturedata.h"
+#include "Box2D/Box2D.h"
 
-class UIElement
-{
+class UIElement : public DisplayData{
 public:
-    UIElement();
+    UIElement(TextureData* textureData, b2Vec2 center, b2Vec2 size, float angle);
+    TextureData* textureData;
+    b2Vec2 center;
+    b2Vec2 size;
+    float angle;
 };
 
 #endif // UIELEMENT_H

@@ -1,6 +1,6 @@
 #include "texturedata.h"
 
-TextureData::TextureData() : DisplayData(){
+TextureData::TextureData(Layer layer) : DisplayData(layer){
     isMirrored = false;
     texture_p = nullptr;
     currentFrameN = 0;
@@ -8,7 +8,7 @@ TextureData::TextureData() : DisplayData(){
     frameDelayMax = 10;
 }
 
-TextureData::TextureData(Textures::Texture* texture_p) : TextureData(){
+TextureData::TextureData(Textures::Texture* texture_p, Layer layer) : TextureData(layer){
     setTexture(texture_p);
 }
 

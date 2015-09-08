@@ -31,6 +31,8 @@ public:
     };
     bool isOnLadder;
     bool isJumping;
+    bool isUsingLeftLeg;
+    bool isAscendingLeg;
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Player(DisplayData *displayData);
@@ -46,6 +48,7 @@ public:
     void setBody (b2Body* body);
     b2Body *body;
     bool checkForLadder();
+    void changeLeg();
 private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;

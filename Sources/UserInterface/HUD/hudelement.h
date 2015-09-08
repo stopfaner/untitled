@@ -21,7 +21,7 @@
 
 class HUDElement : public UIElement {
 public:
-    HUDElement();
+    HUDElement(TextureData *textureData, b2Vec2 center, b2Vec2 size, float angle);
 };
 
 #endif // HUDELEMENT_H

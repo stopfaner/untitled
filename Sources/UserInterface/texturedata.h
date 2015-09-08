@@ -6,7 +6,7 @@
 class TextureData : public DisplayData
 {
 public:
-     TextureData(Textures::Texture *texture_p);
+     TextureData(Textures::Texture *texture_p, Layer layer);
 
      bool isMirrored;
 
@@ -20,7 +20,7 @@ public:
      void changeFrame ();
      void setTexture (Textures::Texture *texture_p);
 private:
-     TextureData();
+     TextureData(Layer layer);
 };
 
 #endif // TEXTUREDATA_H

@@ -1,14 +1,14 @@
 #ifndef BODYPARTS_H
 #define BODYPARTS_H
 
-class b2Body;
+class BodyPart;
 
 class BodyParts
 {
 public:
     BodyParts(){}
-    BodyParts(b2Body* body, b2Body* hip, b2Body* shin, b2Body* foot, b2Body* head);
-    b2Body *body, *hip, *shin, *foot, *head;
+    BodyParts(BodyPart* body, BodyPart* head);
+    BodyPart *body, *hip, *shin, *foot, *head, *hip2, *shin2, *foot2, *shoulder, *shoulder2, *wrist, *wrist2, *forearm, *forearm2;
 };
 
 #endif // BODYPARTS_H

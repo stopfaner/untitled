@@ -40,6 +40,7 @@
 #include "UserInterface/keylinedata.h"
 #include "UserInterface/texturedata.h"
 #include "UserInterface/nondrawable.h"
+#include "UserInterface/HUD/hudelement.h"
 #include "userdata.h"
 
 /**
@@ -52,6 +53,12 @@ using namespace std;
 class GameWidget : public QGLWidget {
 
 public:
+
+    enum CollisionType {
+       BASIC =          0x0001,
+       BODYPART =     0x0002,
+     };
+
     /**
      * @brief GameWidget - constructor
      * @param parent - parent widget instance
@@ -59,6 +66,8 @@ public:
     GameWidget(QWidget *parent = 0);
 //public slots:
     void updateGame();
+    void addWalkingMachine();
+    void drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData *textureData);
 private:
     int WIDTH = 600;
     int HEIGHT = 600;
@@ -91,8 +100,9 @@ private:
 
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, TextureData *textureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, KeyLineData *keyLineData);
-    void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData);
+    void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData, float angle);
     void drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData);
+
 
     void addPlayer ();
     void createWorld();
@@ -100,6 +110,8 @@ private:
     b2Body *addBot(Bot* bot);
 
     Textures textures;
+
+    std::list<UIElement*> displayItems;
 };
 
 #endif // GAMEWIDGET_H

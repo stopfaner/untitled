@@ -16,8 +16,8 @@
 
 #include "hudelement.h"
 
-HUDElement::HUDElement()
-{
+HUDElement::HUDElement(TextureData *textureData, b2Vec2 center, b2Vec2 size, float angle) :
+    UIElement(textureData, center, size, angle){
 
 }
 

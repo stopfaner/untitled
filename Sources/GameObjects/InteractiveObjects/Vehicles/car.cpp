@@ -5,7 +5,7 @@ Car::Car(b2World *world, Textures* textures) : Vehicle(world)
     playerJoint = nullptr;
 
     GameObject* carPart = new GameObject;
-    DisplayData* circleDD = new KeyLineData(Color(0, 255, 255));
+    DisplayData* circleDD = new KeyLineData(Color(0, 255, 255), DisplayData::Layer::OBJECT);
 
     b2RevoluteJointDef jointDef;
 
@@ -51,7 +51,7 @@ Car::Car(b2World *world, Textures* textures) : Vehicle(world)
     world->CreateJoint( &weldJointDef );
 
 
-    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE));
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
     mainPlank->SetUserData((void*) new UserData (carPart, bodyDD));
     mainPlank->GetFixtureList()->SetUserData((void*) new UserData (carPart, bodyDD));
     rule->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
