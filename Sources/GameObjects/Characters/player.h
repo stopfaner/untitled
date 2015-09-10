@@ -33,6 +33,7 @@ public:
     bool isJumping;
     bool isUsingLeftLeg;
     bool isAscendingLeg;
+    bool isRightDirection;
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Player(DisplayData *displayData);
@@ -40,6 +41,8 @@ public:
     DisplayData* displayData;
     BodyParts bodyParts;
 
+    void rotate (bool right);
+    void move ();
     void useObject();
     void jump();
     void crouch();
@@ -49,6 +52,7 @@ public:
     b2Body *body;
     bool checkForLadder();
     void changeLeg();
+    bool isGrounded();
 private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;

@@ -6,6 +6,7 @@
 
 class b2RevoluteJoint;
 class b2Body;
+class DisplayData;
 
 class BodyPart : public GameObject
 {
@@ -25,10 +26,13 @@ public:
 
     BodyPart(Entity* entity, Type type, b2Body* body, b2RevoluteJoint* RJ = nullptr);
     b2RevoluteJoint* RJ;
+    float angleDeviation;
     float desiredAngle;
+    float motorSpeed;
     Type type;
     b2Body* body;
     Entity* entity;
+    DisplayData* DD;
 };
 
 #endif // BODY_H

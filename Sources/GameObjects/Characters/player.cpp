@@ -4,6 +4,13 @@
 
 #define M_PI		3.14159265358979323846
 
+float D2R (float degrees){
+    return degrees * M_PI / 180.0f;
+}
+float R2D (float radians){
+    return radians * 180.0f / M_PI;
+}
+
 
 Player::Player(DisplayData* displayData) : Entity ()
 {
@@ -13,12 +20,88 @@ Player::Player(DisplayData* displayData) : Entity ()
     isJumping = false;
     isUsingLeftLeg = true;
     isAscendingLeg = true;
+    isRightDirection = true;
     jumpCooldown = 0;
     jumpCooldownMax = 40;
     useCooldown = 0;
     useCooldownMax = 10;
     vehicle = nullptr;
     this->displayData = displayData;
+}
+
+void Player::rotate(bool right)
+{
+    if ( (right && !isRightDirection) || (!right && isRightDirection) ){
+        if (isRightDirection) isRightDirection = false;
+        else isRightDirection = true;
+        bodyParts.mirror();
+
+    }
+}
+
+void Player::move()
+{
+    float direction;
+    if (isRightDirection) direction = 1;
+    else direction = -1;
+/*
+    if (isGrounded() && fabs(bodyParts.foot->RJ->GetJointAngle() - bodyParts.foot->desiredAngle < D2R(10.0f))){
+        qDebug()<<"1";
+        bodyParts.foot->angleDeviation = M_PI / 2;
+    }
+    if (isGrounded() && fabs(bodyParts.foot2->RJ->GetJointAngle() - bodyParts.foot2->desiredAngle < D2R(10.0f))){
+        qDebug()<<"2";
+        bodyParts.foot2->angleDeviation = M_PI / 2;
+    }
+*/
+    BodyPart *hip, *shin;
+    BodyPart *shoulder, *forearm;
+    if (isUsingLeftLeg){
+        hip = bodyParts.hip;
+        shin = bodyParts.shin;
+        shoulder = bodyParts.shoulder2;
+        forearm = bodyParts.forearm2;
+    }
+    else{
+        hip = bodyParts.hip2;
+        shin = bodyParts.shin2;
+        shoulder = bodyParts.shoulder;
+        forearm = bodyParts.forearm;
+    }
+    if (isAscendingLeg){
+        if ( (hip->RJ->GetJointAngle() < D2R (70.0f) && isRightDirection ) ||
+             (hip->RJ->GetJointAngle() > D2R (-70.0f) && !isRightDirection)){
+            hip->desiredAngle = D2R (80.0f * direction);
+            hip->motorSpeed = 1.8;
+            shin->desiredAngle = D2R (-50.0f * direction);
+            shin->motorSpeed = 2;
+
+            shoulder->desiredAngle = D2R (30.0f * direction);
+            shoulder->motorSpeed = 1;
+
+            forearm->desiredAngle = D2R (40.0f * direction);
+            forearm->motorSpeed = 1;
+        }
+        else{
+            isAscendingLeg = false;
+
+            shoulder->desiredAngle = D2R (-5.0f * direction);
+            forearm->desiredAngle = 0;
+
+            hip->desiredAngle = D2R (-15.0f * direction);
+            shin->desiredAngle = 0;
+            body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, body->GetMass() * 3), body->GetWorldCenter(), true);
+
+        }
+
+    }
+    else{
+        if ((hip->RJ->GetJointAngle() < 0 && isRightDirection) ||
+                (hip->RJ->GetJointAngle() > 0 && !isRightDirection)){
+            isAscendingLeg = true;
+            changeLeg();
+        }
+    }
 }
 
 void Player::useObject(){
@@ -106,14 +189,6 @@ void Player::chooseTexture(Textures *textures)
     }
 */
 }
-#define M_PI		3.14159265358979323846
-
-float D2R (float degrees){
-    return degrees * M_PI / 180.0f;
-}
-float R2D (float radians){
-    return radians * 180.0f / M_PI;
-}
 
 void Player::applyForce(){
     if (vehicle){
@@ -125,161 +200,76 @@ void Player::applyForce(){
         case MS_STAND:  desiredVel =  0; break;
         case MS_RIGHT: desiredVel =  - desiredVelMax; break;
         }
-        //    float velChange = desiredVel - vehicle->motor->GetMotorSpeed();
-        //    vehicle->motor->SetMotorSpeed(velChange);
         vehicle->motor->SetMotorSpeed(desiredVel);
     }
     else {
-        b2RevoluteJoint* jointFoot;
-        b2RevoluteJoint* jointHip;
-        b2RevoluteJoint* jointKnee;
-        b2RevoluteJoint* jointShoulder;
-        b2RevoluteJoint* jointElbow;
-        for (int i = 0; i < 2; ++i){
-            if (i){
-                jointHip = bodyParts.hip->RJ;
-                jointKnee = bodyParts.shin->RJ;
-                jointShoulder = bodyParts.shoulder->RJ;
-                jointElbow = bodyParts.forearm->RJ;
-                jointFoot = bodyParts.foot->RJ;
-            }
-            else {
-                jointHip = bodyParts.hip2->RJ;
-                jointKnee = bodyParts.shin2->RJ;
-                jointShoulder = bodyParts.shoulder2->RJ;
-                jointElbow = bodyParts.forearm2->RJ;
-                jointFoot = bodyParts.foot2->RJ;
-            }
-            //straight arms
-            if (moveState == MoveState::MS_STAND){
 
-                if (jointFoot->GetJointAngle() > 0.2){
-                    jointFoot->SetMotorSpeed(-1);
-                }
-                else
-                    if (jointFoot->GetJointAngle() < - 0.2){
-                        jointFoot->SetMotorSpeed(1);
-                    }
-                    else jointFoot->SetMotorSpeed(0);
-
-
-                if (jointShoulder->GetJointAngle() > 0.2){
-                    jointShoulder->SetMotorSpeed(-1);
-                }
-                else
-                    if (jointShoulder->GetJointAngle() < - 0.2){
-                        jointShoulder->SetMotorSpeed(1);
-                    }
-                    else jointShoulder->SetMotorSpeed(0);
-
-
-                if (jointElbow->GetJointAngle() > 0.2){
-                    jointElbow->SetMotorSpeed(-1);
-                }
-                else
-                    if (jointElbow->GetJointAngle() < - 0.2){
-                        jointElbow->SetMotorSpeed(1);
-                    }
-                    else jointElbow->SetMotorSpeed(0);
-            }
-
-            //
-            //hips rotate
-            if (jointHip->GetJointAngle() > 0.2){
-                jointHip->SetMotorSpeed(-5);
-            }
-            else
-                if (jointHip->GetJointAngle() < - 0.2){
-                    jointHip->SetMotorSpeed(5);
-                }
-                else jointHip->SetMotorSpeed(0);
-            //
-
-            //knee rotate
-            if (jointKnee->GetJointAngle() > 0){
-
-                jointKnee->SetMotorSpeed(-2);
-                jointKnee->EnableMotor(true);
-            }
-            else
-                if (jointKnee->GetJointAngle() < - 0.3){
-
-                    jointKnee->SetMotorSpeed(2);
-                    jointKnee->EnableMotor(true);
-                }
-                else jointKnee->SetMotorSpeed(0);
-        }
+        float direction;
+        if (isRightDirection) direction = 1;
+        else direction = -1;
 
         if (isJumping)
             jump();
 
-        //moving legs
+        BodyPart* foot;
+        BodyPart* hip;
+        BodyPart* shin;
+
+        BodyPart* forearm;
+        BodyPart* shoulder;
+        BodyPart* wrist;
+
+        bodyParts.head->desiredAngle = 0;
+        bodyParts.body->desiredAngle = 0;
+
+
+        for (int i = 0; i < 2; ++i){
+            if (i){
+                hip = bodyParts.hip;
+                shin = bodyParts.shin;
+                shoulder = bodyParts.shoulder;
+                forearm = bodyParts.forearm;
+                foot = bodyParts.foot;
+                wrist = bodyParts.wrist;
+            }
+            else {
+                hip = bodyParts.hip2;
+                shin = bodyParts.shin2;
+                shoulder = bodyParts.shoulder2;
+                forearm = bodyParts.forearm2;
+                foot = bodyParts.foot2;
+                wrist = bodyParts.wrist2;
+            }
+            //straight body parts
+            if (isRightDirection)
+                foot->desiredAngle = M_PI / 2;
+            else foot->desiredAngle = M_PI / 2 + M_PI;
+            foot->angleDeviation = D2R(20.0f);
+            if (moveState == MoveState::MS_STAND){
+                shoulder->desiredAngle = 0;
+                forearm->desiredAngle = 0;
+                shin->desiredAngle = 0;
+                hip->desiredAngle = 0;
+                wrist->desiredAngle = 0;
+            }
+        }
+
+        //moving
         switch ( moveState ){
+        case MS_LEFT :
+            rotate (false);
+            move ();
+            break;
         case MS_RIGHT :
-            b2RevoluteJoint *hip, *shin;
-            b2RevoluteJoint *shoulder, *elbow;
-            if (isUsingLeftLeg){
-                hip = bodyParts.hip->RJ;
-                shin = bodyParts.shin->RJ;
-                shoulder = bodyParts.shoulder2->RJ;
-                elbow = bodyParts.forearm2->RJ;
-            }
-            else{
-                hip = bodyParts.hip2->RJ;
-                shin = bodyParts.shin2->RJ;
-                shoulder = bodyParts.shoulder->RJ;
-                elbow = bodyParts.forearm->RJ;
-            }
-            if (isAscendingLeg){
-
-                if (R2D(hip->GetJointAngle()) < 60.0f){
-                    hip->SetMotorSpeed(2);
-
-                    shoulder->SetMotorSpeed(0.5);
-                    elbow->SetMotorSpeed(1);
-                }
-                else{
-                    shoulder->SetMotorSpeed(-0.5/4);
-                    elbow->SetMotorSpeed(-1.0/4);
-
-                    isAscendingLeg = false;
-                    hip->SetMotorSpeed(-2);
-                    body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 9, 0), body->GetWorldCenter(), true);
-
-                }
-
-                if (R2D(shin->GetJointAngle()) > -40.0f)
-                    shin->SetMotorSpeed(-6);
-            }
-            else{
-
-                hip->SetMotorSpeed(-1.5);
-                if (R2D(hip->GetJointAngle()) < 10.0f){
-                    isAscendingLeg = true;
-                    changeLeg();
-                }
-
-            }
+            rotate (true);
+            move ();
+            break;
+        case MS_STAND:
+            if (R2D(shin->body->GetAngle() - shin->body->GetAngle()) < 10.0f)
+                isAscendingLeg = true;
             break;
         }
 
-        //
-
-        /*
-        //horizontal forces
-        b2Vec2 vel = body->GetLinearVelocity();
-        float desiredVel = 0;
-        switch ( moveState )
-        {
-        case MS_LEFT:  desiredVel = -10; break;
-        case MS_STAND:  desiredVel =  0; break;
-        case MS_RIGHT: desiredVel =  10; break;
-        }
-        float velChange = desiredVel - vel.x;
-        float force = body->GetMass() * velChange;
-        if (isOnLadder) force *= 5;
-        body->ApplyForce( b2Vec2(force,0), body->GetWorldCenter(), true );
-*/
         //vertical forces
         if (isOnLadder){
             body->SetLinearVelocity(b2Vec2(0, 0));
@@ -296,8 +286,9 @@ void Player::applyForce(){
                 crouch();//TODO
         }
     }
-
+    bodyParts.setSpeed();
 }
+
 
 void Player::changeLeg(){
     if (isUsingLeftLeg)
@@ -314,7 +305,6 @@ void Player::crouch(){
         bodyParts.hip->RJ->SetMotorSpeed(0.6);
 
         if (fabs(bodyParts.shin->RJ->GetJointAngle() - crouchAngle) > 3 ){
-           // body->ApplyLinearImpulse(b2Vec2(-0.1, 0), body->GetWorldCenter(), true);
             body->ApplyAngularImpulse(-1, true);
         }
         body->SetAngularVelocity(-1.75);
@@ -329,7 +319,6 @@ void Player::crouch(){
         bodyParts.hip2->RJ->SetMotorSpeed(0.6);
 
         if (fabs(bodyParts.shin2->RJ->GetJointAngle() - crouchAngle) > 3 ){
-           // body->ApplyLinearImpulse(b2Vec2(-0.1, 0), b2Vec2(body->GetWorldCenter().x, body->GetWorldCenter().y - 0.2), true);
             body->ApplyAngularImpulse(-1, true);
         }
         body->SetAngularVelocity(-1.75);
@@ -342,52 +331,40 @@ void Player::crouch(){
 
 void Player::fall()
 {
-    body->SetFixedRotation(false);
     body->ApplyTorque(30000, true);
+}
+
+bool Player::isGrounded(){
+    for (b2ContactEdge* ce = bodyParts.foot->body->GetContactList(); ce; ce = ce->next)
+    {
+        return true;
+        break;
+    }
+    for (b2ContactEdge* ce = bodyParts.foot2->body->GetContactList(); ce; ce = ce->next)
+    {
+        return true;
+        break;
+    }
+    return false;
 }
 
 void Player::jump(){
     float jumpHeight;
-    //if (body->IsFixedRotation())
+
     jumpHeight = 30;
-    // else jumpHeight = 0;
+
     isOnLadder = false;
     if (!jumpCooldown){
         jumpCooldown = jumpCooldownMax;
-        for (b2ContactEdge* ce = bodyParts.foot->body->GetContactList(); ce; ce = ce->next)
-        {
+        if (isGrounded())
             body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), body->GetWorldCenter(), true);
-            break;
-            /*
-            b2Contact* c = ce->contact;
 
-            UserData* dataA = static_cast<UserData*>(c->GetFixtureA()->GetUserData());
-            GameObject* objA = dataA->gameObject;
-            BodyPart* bodyPartA = dynamic_cast <BodyPart*> (objA);
-            if (bodyPartA){
-                if ( bodyPartA->type == BodyPart::Type::FOOT) {
-                    body->ApplyLinearImpulse(b2Vec2(0, body->GetMass()* jumpHeight), b2Vec2(0,0), true);
-                    break;
-                }
-            }
-            else{
-                UserData* dataB = static_cast<UserData*>(c->GetFixtureB()->GetUserData());
-                GameObject* objB = dataB->gameObject;
-                BodyPart* bodyPartB = dynamic_cast <BodyPart*> (objB);
-                if (bodyPartB)
-                    if ( bodyPartB->type == BodyPart::Type::FOOT) {
-                        body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), b2Vec2(0,0), true);
-                        break;
-                    }
-            }
-            */
-        }
     }
 }
 
 void Player::update(Textures* textures)
 {
-
+    //rotate body
     if (!vehicle && !body->IsFixedRotation()){
         if (body->GetAngle() > 0.01)
             body->SetAngularVelocity (-3 - body->GetAngularVelocity());
@@ -397,13 +374,12 @@ void Player::update(Textures* textures)
         if (fabs(body->GetAngle()) < 0.02)
             body->SetAngularVelocity(body->GetAngularVelocity() / 2.0f);
 
-        //    if (body->GetAngle() < 0.01 && body->GetAngle() > - 0.01)
-        //        body->SetFixedRotation(true);
     }
     if (jumpCooldown) --jumpCooldown;
     if (useCooldown) --useCooldown;
     if (isOnLadder && !checkForLadder()) isOnLadder = false;
-
+    if (isRightDirection) static_cast<TextureData*>(bodyParts.head->DD)->isMirrored = false;
+    else static_cast<TextureData*>(bodyParts.head->DD)->isMirrored = true;
     applyForce();
     chooseTexture(textures);
 }

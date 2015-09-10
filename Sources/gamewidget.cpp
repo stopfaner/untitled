@@ -66,8 +66,8 @@ void GameWidget::createWorld(){
         float dy = rand()%4 - 2;
 
         //
-        dx = 15;
-        dy = 0;
+        //dx = 15;
+        //dy = 0;
         //
 
 
@@ -133,7 +133,7 @@ void GameWidget::createWorld(){
 
 
     //interface
-    displayItems.push_back(new HUDElement (new TextureData(textures.getTexture(Textures::Type::TEST2), DisplayData::Layer::HUD),
+    displayItems.push_back(new HUDElement (new TextureData(textures.getTexture(Textures::Type::TEST1), DisplayData::Layer::HUD),
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
 
 }
@@ -159,7 +159,7 @@ void GameWidget::addWalkingMachine (){
 
 
     b2Body* circleBody = world->CreateBody(&bodydef);
-//circleBody->SetType(b2_staticBody);
+    //circleBody->SetType(b2_staticBody);
     b2CircleShape circleShape;
     circleShape.m_radius = 1;
 
@@ -177,13 +177,13 @@ void GameWidget::addWalkingMachine (){
     mainRJD.motorSpeed = 5;
     mainRJD.enableMotor = true;
     b2RevoluteJoint* mainRJ = static_cast<b2RevoluteJoint*> (world->CreateJoint(&mainRJD));
-mainRJD.enableMotor = false;
+    mainRJD.enableMotor = false;
 
     b2EdgeShape edgeShape;
     edgeShape.Set(b2Vec2(0, 0), b2Vec2(-4 * widthScale, 3 * heightScale ));
     bodydef.position.Set(x + circleShape.m_radius, y);
     b2Body* edge=world->CreateBody(&bodydef);
-//edge->SetType(b2_staticBody);
+    //edge->SetType(b2_staticBody);
     fixturedef.shape = &edgeShape;
 
     b2Fixture* fixture = edge->CreateFixture(&fixturedef);
@@ -213,7 +213,7 @@ plank1->SetType(b2_staticBody);
     bodydef.position.Set(x - 3 * widthScale, y);
     bodydef.type=b2_dynamicBody;
     b2Body* triangle=world->CreateBody(&bodydef);
-//triangle->SetType(b2_staticBody);
+    //triangle->SetType(b2_staticBody);
     fixturedef.shape = &triangleShape;
 
     fixture = triangle->CreateFixture(&fixturedef);
@@ -232,7 +232,7 @@ plank1->SetType(b2_staticBody);
     edgeShape.Set(b2Vec2(0, 0), b2Vec2(0, - 3 * heightScale ));
     bodydef.position.Set(triangle->GetPosition().x, triangle->GetPosition().y);
     b2Body* edge1=world->CreateBody(&bodydef);
-//edge1->SetType(b2_staticBody);
+    //edge1->SetType(b2_staticBody);
     fixturedef.shape = &edgeShape;
 
     fixture = edge1->CreateFixture(&fixturedef);
@@ -244,7 +244,7 @@ plank1->SetType(b2_staticBody);
 
     bodydef.position.Set(triangle->GetPosition().x - 3 * widthScale, triangle->GetPosition().y);
     b2Body* edge2=world->CreateBody(&bodydef);
-//edge2->SetType(b2_staticBody);
+    //edge2->SetType(b2_staticBody);
     fixturedef.shape = &edgeShape;
 
     fixture = edge2->CreateFixture(&fixturedef);
@@ -262,7 +262,7 @@ plank1->SetType(b2_staticBody);
     triangleShape.Set(trianglePoints, 3);
     bodydef.position.Set(triangle->GetPosition().x, triangle->GetPosition().y - 3 * heightScale);
     b2Body* triangle2=world->CreateBody(&bodydef);
-//triangle2->SetType(b2_staticBody);
+    //triangle2->SetType(b2_staticBody);
     fixturedef.shape = &triangleShape;
 
     fixture = triangle2->CreateFixture(&fixturedef);
@@ -302,9 +302,10 @@ edge3->SetType(b2_staticBody);
 void GameWidget::addPlayer (){
     DisplayData* playerDD = (DisplayData*) new KeyLineData (Color(), DisplayData::Layer::PLAYER);
     player = new Player(playerDD);
+    float x = 20, y = 10;
     float playerWidth = 1; float playerHeight = 6;
     b2BodyDef bodydef;
-    bodydef.position.Set(20, 10);
+    bodydef.position.Set(x, y);
     bodydef.type = b2_dynamicBody;
     //bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
@@ -336,8 +337,6 @@ void GameWidget::addPlayer (){
 
     ///
 
-
-    player->bodyParts = BodyParts ();
     float motorTorque = body->GetMass() * 13;
 
     //leg
@@ -345,7 +344,7 @@ void GameWidget::addPlayer (){
     b2RevoluteJoint* RJhip, *RJhip2, *RJknee, *RJknee2, *RJfoot, *RJfoot2;
     for (int i = 0; i < 2; ++i){
         b2BodyDef bodydefHip;
-        bodydefHip.position.Set(20, 10 - playerHeight * (0.4 + 0.2) / 2.0f);
+        bodydefHip.position.Set(x, y - playerHeight * (0.4 + 0.2) / 2.0f);
         bodydefHip.type = b2_dynamicBody;
         bodydefHip.fixedRotation = false;
         b2Body* hip = world->CreateBody(&bodydefHip);
@@ -373,7 +372,7 @@ void GameWidget::addPlayer (){
         RJDhip.enableLimit = true;
         RJDhip.upperAngle = M_PI * 0.9;
         RJDhip.lowerAngle = - M_PI / 6;
-        RJDhip.maxMotorTorque = motorTorque * 2.0f;
+        RJDhip.maxMotorTorque = motorTorque * 5.0f;
         RJDhip.Initialize(body, hip, b2Vec2(body->GetWorldCenter().x, body->GetWorldCenter().y - playerHeight * 0.4 / 2.0f));
         b2RevoluteJoint* RJhipTemp = static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDhip));
         RJhipTemp->EnableMotor(true);
@@ -382,7 +381,7 @@ void GameWidget::addPlayer (){
         float offset = 0.05;
 
         b2BodyDef bodydefShin;
-        bodydefShin.position.Set(20, 10 - playerHeight * ( (0.4 + 0.2) / 2.0f + 0.2 - offset  ));
+        bodydefShin.position.Set(x, y - playerHeight * ( (0.4 + 0.2) / 2.0f + 0.2 - offset  ));
         bodydefShin.type = b2_dynamicBody;
         bodydefShin.fixedRotation = false;
         b2Body* shin = world->CreateBody(&bodydefShin);
@@ -395,9 +394,11 @@ void GameWidget::addPlayer (){
         BodyPart* BPShin = new BodyPart(player, BodyPart::Type::SHIN, shin);
         bodyPart = BPShin;
 
-
-        mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                           textures.getTexture(Textures::Type::SHIN), layer)));
+        if (i) mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                                  textures.getTexture(Textures::Type::TEST2), layer)));
+        else
+            mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                               textures.getTexture(Textures::Type::SHIN), layer)));
 
 
         b2RevoluteJointDef RJDknee;
@@ -412,12 +413,12 @@ void GameWidget::addPlayer (){
 
 
         b2BodyDef bodydefFoot;
-        bodydefFoot.position.Set(20 + 0.7 / 2.0f, 10 - playerHeight * ( (0.4 / 2.0f + 0.2 + 0.2 - offset - 0.025 / 2  )));
+        bodydefFoot.position.Set(x, shin->GetWorldCenter().y - playerHeight *  0.13);
         bodydefFoot.type = b2_dynamicBody;
         bodydefFoot.fixedRotation = false;
         b2Body* foot = world->CreateBody(&bodydefFoot);
-        shape.SetAsBox(playerWidth * 0.8 / 2.0f, playerHeight * 0.025 / 2.0f);
-        fixturedef.friction = 1.15;
+        shape.SetAsBox(playerHeight * 0.025 / 2.0f, playerWidth * 0.8 / 2.0f);
+        fixturedef.friction = 1.1;
         fixturedef.shape = &shape;
 
         mainFixture = foot->CreateFixture(&fixturedef);
@@ -432,11 +433,11 @@ void GameWidget::addPlayer (){
                                                            textures.getTexture(Textures::Type::FOOT), layer)));
 
         b2RevoluteJointDef RJDfoot;
-        RJDfoot.enableLimit = true;
-        RJDfoot.upperAngle = 1;
-        RJDfoot.lowerAngle = -1;
+        RJDfoot.enableLimit = false;
+        RJDfoot.upperAngle = M_PI;
+        RJDfoot.lowerAngle = 0;
         RJDfoot.maxMotorTorque = motorTorque;
-        RJDfoot.Initialize(shin, foot, b2Vec2(foot->GetWorldCenter().x - 0.6 / 2.0f, foot->GetWorldCenter().y));
+        RJDfoot.Initialize(shin, foot, b2Vec2(foot->GetWorldCenter().x, foot->GetWorldCenter().y + playerHeight * 0.03));
         b2RevoluteJoint* RJfootTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDfoot));
         RJfootTemp->EnableMotor(true);
 
@@ -448,23 +449,20 @@ void GameWidget::addPlayer (){
             RJfoot = RJfootTemp;
             RJknee = RJkneeTemp;
             RJhip = RJhipTemp;
-            player->bodyParts.hip = BPHip;
-            player->bodyParts.shin = BPShin;
-            player->bodyParts.foot = BPFoot;
         }
         else{
             RJfoot2 = RJfootTemp;
             RJknee2 = RJkneeTemp;
             RJhip2 = RJhipTemp;
-            player->bodyParts.hip2 = BPHip;
-            player->bodyParts.shin2 = BPShin;
-            player->bodyParts.foot2 = BPFoot;
         }
+        player->bodyParts.setPart(BPHip);
+        player->bodyParts.setPart(BPShin);
+        player->bodyParts.setPart(BPFoot);
     }
     //
 
     b2BodyDef bodydefHead;
-    bodydefHead.position.Set(20, 10 + playerHeight * (0.4 / 2.0f) + playerWidth * 0.5);
+    bodydefHead.position.Set(x, y + playerHeight * (0.4 / 2.0f) + playerWidth * 0.5);
     bodydefHead.type = b2_dynamicBody;
     //bodydefHead.fixedRotation = false;
     b2Body* head = world->CreateBody(&bodydefHead);
@@ -479,9 +477,9 @@ void GameWidget::addPlayer (){
 
     BodyPart* BPHead = new BodyPart(player, BodyPart::Type::HEAD, head);
     bodyPart = BPHead;
-
-    mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                       textures.getTexture(Textures::Type::HEAD), DisplayData::Layer::PLAYER)));
+    DisplayData* DD = new TextureData(textures.getTexture(Textures::Type::HEAD), DisplayData::Layer::PLAYER);
+    BPHead->DD = DD;
+    mainFixture->SetUserData((void*) new UserData (bodyPart, DD));
 
 
     b2RevoluteJointDef RJDhead;
@@ -493,8 +491,8 @@ void GameWidget::addPlayer (){
     world->CreateJoint(&RJDhead);
 
 
-    player->bodyParts.body = BPBody;
-    player->bodyParts.body = BPHead;
+    player->bodyParts.setPart(BPBody);
+    player->bodyParts.setPart(BPHead);
 
     ///
 
@@ -502,7 +500,7 @@ void GameWidget::addPlayer (){
     b2RevoluteJoint* RJshoulder, *RJshoulder2, *RJforearm, *RJforearm2, *RJwrist, *RJwrist2;
     for (int i = 0; i < 2; ++i){
         b2BodyDef bodydefshoulder;
-        bodydefshoulder.position.Set(20, 10 + playerHeight * (0.4 - 0.2) / 2.0f);
+        bodydefshoulder.position.Set(x, y + playerHeight * (0.4 - 0.2) / 2.0f);
         bodydefshoulder.type = b2_dynamicBody;
         bodydefshoulder.fixedRotation = false;
         b2Body* shoulder = world->CreateBody(&bodydefshoulder);
@@ -516,7 +514,7 @@ void GameWidget::addPlayer (){
             layer = DisplayData::Layer::PLAYER_FAR;
             bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0), DisplayData::Layer::PLAYER);
         }
-            else{
+        else{
             bodyDD = (DisplayData*) new KeyLineData(Color(255, 255, 0), DisplayData::Layer::PLAYER);
             layer = DisplayData::Layer::PLAYER_NEAR;
         }
@@ -541,8 +539,8 @@ void GameWidget::addPlayer (){
         float offset = 0.1;
 
         b2BodyDef bodydefforearm;
-        // bodydefforearm.position.Set(20, 10 - playerHeight * ( (0.4 + 0.2) / 2.0f + 0.2 - offset  ));
-        bodydefforearm.position.Set(20, 10 - playerHeight * (0.2 / 2.0f));
+        // bodydefforearm.position.Set(x, y - playerHeight * ( (0.4 + 0.2) / 2.0f + 0.2 - offset  ));
+        bodydefforearm.position.Set(x, y - playerHeight * (0.2 / 2.0f));
         bodydefforearm.type = b2_dynamicBody;
         bodydefforearm.fixedRotation = false;
         b2Body* forearm = world->CreateBody(&bodydefforearm);
@@ -574,8 +572,8 @@ void GameWidget::addPlayer (){
 
 
         b2BodyDef bodydefwrist;
-        //bodydefwrist.position.Set(20, 10 - playerHeight * ( (0.4 / 2.0f + 0.2 + 0.2 - offset - 0.025 / 2  )));
-        bodydefwrist.position.Set(20, 10 - playerHeight * (0.4 / 2.0f));
+        //bodydefwrist.position.Set(x, y - playerHeight * ( (0.4 / 2.0f + 0.2 + 0.2 - offset - 0.025 / 2  )));
+        bodydefwrist.position.Set(x, y - playerHeight * (0.4 / 2.0f));
         bodydefwrist.type = b2_dynamicBody;
         bodydefwrist.fixedRotation = false;
         b2Body* wrist = world->CreateBody(&bodydefwrist);
@@ -612,24 +610,21 @@ void GameWidget::addPlayer (){
             RJwrist = RJwristTemp;
             RJforearm = RJforearmTemp;
             RJshoulder = RJshoulderTemp;
-            player->bodyParts.shoulder = BPshoulder;
-            player->bodyParts.forearm = BPforearm;
-            player->bodyParts.wrist = BPwrist;
         }
         else{
             RJwrist2 = RJwristTemp;
             RJforearm2 = RJforearmTemp;
             RJshoulder2 = RJshoulderTemp;
-            player->bodyParts.shoulder2 = BPshoulder;
-            player->bodyParts.forearm2 = BPforearm;
-            player->bodyParts.wrist2 = BPwrist;
         }
+        player->bodyParts.setPart(BPshoulder);
+        player->bodyParts.setPart(BPforearm);
+        player->bodyParts.setPart(BPwrist);
     }
     //
     /*
 
             b2BodyDef bodydef2;
-            bodydef2.position.Set(20, 10);
+            bodydef2.position.Set(x, y);
             bodydef2.type = b2_dynamicBody;
             bodydef2.fixedRotation = false;
             b2Body* body2 = world->CreateBody(&bodydef2);
@@ -797,7 +792,7 @@ void GameWidget::paintGL() {
                         KeyLineData* KLD_p = dynamic_cast<KeyLineData*> (displayData);
                         if (KLD_p)
                             drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius,
-                                   tmp->GetPosition(), KLD_p, tmp->GetAngle());
+                                       tmp->GetPosition(), KLD_p, tmp->GetAngle());
                         else
                             if (TD_p){
                                 float radius = static_cast<b2CircleShape*>(curFixture->GetShape())->m_radius;
