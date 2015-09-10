@@ -25,6 +25,7 @@ public:
 
     BodyPart(Entity* entity, Type type, b2Body* body, b2RevoluteJoint* RJ = nullptr);
     b2RevoluteJoint* RJ;
+    float desiredAngle;
     Type type;
     b2Body* body;
     Entity* entity;

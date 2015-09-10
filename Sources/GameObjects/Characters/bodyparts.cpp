@@ -8,3 +8,7 @@ BodyParts::BodyParts(BodyPart *body, BodyPart *head)
 
 }
 
+void BodyParts::tryMove(){
+
+}
+

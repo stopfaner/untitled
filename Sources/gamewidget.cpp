@@ -42,7 +42,7 @@ void GameWidget::createWorld(){
 
 
     addPlayer();
-    addWalkingMachine();
+    //addWalkingMachine();
     addRect(0,-1000,1000,2,false,Textures::Type::WALL);
     addRect(0,1000,1000,2,false,Textures::Type::WALL);
     addRect(-1000,0,2,1000,false,Textures::Type::WALL);
@@ -134,41 +134,164 @@ void GameWidget::createWorld(){
 }
 
 void GameWidget::addWalkingMachine (){
+    float x = 20, y = 5;
     float widthScale = 1, heightScale = 1;
     DisplayData* DD = (DisplayData*) new KeyLineData (Color(100, 150, 50), DisplayData::Layer::OBJECT);
-b2Body* mainBody = addRect(20, 5, 3 * widthScale * 2, 0.5 * heightScale * 2, true, Textures::Type::TEST1);
+
+    b2Body* mainBody = addRect(x, y, 3 * widthScale * 2, 0.5 * heightScale * 2, true, Textures::Type::TEST1);
+    mainBody->SetType(b2_staticBody);
+    b2Filter filter;
+    filter.groupIndex = -1;
+    mainBody->GetFixtureList()->SetFilterData(filter);
     b2BodyDef bodydef;
-    bodydef.position.Set(20, 5);
+    bodydef.position.Set(x, y);
     bodydef.type = b2_dynamicBody;
-    //bodydef.fixedRotation = false;
-   // b2Body* mainBody = world->CreateBody(&bodydef);
-//bodydef.type = b2_dynamicBody;
-    b2PolygonShape shape;
-    shape.SetAsBox(3 * widthScale, 0.5 * heightScale);
 
-    b2FixtureDef fixturedef;
-    fixturedef.shape = &shape;
 
-    //b2Fixture* mainFixture = mainBody->CreateFixture(&fixturedef);
+
+
     UserData* basicUD = new UserData(DD);
-    //mainFixture->SetUserData(static_cast<void*> (basicUD));
+
 
     b2Body* circleBody = world->CreateBody(&bodydef);
+//circleBody->SetType(b2_staticBody);
     b2CircleShape circleShape;
     circleShape.m_radius = 1;
+
+    b2FixtureDef fixturedef;
+    fixturedef.density = 1;
     fixturedef.shape = &circleShape;
+    fixturedef.filter.groupIndex = -1;
     b2Fixture* circleFixture = circleBody->CreateFixture(&fixturedef);
     circleFixture->SetUserData(static_cast<void*> (basicUD));
 
-    qDebug()<< mainBody->IsFixedRotation();
-/*
-    b2RevoluteJointDef* mainRJD;
-    mainRJD->Initialize(mainBody, circleBody, circleBody->GetWorldCenter());
-    b2RevoluteJoint* mainRJ = static_cast<b2RevoluteJoint*> (world->CreateJoint(mainRJD));
-    mainRJ->SetMaxMotorTorque(3000);
-    mainRJ->SetMotorSpeed(5);
-    mainRJ->EnableMotor(true);
+
+    b2RevoluteJointDef mainRJD;
+    mainRJD.Initialize(mainBody, circleBody, circleBody->GetWorldCenter());
+    mainRJD.maxMotorTorque = 300;
+    mainRJD.motorSpeed = 5;
+    mainRJD.enableMotor = true;
+    b2RevoluteJoint* mainRJ = static_cast<b2RevoluteJoint*> (world->CreateJoint(&mainRJD));
+mainRJD.enableMotor = false;
+
+    b2EdgeShape edgeShape;
+    edgeShape.Set(b2Vec2(0, 0), b2Vec2(-4 * widthScale, 3 * heightScale ));
+    bodydef.position.Set(x + circleShape.m_radius, y);
+    b2Body* edge=world->CreateBody(&bodydef);
+//edge->SetType(b2_staticBody);
+    fixturedef.shape = &edgeShape;
+
+    b2Fixture* fixture = edge->CreateFixture(&fixturedef);
+    fixture->SetUserData(static_cast<void*>(new UserData
+                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
+    mainRJD.Initialize(circleBody, edge, edge->GetPosition());
+    world->CreateJoint(&mainRJD);
+
+    /*
+    b2Body* plank1 = addRect(x - 2.5 * widthScale - circleShape.m_radius, y, 2.5 * widthScale * 2, 0.05 * heightScale * 2, true, Textures::Type::TEST1);
+plank1->SetType(b2_staticBody);
+    plank1->GetFixtureList()->SetFilterData(filter);
+    mainRJD.Initialize(circleBody, plank1, b2Vec2(circleBody->GetWorldCenter().x - circleShape.m_radius,
+                                                  circleBody->GetWorldCenter().y));
+    mainRJD.enableMotor = false;
+    world->CreateJoint(&mainRJD);
 */
+
+
+    b2PolygonShape triangleShape;
+    b2Vec2 trianglePoints [3] = {b2Vec2(0, 0), b2Vec2(-3 * widthScale, 0), b2Vec2(0, 3 * heightScale)};
+    triangleShape.Set(trianglePoints, 3);
+
+
+
+
+    bodydef.position.Set(x - 3 * widthScale, y);
+    bodydef.type=b2_dynamicBody;
+    b2Body* triangle=world->CreateBody(&bodydef);
+//triangle->SetType(b2_staticBody);
+    fixturedef.shape = &triangleShape;
+
+    fixture = triangle->CreateFixture(&fixturedef);
+    fixture->SetUserData(static_cast<void*>(new UserData
+                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
+
+
+    mainRJD.Initialize(mainBody, triangle, triangle->GetPosition());
+    world->CreateJoint(&mainRJD);
+
+    mainRJD.Initialize(triangle, edge, b2Vec2(triangle->GetPosition().x, triangle->GetPosition().y + 3 * heightScale));
+    world->CreateJoint(&mainRJD);
+
+
+
+    edgeShape.Set(b2Vec2(0, 0), b2Vec2(0, - 3 * heightScale ));
+    bodydef.position.Set(triangle->GetPosition().x, triangle->GetPosition().y);
+    b2Body* edge1=world->CreateBody(&bodydef);
+//edge1->SetType(b2_staticBody);
+    fixturedef.shape = &edgeShape;
+
+    fixture = edge1->CreateFixture(&fixturedef);
+    fixture->SetUserData(static_cast<void*>(new UserData
+                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
+    mainRJD.Initialize(triangle, edge1, triangle->GetPosition());
+    world->CreateJoint(&mainRJD);
+
+
+    bodydef.position.Set(triangle->GetPosition().x - 3 * widthScale, triangle->GetPosition().y);
+    b2Body* edge2=world->CreateBody(&bodydef);
+//edge2->SetType(b2_staticBody);
+    fixturedef.shape = &edgeShape;
+
+    fixture = edge2->CreateFixture(&fixturedef);
+    fixture->SetUserData(static_cast<void*>(new UserData
+                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
+    mainRJD.Initialize(triangle, edge2, b2Vec2(triangle->GetPosition().x  - 3 * widthScale, triangle->GetPosition().y));
+    world->CreateJoint(&mainRJD);
+
+
+
+    trianglePoints[0] = b2Vec2(0, 0);
+    trianglePoints[1] = b2Vec2(-3 * widthScale, 0);
+    trianglePoints[2] = b2Vec2(0, -4 * heightScale);
+
+    triangleShape.Set(trianglePoints, 3);
+    bodydef.position.Set(triangle->GetPosition().x, triangle->GetPosition().y - 3 * heightScale);
+    b2Body* triangle2=world->CreateBody(&bodydef);
+//triangle2->SetType(b2_staticBody);
+    fixturedef.shape = &triangleShape;
+
+    fixture = triangle2->CreateFixture(&fixturedef);
+    fixture->SetUserData(static_cast<void*>(new UserData
+                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
+
+    mainRJD.Initialize(edge1, triangle2, b2Vec2(triangle->GetPosition().x, triangle->GetPosition().y - 3 * heightScale));
+    world->CreateJoint(&mainRJD);
+
+    mainRJD.Initialize(edge2, triangle2, b2Vec2(triangle->GetPosition().x  - 3 * widthScale, triangle->GetPosition().y - 3 * heightScale));
+    world->CreateJoint(&mainRJD);
+
+
+
+    /*
+    bodydef.position.Set(triangle->GetPosition().x - 3 * widthScale, triangle->GetPosition().y);
+    b2Body* edge3=world->CreateBody(&bodydef);
+edge3->SetType(b2_staticBody);
+    fixturedef.shape = &edgeShape;
+    fixturedef.density = 1.0;
+    fixturedef.filter.groupIndex = -1;
+
+    fixture = edge3->CreateFixture(&fixturedef);
+    fixture->SetUserData(static_cast<void*>(new UserData
+                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
+    mainRJD.Initialize(triangle, edge3, b2Vec2(triangle->GetPosition().x  - 3 * widthScale, triangle->GetPosition().y));
+    world->CreateJoint(&mainRJD);
+    */
+
+    mainRJD.Initialize(triangle2, circleBody, b2Vec2(circleBody->GetPosition().x  + circleShape.m_radius, triangle->GetPosition().y));
+    world->CreateJoint(&mainRJD);
+    mainRJD.Initialize(triangle2, circleBody, b2Vec2(triangle2->GetPosition().x, triangle2->GetPosition().y));
+    world->CreateJoint(&mainRJD);
+
 }
 
 void GameWidget::addPlayer (){
@@ -181,7 +304,7 @@ void GameWidget::addPlayer (){
     //bodydef.fixedRotation = true;
     b2Body* body = world->CreateBody(&bodydef);
     player->setBody(body);
-  //  playerDD->isShifting = false;
+    //  playerDD->isShifting = false;
 
     body->SetUserData((void*) new UserData(player, playerDD));
     b2PolygonShape shape;
@@ -203,7 +326,8 @@ void GameWidget::addPlayer (){
     BodyPart* BPBody = new BodyPart(player, BodyPart::Type::BODY, body);
     GameObject* bodyPart = BPBody;
 
-    mainFixture->SetUserData((void*) new UserData (bodyPart, playerDD));
+    mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                       textures.getTexture(Textures::Type::BODY), DisplayData::Layer::PLAYER)));
 
     ///
 
@@ -233,8 +357,11 @@ void GameWidget::addPlayer (){
         BodyPart* BPHip = new BodyPart(player, BodyPart::Type::HIP, hip);
         bodyPart = BPHip;
 
-
-        mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+        DisplayData::Layer layer;
+        if (i) layer = DisplayData::Layer::PLAYER_FAR;
+        else layer = DisplayData::Layer::PLAYER_NEAR;
+        mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                           textures.getTexture(Textures::Type::HIP), layer)));
 
 
         b2RevoluteJointDef RJDhip;
@@ -260,13 +387,12 @@ void GameWidget::addPlayer (){
 
         mainFixture = shin->CreateFixture(&fixturedef);
 
-        bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0), DisplayData::Layer::PLAYER);
-
         BodyPart* BPShin = new BodyPart(player, BodyPart::Type::SHIN, shin);
         bodyPart = BPShin;
 
 
-        mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+        mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                           textures.getTexture(Textures::Type::SHIN), layer)));
 
 
         b2RevoluteJointDef RJDknee;
@@ -286,18 +412,19 @@ void GameWidget::addPlayer (){
         bodydefFoot.fixedRotation = false;
         b2Body* foot = world->CreateBody(&bodydefFoot);
         shape.SetAsBox(playerWidth * 0.8 / 2.0f, playerHeight * 0.025 / 2.0f);
-fixturedef.friction = 1.15;
+        fixturedef.friction = 1.15;
         fixturedef.shape = &shape;
 
         mainFixture = foot->CreateFixture(&fixturedef);
-fixturedef.friction = 1;
+        fixturedef.friction = 1;
         bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 255), DisplayData::Layer::PLAYER);
 
 
         BodyPart* BPFoot = new BodyPart(player, BodyPart::Type::FOOT, foot);
         bodyPart = BPFoot;
 
-        mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+        mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                           textures.getTexture(Textures::Type::FOOT), layer)));
 
         b2RevoluteJointDef RJDfoot;
         RJDfoot.enableLimit = true;
@@ -348,7 +475,8 @@ fixturedef.friction = 1;
     BodyPart* BPHead = new BodyPart(player, BodyPart::Type::HEAD, head);
     bodyPart = BPHead;
 
-    mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+    mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                       textures.getTexture(Textures::Type::HEAD), DisplayData::Layer::PLAYER)));
 
 
     b2RevoluteJointDef RJDhead;
@@ -378,16 +506,21 @@ fixturedef.friction = 1;
         fixturedef.shape = &shape;
 
         mainFixture = shoulder->CreateFixture(&fixturedef);
-        if (i)
+        DisplayData::Layer layer;
+        if (i){
+            layer = DisplayData::Layer::PLAYER_FAR;
             bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0), DisplayData::Layer::PLAYER);
-        else
+        }
+            else{
             bodyDD = (DisplayData*) new KeyLineData(Color(255, 255, 0), DisplayData::Layer::PLAYER);
-
+            layer = DisplayData::Layer::PLAYER_NEAR;
+        }
         BodyPart* BPshoulder = new BodyPart(player, BodyPart::Type::SHOULDER, shoulder);
         bodyPart = BPshoulder;
 
 
-        mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+        mainFixture->SetUserData((void*) new UserData (bodyPart,  new TextureData(
+                                                           textures.getTexture(Textures::Type::SHOULDER), layer)));
 
 
         b2RevoluteJointDef RJDshoulder;
@@ -403,7 +536,7 @@ fixturedef.friction = 1;
         float offset = 0.1;
 
         b2BodyDef bodydefforearm;
-       // bodydefforearm.position.Set(20, 10 - playerHeight * ( (0.4 + 0.2) / 2.0f + 0.2 - offset  ));
+        // bodydefforearm.position.Set(20, 10 - playerHeight * ( (0.4 + 0.2) / 2.0f + 0.2 - offset  ));
         bodydefforearm.position.Set(20, 10 - playerHeight * (0.2 / 2.0f));
         bodydefforearm.type = b2_dynamicBody;
         bodydefforearm.fixedRotation = false;
@@ -414,13 +547,12 @@ fixturedef.friction = 1;
 
         mainFixture = forearm->CreateFixture(&fixturedef);
 
-        bodyDD = (DisplayData*) new KeyLineData(Color(100, 255, 100), DisplayData::Layer::PLAYER);
-
         BodyPart* BPforearm = new BodyPart(player, BodyPart::Type::FOREARM, forearm);
         bodyPart = BPforearm;
 
 
-        mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+        mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                           textures.getTexture(Textures::Type::FOREARM), layer)));
 
 
         b2RevoluteJointDef RJDforearm;
@@ -454,7 +586,8 @@ fixturedef.friction = 1;
         BodyPart* BPwrist = new BodyPart(player, BodyPart::Type::WRIST, wrist);
         bodyPart = BPwrist;
 
-        mainFixture->SetUserData((void*) new UserData (bodyPart, bodyDD));
+        mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
+                                                           textures.getTexture(Textures::Type::WRIST), layer)));
 
         b2RevoluteJointDef RJDwrist;
         RJDwrist.enableLimit = true;
@@ -487,7 +620,7 @@ fixturedef.friction = 1;
             player->bodyParts.wrist2 = BPwrist;
         }
     }
-//
+    //
     /*
 
             b2BodyDef bodydef2;
@@ -646,18 +779,25 @@ void GameWidget::paintGL() {
                     KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
                     if (!ND_p)
                         if (TD_p){
-                            drawPolygon(points, count, tmp->GetWorldCenter(), tmp->GetAngle(), TD_p);
+                            drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
                             TD_p->changeFrame();
                         }
                         else
                             if (KLD_p)
-                                drawPolygon(points, count, tmp->GetWorldCenter(), tmp->GetAngle(), KLD_p);
+                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
                 }
                 else
                     if (curFixtureType == b2Shape::e_circle){
-                        KeyLineData* KLD_p = (KeyLineData*) displayData;
-                        drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius,
-                                   tmp->GetWorldCenter(), KLD_p, tmp->GetAngle());
+                        TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
+                        KeyLineData* KLD_p = dynamic_cast<KeyLineData*> (displayData);
+                        if (KLD_p)
+                            drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius,
+                                   tmp->GetPosition(), KLD_p, tmp->GetAngle());
+                        else
+                            if (TD_p){
+                                float radius = static_cast<b2CircleShape*>(curFixture->GetShape())->m_radius;
+                                drawRectangle(tmp->GetPosition(), radius, radius, tmp->GetAngle(), TD_p);
+                            }
                     }
                     else
                         if (curFixtureType == b2Shape::e_chain){
@@ -679,9 +819,22 @@ void GameWidget::paintGL() {
 
                             }
 
-                            drawChain (points, tmp->GetWorldCenter(), edgeCount + 1, KLD_p);
+                            drawChain (points, tmp->GetPosition(), edgeCount + 1, KLD_p);
 
                         }
+                        else
+                            if (curFixtureType == b2Shape::e_edge){
+                                KeyLineData* KLD_p = (KeyLineData*) displayData;
+
+                                b2Vec2 points [2];
+
+                                points[0] = static_cast<b2EdgeShape*>(curFixture->GetShape())->m_vertex1;
+                                points[1] = static_cast<b2EdgeShape*>(curFixture->GetShape())->m_vertex2;
+
+
+                                drawChain (points, tmp->GetPosition(), 2, KLD_p);
+
+                            }
             }
             //draw joints
 
@@ -835,7 +988,7 @@ b2Body* GameWidget::addSpecRect() {
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
     b2Vec2 points[4] {b2Vec2(-width,-height),b2Vec2(width,-height),
-                                      b2Vec2(width,height),b2Vec2(-width,height)};
+                b2Vec2(width,height),b2Vec2(-width,height)};
     drawPolygon(points, 4, center, angle, textureData);
 }
 

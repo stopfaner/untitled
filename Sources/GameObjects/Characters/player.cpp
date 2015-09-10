@@ -153,14 +153,6 @@ void Player::applyForce(){
             //straight arms
             if (moveState == MoveState::MS_STAND){
 
-
-                //weld foot
-                bodyParts.foot->body->SetFixedRotation(true);
-                bodyParts.foot2->body->SetFixedRotation(true);
-                //
-
-
-
                 if (jointFoot->GetJointAngle() > 0.2){
                     jointFoot->SetMotorSpeed(-1);
                 }

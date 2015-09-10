@@ -19,6 +19,16 @@ void Textures::loadAll (){
     loadTexture(LADDER, "ladder.png");
     loadTexture(CLIMBING, "climbing.png", 1, 2);
     loadTexture(CLIMBING_IDLE, "climbingstop.png");
+
+    loadTexture(BODY, "body.png");
+    loadTexture(SHIN, "shin.png");
+    loadTexture(HIP, "hip.png");
+    loadTexture(SHOULDER, "shoulder.png");
+    loadTexture(FOREARM, "forearm.png");
+    loadTexture(FOOT, "foot.png");
+    loadTexture(WRIST, "wrist.png");
+    loadTexture(HEAD, "head.png");
+
 }
 
 void Textures::loadTexture (Type type, std::string path, int rows, int columns){

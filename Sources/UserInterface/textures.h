@@ -19,7 +19,16 @@ public:
         LADDER,
         CLIMBING,
         CLIMBING_IDLE,
-        VEHICLE
+        VEHICLE,
+
+        BODY,
+        SHIN,
+        HIP,
+        SHOULDER,
+        FOREARM,
+        FOOT,
+        WRIST,
+        HEAD
     };
     struct Texture {
         GLuint id;
