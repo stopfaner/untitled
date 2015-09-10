@@ -7,16 +7,17 @@ class DisplayData
 {
 public:
     enum Layer {
-        BACKGROUND = 0x00F0,
-        BACKGROUND_OBJECT = 0x00E0,
-        LANDSCAPE = 0x00D0,
+        MAX = 0x0100,
+        BACKGROUND = 0x00FF,
+        BACKGROUND_OBJECT = 0x00FE,
+        LANDSCAPE = 0x00FD,
+        BUILDING = 0x00FC,
         PLAYER_FAR = 0x00E9,
         PLAYER = 0x00E5,
         PLAYER_NEAR = 0x00E1,
         OBJECT = 0x0007,
         JOINT = 0x002,
         HUD = 0x001,
-        MAX = 0x0100,
         NEAREAST = 0x000
     };
     DisplayData();

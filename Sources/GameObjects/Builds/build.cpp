@@ -1,5 +1,5 @@
 #include "build.h"
-/*
+
 Build::Build( Textures* texture_p, b2World* world)
 {
    this->texture_p=texture_p;
@@ -16,9 +16,10 @@ Build::Build( Textures* texture_p, b2World* world)
 
 
 
-void Build::generationDangeon(int maxNumberRoomInHeight, int maxNumberRoomInWidth)
+void Build::generateMap(int maxNumberRoomInHeight, int maxNumberRoomInWidth)
 {
     srand(time(NULL));
+    bool isNextExit;
     bool isExit;
     int end;
     planBuild=new TypeRoom *[maxNumberRoomInHeight];
@@ -34,12 +35,13 @@ void Build::generationDangeon(int maxNumberRoomInHeight, int maxNumberRoomInWidt
             if(planBuild[i-1][j]==DOWN_DOOR || planBuild[i-1][j]==UP_AND_DOWN_DOOR )
             {
                 if(i!=maxNumberRoomInHeight-1){
-                    switch(rand()%3){
+                    switch(rand()%4){
                     case 0:
                         planBuild[i][j]=UP_AND_DOWN_DOOR;
                         break;
                     case 1:
                     case 2:
+                    case 3:
                         planBuild[i][j]=UP_DOOR;
                         break;
                     }
@@ -54,160 +56,163 @@ void Build::generationDangeon(int maxNumberRoomInHeight, int maxNumberRoomInWidt
         for(int j=0;j<maxNumberRoomInWidth;j++){
             if(planBuild[i][j]==EMPTY){
                 if(j!=0 && j!=maxNumberRoomInWidth-1){
-                   if((planBuild[i][j-1]==EMPTY  || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]==EMPTY && j+2<=maxNumberRoomInWidth){
-                       switch (rand()%2) {
-                       case 0:
-                           planBuild[i][j]=EMPTY;
-                           break;
-                       case 1:
-                           planBuild[i][j]=RIGHT_DOOR;
-                           break;
-                       }
-                   }
-                   else{
-                       if(planBuild[i][j-1]==EMPTY && planBuild[i][j+1]!=EMPTY && planBuild[i][j+1]!=RIGHT_DOOR){
-                           planBuild[i][j]=RIGHT_DOOR;
-                       }
-                       if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR && i!=maxNumberRoomInHeight-1 )
-                       {
-                           isExit=false;
-                           end=0;
-                           for(int k=j;k<0;k--){
-                               if(planBuild[i][k]==RIGHT_DOOR) {
-                                   end=k;
-                                   break;
-                               }
-                           }
-                           for(int k=end;k<j;k++){
-                               if(planBuild[i][k]==DOWN_DOOR  || planBuild[i][k]==UP_AND_DOWN_DOOR){
-                                   isExit=true;
-                               }
-                           }
-                           if(isExit){
-                               switch (rand()%3) {
-                               case 0:
+                    if(i!=maxNumberRoomInHeight-1){
+                        if((planBuild[i][j-1]==EMPTY || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]==EMPTY){
+                            if(j+2<maxNumberRoomInWidth-1){
+                                switch (rand()%2) {
+                                case 0:
+                                    planBuild[i][j]=EMPTY;
+                                    break;
+                                case 1:
+                                    planBuild[i][j]=RIGHT_DOOR;
+                                    break;
+                                }
+                            }
+                            if(j+2>maxNumberRoomInWidth-1){
+                                planBuild[i][j]=EMPTY;
+                            }
+                        }
+                        if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR && planBuild[i][j+1]==EMPTY ){
+                            isExit=false;
+                            end=j;
+                            for(int k=j-1;k>=0;k--){
+                                if(planBuild[i][k]==RIGHT_DOOR){
+                                    end=k;
+                                    break;
+                                }
+                            }
+                            for(int k=end;k<j;k++){
+                                if(planBuild[i][k]==DOWN_DOOR || planBuild[i][k]==UP_AND_DOWN_DOOR){
+                                    isExit=true;
+                                    break;
+                                }
+                            }
+                            if(isExit){
+                                switch (rand()%2) {
+                                case 0:
+                                    planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                                    break;
+                                case 1:
+                                    planBuild[i][j]=LEFT_DOOR;
+                                    break;
+                                }
+                            }
+                            else{
+                                switch (rand()%2) {
+                                case 0:
+                                    planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                                    break;
+                                case 1:
+                                    planBuild[i][j]=DOWN_DOOR;
+                                    break;
+                                }
+                            }
 
-                                   planBuild[i][j]=DOWN_DOOR;
-                                   break;
-                               case 1:
-                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
-                                   break;
-                               case 2:
-                                   planBuild[i][j]=LEFT_DOOR;
-                                   break;
-                               }
-                           }
-                           else{
-                               switch (rand()%2) {
-                               case 0:
-                                   planBuild[i][j]=DOWN_DOOR;
-                                   break;
-                               case 1:
-                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
-                                   break;
-                               }
-                           }
-                       }
-                       if(j+2>maxNumberRoomInWidth && i!=maxNumberRoomInHeight-1){
-                           for(int k=j;k<0;k--){
-                               if(planBuild[i][k]==RIGHT_DOOR) {
-                                   end=k;
-                                   break;
-                               }
-                           }
-                           for(int k=end;k<j;k++){
-                               if(planBuild[i][k]==DOWN_DOOR || planBuild[i][k]==UP_AND_DOWN_DOOR){
-                                   isExit=true;
-                               }
-                           }
-                           if(isExit){
-                               switch (rand()%3) {
-                               case 0:
-                                   planBuild[i][j]=DOWN_DOOR;
-                                   break;
-                               case 1:
-                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
-                                   break;
-                               case 2:
-                                   planBuild[i][j]=LEFT_DOOR;
-                                   break;
-                               }
-                           }
-                           else{
-                               planBuild[i][j]=DOWN_DOOR;
-                           }
-                       }
-                       if(i==maxNumberRoomInHeight-1){
-                           if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR)
-                           {
-                               isExit=false;
-                               end=0;
-                               for(int k=j;k<0;k--){
-                                   if(planBuild[i][k]==RIGHT_DOOR) {
-                                       end=k;
-                                       break;
-                                   }
-                               }
-                               for(int k=end;k<j;k++){
-                                   if(planBuild[i][k]==UP_DOOR){
-                                       isExit=true;
-                                   }
-                               }
-                               if(isExit){
-                                   switch (rand()%2) {
-                                   case 0:
-                                       planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
-                                       break;
-                                   case 1:
-                                       planBuild[i][j]=LEFT_DOOR;
-                                       break;
-                                   }
-                               }
-                               else{
-                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
-                               }
-                           }
-                           if(j+2>maxNumberRoomInWidth){
-                               switch (rand()%2) {
-                               case 0:
-                                   planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
-                                   break;
-                               case 1:
-                                   planBuild[i][j]=LEFT_DOOR;
-                                   break;
-                               }
-                           }
-                       }
-                   }
+                        }
+                        if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR && planBuild[i][j+1]!=EMPTY){
+                            switch (rand()%2) {
+                            case 0:
+                                planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                                break;
+                            case 1:
+                                planBuild[i][j]=DOWN_DOOR;
+                                break;
+                            }
+                        }
+                        if((planBuild[i][j-1]==EMPTY || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]!=EMPTY){
+                            planBuild[i][j]=RIGHT_DOOR;
+                        }
+                    }
+                    else{
+                        isNextExit=false;
+                        for(int k=j;k<maxNumberRoomInWidth-1;k++){
+                            if(planBuild[i][k]==UP_DOOR){
+                                isNextExit=true;
+                                break;
+                            }
+                        }
+                        if((planBuild[i][j-1]==EMPTY || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]==EMPTY && isNextExit){
+                            switch (rand()%2) {
+                            case 0:
+                                planBuild[i][j]=EMPTY;
+                                break;
+                            case 1:
+                                planBuild[i][j]=RIGHT_DOOR;
+                                break;
+                            }
+                        }
+                        if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR && planBuild[i][j+1]==EMPTY ){
+                            isExit=false;
+                            end=j;
+                            for(int k=j-1;k>=0;k--){
+                                if(planBuild[i][k]==RIGHT_DOOR){
+                                    end=k;
+                                    break;
+                                }
+                            }
+                            for(int k=end;k<j;k++){
+                                if(planBuild[i][k]==UP_DOOR){
+                                    isExit=true;
+                                    break;
+                                }
+                            }
+                            if(isExit){
+                                switch (rand()%2) {
+                                case 0:
+                                    planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                                    break;
+                                case 1:
+                                    planBuild[i][j]=LEFT_DOOR;
+                                    break;
+                                }
+                            }
+                            else{
+                                 planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                            }
+                        }
+                        if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR && planBuild[i][j+1]!=EMPTY){
+                             planBuild[i][j]=LEFT_AND_RIGHT_DOOR;
+                        }
+                        if((planBuild[i][j-1]==EMPTY || planBuild[i][j-1]==LEFT_DOOR) && planBuild[i][j+1]!=EMPTY){
+                            planBuild[i][j]=RIGHT_DOOR;
+                        }
+                    }
                 }
                 else{
                     if(j==0){
-                        switch (rand()%2) {
-                        case 0:
-                            planBuild[i][j]=EMPTY;
-                            break;
-                        case 1:
+                        if(planBuild[i][j+1]==EMPTY){
+                            switch (rand()%2) {
+                            case 0:
+                                planBuild[i][j]=EMPTY;
+                                break;
+                            case 1:
+                                planBuild[i][j]=RIGHT_DOOR;
+                                break;
+                            }
+                        }
+                        if(planBuild[i][j+1]!=EMPTY){
                             planBuild[i][j]=RIGHT_DOOR;
-                            break;
                         }
                     }
-                    if(j==maxNumberRoomInWidth-1 && planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=RIGHT_DOOR ){
-                        planBuild[i][j]=RIGHT_DOOR;
+                    if(j==maxNumberRoomInWidth-1){
+                        if(planBuild[i][j-1]!=EMPTY && planBuild[i][j-1]!=LEFT_DOOR){
+                            planBuild[i][j]=LEFT_DOOR;
                         }
-                    else{
-                        planBuild[i][j]=EMPTY;
-                    }
+                        if(planBuild[i][j-1]==EMPTY || planBuild[i][j-1]==LEFT_DOOR){
+                            planBuild[i][j-1]==EMPTY;
+                        }
 
+                    }
                 }
             }
         }
     }
 }
 
-void Build::paint(b2Vec2 center, int maxNumberRoomInHeight, int maxNumberRoomInWidth)
+void Build::generateDungeon(b2Vec2 center, int maxNumberRoomInHeight, int maxNumberRoomInWidth)
 {
     room = new Room(texture_p, world);
-    generationDangeon(maxNumberRoomInHeight,maxNumberRoomInWidth);
+    generateMap(maxNumberRoomInHeight,maxNumberRoomInWidth);
     for(int i=0;i<maxNumberRoomInHeight;i++){
         for(int j=0;j<maxNumberRoomInWidth;j++){
             switch (planBuild[i][j]) {
@@ -233,4 +238,3 @@ void Build::paint(b2Vec2 center, int maxNumberRoomInHeight, int maxNumberRoomInW
         }
     }
 }
-*/

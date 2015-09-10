@@ -127,6 +127,11 @@ void GameWidget::createWorld(){
     ladderFixture->SetUserData((void*) new UserData(new Ladder, ladderDD));
 
 
+
+    Build build(&textures, world);
+    build.generateDungeon(b2Vec2(0, 70), 5, 5);
+
+
     //interface
     displayItems.push_back(new HUDElement (new TextureData(textures.getTexture(Textures::Type::TEST2), DisplayData::Layer::HUD),
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
