@@ -51,82 +51,56 @@ void GameWidget::createWorld(){
 
     //creating chain
 
-    srand( time(0) );
+//    srand( time(0) );
 
-    b2BodyDef chaindef;
-    chaindef.position.Set(0, 0);
-    chaindef.type = b2_staticBody;
-    b2Body* chain = world->CreateBody(&chaindef);
+//    b2BodyDef chaindef;
+//    chaindef.position.Set(0, 0);
+//    chaindef.type = b2_staticBody;
+//    b2Body* chain = world->CreateBody(&chaindef);
 
-    b2Vec2 vs[1000];
-    float x = -1000;
-    int i = 0;
-    while (x < 1000){
-        float dx = rand()%5 + 5;
-        float dy = rand()%4 - 2;
+//    b2Vec2 vs[1000];
+//    float x = -1000;
+//    int i = 0;
+//    while (x < 1000){
+//        float dx = rand()%5 + 5;
+//        float dy = rand()%4 - 2;
 
-        //
-        dx = 15;
-        dy = 0;
-        //
-
-
-        x += dx;
-        if (i>0){
-            vs[i].Set(x - dx / 2, ((vs[i-1].y + (dy / 1.5f -15.0f)) /2));
-            ++i;
-        }
-        vs[i].Set(x, dy - 15.0f);
-        ++i;
-    }
-    vs[0].x = -1000;
-    vs[i].x = 1000;
+//        //
+//        dx = 15;
+//        dy = 0;
+//        //
 
 
-    b2ChainShape chainShape;
+//        x += dx;
+//        if (i>0){
+//            vs[i].Set(x - dx / 2, ((vs[i-1].y + (dy / 1.5f -15.0f)) /2));
+//            ++i;
+//        }
+//        vs[i].Set(x, dy - 15.0f);
+//        ++i;
+//    }
+//    vs[0].x = -1000;
+//    vs[i].x = 1000;
 
-    chain->SetUserData((void*) new UserData);
 
-    chainShape.CreateChain(vs, i);
+//    b2ChainShape chainShape;
 
-    b2FixtureDef chainFixtureDef;
-    chainFixtureDef.shape = &chainShape;
-    chainFixtureDef.density = 1.0;
+//    chain->SetUserData((void*) new UserData);
 
-    b2Fixture* chainFix = chain->CreateFixture(&chainFixtureDef);
+//    chainShape.CreateChain(vs, i);
 
-    DisplayData* chainDD = (DisplayData*) new KeyLineData (Color(0, 0, 255), DisplayData::Layer::LANDSCAPE);
-    chainFix->SetUserData((void*) new UserData (new GameObject, chainDD));
+//    b2FixtureDef chainFixtureDef;
+//    chainFixtureDef.shape = &chainShape;
+//    chainFixtureDef.density = 1.0;
 
-    addSpecRect();
+//    b2Fixture* chainFix = chain->CreateFixture(&chainFixtureDef);
+
+//    DisplayData* chainDD = (DisplayData*) new KeyLineData (Color(0, 0, 255), DisplayData::Layer::LANDSCAPE);
+//    chainFix->SetUserData((void*) new UserData (new GameObject, chainDD));
+
+    //addSpecRect();
 
     new Car (world, &textures);
-
-
-    //creating ladder
-
-    b2BodyDef bodydefLadder;
-    bodydefLadder.position.Set(-25, -10);
-    bodydefLadder.type=b2_staticBody;
-    b2Body* body=world->CreateBody(&bodydefLadder);
-
-    b2PolygonShape shape;
-    shape.SetAsBox(1, 10);
-
-    b2FixtureDef fixturedefLadder;
-    fixturedefLadder.shape = &shape;
-    fixturedefLadder.isSensor = true;
-    fixturedefLadder.density = 3.0;
-    fixturedefLadder.filter.groupIndex = 1;
-
-    b2Fixture* ladderFixture = body->CreateFixture(&fixturedefLadder);
-
-    body->SetUserData((void*) new UserData);
-    DisplayData* ladderDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::LADDER),
-                                                           DisplayData::Layer::BACKGROUND_OBJECT);
-    ladderFixture->SetUserData((void*) new UserData(new Ladder, ladderDD));
-
-
 
     Build build(&textures, world);
     build.generateDungeon(b2Vec2(0, 70), 5, 5);
