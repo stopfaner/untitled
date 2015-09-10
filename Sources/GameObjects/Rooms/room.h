@@ -64,6 +64,7 @@ class UpDoorRoom : public Room{
 public:
     UpDoorRoom(b2Vec2 center,Textures * texture_p, b2World *world) : Room (texture_p,world)
     {
+        Ladder* ladder = new Ladder(texture_p, world, center, b2Vec2(2,heightRoom/2));
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=size.y-2*wallWidth;
         this->size.x=widthRoom/6;
@@ -72,7 +73,6 @@ public:
         this->size.x=(widthRoom-widthRoom/6)/2;
         this->isDownWall=true;
         this->isUpWall=true;
-
         CreateRoom(b2Vec2(center.x-((widthRoom-widthRoom/6)/4+widthRoom/12), center.y));
         this->size.x=(widthRoom-widthRoom/6)/2;
         this->isDownWall=true;
@@ -86,6 +86,7 @@ class DownDoorRoom : public Room{
 public:
     DownDoorRoom(b2Vec2 center,Textures * texture_p, b2World *world) : Room (texture_p,world)
     {
+        Ladder* ladder = new Ladder(texture_p, world, center, b2Vec2(2,heightRoom/2));
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=size.y-2*wallWidth;
         this->size.x=widthRoom/6;
@@ -109,6 +110,7 @@ class UpAndDownDoorRoom : public Room{
 public:
     UpAndDownDoorRoom(b2Vec2 center,Textures * texture_p, b2World *world) : Room (texture_p,world)
     {
+        Ladder* ladder = new Ladder(texture_p, world, center, b2Vec2(2,heightRoom/2));
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=size.y-2*wallWidth;
         this->size.x=widthRoom/6;

@@ -51,7 +51,6 @@ void GameWidget::createWorld(){
 
     //creating chain
 
-    srand( time(0) );
 
     b2BodyDef chaindef;
     chaindef.position.Set(0, 0);
@@ -65,10 +64,10 @@ void GameWidget::createWorld(){
         float dx = rand()%5 + 5;
         float dy = rand()%4 - 2;
 
-        //
+
         //dx = 15;
         //dy = 0;
-        //
+
 
 
         x += dx;
@@ -101,32 +100,6 @@ void GameWidget::createWorld(){
     addSpecRect();
 
     new Car (world, &textures);
-
-
-    //creating ladder
-
-    b2BodyDef bodydefLadder;
-    bodydefLadder.position.Set(-25, -10);
-    bodydefLadder.type=b2_staticBody;
-    b2Body* body=world->CreateBody(&bodydefLadder);
-
-    b2PolygonShape shape;
-    shape.SetAsBox(1, 10);
-
-    b2FixtureDef fixturedefLadder;
-    fixturedefLadder.shape = &shape;
-    fixturedefLadder.isSensor = true;
-    fixturedefLadder.density = 3.0;
-    fixturedefLadder.filter.groupIndex = 1;
-
-    b2Fixture* ladderFixture = body->CreateFixture(&fixturedefLadder);
-
-    body->SetUserData((void*) new UserData);
-    DisplayData* ladderDD = (DisplayData*) new TextureData(textures.getTexture(Textures::Type::LADDER),
-                                                           DisplayData::Layer::BACKGROUND_OBJECT);
-    ladderFixture->SetUserData((void*) new UserData(new Ladder, ladderDD));
-
-
 
     Build build(&textures, world);
     build.generateDungeon(b2Vec2(0, 70), 5, 5);
