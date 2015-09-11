@@ -24,6 +24,6 @@ Ladder::Ladder(Textures *textures, b2World *world, b2Vec2 center, b2Vec2 size){
 
 }
 
-void Ladder::use (Player* player){
-    player->isOnLadder = true;
+void Ladder::use (Entity* entity){
+    entity->isOnLadder = true;
 }

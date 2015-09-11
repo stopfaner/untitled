@@ -11,9 +11,9 @@ public:
     b2RevoluteJoint* motor;
     b2Body* centerBody;
     b2World* world;
-    b2RevoluteJoint* playerJoint;
+    b2RevoluteJoint* entityJoint;
 
-    virtual void left(Player* player) = 0;
+    virtual void left(Entity* entity) = 0;
 };
 
 #endif // VEHICLE_H

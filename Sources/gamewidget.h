@@ -27,11 +27,11 @@
 #include <vector>
 #include <time.h>
 
-#include "Sources/UserInterface/textures.h"
 
 #include "GameObjects/Characters/bot.h"
 #include "GameObjects/Characters/player.h"
 #include "GameObjects/Characters/bodypart.h"
+#include "GameObjects/enum.h"
 
 #include "GameObjects/gameobject.h"
 #include "GameObjects/InteractiveObjects/ladder.h"
@@ -40,6 +40,7 @@
 
 #include "GameObjects/Builds/build.h"
 
+#include "UserInterface/textures.h"
 #include "UserInterface/color.h"
 #include "UserInterface/displaydata.h"
 #include "UserInterface/keylinedata.h"
@@ -60,12 +61,7 @@ class GameWidget : public QGLWidget {
 
 public:
 
-    enum CollisionType {
-       BASIC =          0x0001,
-       BODYPART =     0x0002,
-     };
-
-    /**
+     /**
      * @brief GameWidget - constructor
      * @param parent - parent widget instance
      */

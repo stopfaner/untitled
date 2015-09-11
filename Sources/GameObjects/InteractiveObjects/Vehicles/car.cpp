@@ -2,7 +2,7 @@
 
 Car::Car(b2World *world, Textures* textures) : Vehicle(world)
 {
-    playerJoint = nullptr;
+    entityJoint = nullptr;
 
     GameObject* carPart = new GameObject;
     DisplayData* circleDD = new KeyLineData(Color(0, 255, 255), DisplayData::Layer::OBJECT);
@@ -78,25 +78,21 @@ b2Body* Car::addRect(float x, float y, float w, float h, bool dyn) {
     return body;
 }
 
-void Car::use(Player *player){
-    player->body->SetFixedRotation(false);
-    if (fabs(centerBody->GetWorldCenter().y - player->body->GetWorldCenter().y) < 2){
-       /* if (player->body->GetWorldCenter().x > centerBody->GetWorldCenter().x)
-            static_cast<TextureData*>(player->displayData)->isMirrored = true;
-        else
-            static_cast<TextureData*>(player->displayData)->isMirrored = false;*/
-        player->vehicle = static_cast<Vehicle*>(this);
-        b2RevoluteJointDef playerJointDef;
-        playerJointDef.Initialize(player->body, centerBody,
-                                  b2Vec2(player->body->GetWorldCenter().x, player->body->GetWorldCenter().y));
-        playerJoint = static_cast<b2RevoluteJoint*>( world->CreateJoint(&playerJointDef));
+void Car::use(Entity* entity){
+    entity->body->SetFixedRotation(false);
+    if (fabs(centerBody->GetWorldCenter().y - entity->body->GetWorldCenter().y) < 2){
+        entity->vehicle = static_cast<Vehicle*>(this);
+        b2RevoluteJointDef entityJointDef;
+        entityJointDef.Initialize(entity->body, centerBody,
+                                  b2Vec2(entity->body->GetWorldCenter().x, entity->body->GetWorldCenter().y));
+        entityJoint = static_cast<b2RevoluteJoint*>( world->CreateJoint(&entityJointDef));
     }
 
 }
 
-void Car::left(Player* player){
-    player->body->SetAngularVelocity(0.5);
-    player->vehicle = nullptr;
-    world->DestroyJoint(playerJoint);
-    playerJoint = nullptr;
+void Car::left(Entity *entity){
+    entity->body->SetAngularVelocity(0.5);
+    entity->vehicle = nullptr;
+    world->DestroyJoint(entityJoint);
+    entityJoint = nullptr;
 }

@@ -2,8 +2,8 @@
 #define BODYPART_H
 
 #include "Sources/GameObjects/gameobject.h"
-#include "Sources/GameObjects/entity.h"
 
+class Entity;
 class b2RevoluteJoint;
 class b2Body;
 class DisplayData;
