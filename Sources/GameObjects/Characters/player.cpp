@@ -44,7 +44,7 @@ void Player::move()
     float direction;
     if (isRightDirection) direction = 1;
     else direction = -1;
-/*
+    /*
     if (isGrounded() && fabs(bodyParts.foot->RJ->GetJointAngle() - bodyParts.foot->desiredAngle < D2R(10.0f))){
         qDebug()<<"1";
         bodyParts.foot->angleDeviation = M_PI / 2;
@@ -69,11 +69,16 @@ void Player::move()
         forearm = bodyParts.forearm;
     }
     if (isAscendingLeg){
-        if ( (hip->RJ->GetJointAngle() < D2R (70.0f) && isRightDirection ) ||
-             (hip->RJ->GetJointAngle() > D2R (-70.0f) && !isRightDirection)){
-            hip->desiredAngle = D2R (80.0f * direction);
+        if ( (hip->RJ->GetJointAngle() < D2R (hipAngle) && isRightDirection ) ||
+             (hip->RJ->GetJointAngle() > D2R (-hipAngle) && !isRightDirection)){
+            hip->desiredAngle = D2R ((hipAngle + 10.0f) * direction);
             hip->motorSpeed = 1.8;
-            shin->desiredAngle = D2R (-50.0f * direction);
+
+            float shinAngle = 50.0f;
+            if (hipAngle == 100)
+                shinAngle = 70;
+
+            shin->desiredAngle = D2R (-shinAngle * direction);
             shin->motorSpeed = 2;
 
             shoulder->desiredAngle = D2R (30.0f * direction);
@@ -81,6 +86,9 @@ void Player::move()
 
             forearm->desiredAngle = D2R (40.0f * direction);
             forearm->motorSpeed = 1;
+
+            if (hipAngle == 100)
+                body->ApplyLinearImpulse(b2Vec2 (0, body->GetMass() * 1), body->GetWorldCenter(), true);
         }
         else{
             isAscendingLeg = false;
@@ -90,15 +98,29 @@ void Player::move()
 
             hip->desiredAngle = D2R (-15.0f * direction);
             shin->desiredAngle = 0;
-            body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, body->GetMass() * 3), body->GetWorldCenter(), true);
+
+            if (hipAngle == 100)
+                body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 3 * direction, body->GetMass() * 5), body->GetWorldCenter(), true);
+
+            else
+                body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, body->GetMass() * 3), body->GetWorldCenter(), true);
 
         }
 
     }
     else{
-        if ((hip->RJ->GetJointAngle() < 0 && isRightDirection) ||
-                (hip->RJ->GetJointAngle() > 0 && !isRightDirection)){
+        float lowerBound = 0;
+        if (hipAngle == 100) lowerBound = 10;
+        if ((hip->RJ->GetJointAngle() < D2R(lowerBound) && isRightDirection) ||
+                (hip->RJ->GetJointAngle() > -D2R(lowerBound) && !isRightDirection)){
             isAscendingLeg = true;
+
+            if (bodyParts.foot->RJ->GetJointAngle() > D2R(90.0f + 10.0f))
+                hipAngle = 100.0f;
+            else hipAngle = 70.0f;
+
+
+
             changeLeg();
         }
     }
@@ -244,7 +266,7 @@ void Player::applyForce(){
             if (isRightDirection)
                 foot->desiredAngle = M_PI / 2;
             else foot->desiredAngle = M_PI / 2 + M_PI;
-            foot->angleDeviation = D2R(20.0f);
+            foot->angleDeviation = D2R(30.0f);
             if (moveState == MoveState::MS_STAND){
                 shoulder->desiredAngle = 0;
                 forearm->desiredAngle = 0;

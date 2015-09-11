@@ -41,6 +41,8 @@ public:
     DisplayData* displayData;
     BodyParts bodyParts;
 
+    float hipAngle = 70;
+
     void rotate (bool right);
     void move ();
     void useObject();

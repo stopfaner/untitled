@@ -102,7 +102,7 @@ void GameWidget::createWorld(){
     new Car (world, &textures);
 
     Build build(&textures, world);
-    build.generateDungeon(b2Vec2(0, 70), 5, 5);
+   // build.generateDungeon(b2Vec2(0, 70), 5, 5);
 
 
     //interface
@@ -391,7 +391,7 @@ void GameWidget::addPlayer (){
         bodydefFoot.fixedRotation = false;
         b2Body* foot = world->CreateBody(&bodydefFoot);
         shape.SetAsBox(playerHeight * 0.025 / 2.0f, playerWidth * 0.8 / 2.0f);
-        fixturedef.friction = 1.1;
+        fixturedef.friction = 10;
         fixturedef.shape = &shape;
 
         mainFixture = foot->CreateFixture(&fixturedef);
