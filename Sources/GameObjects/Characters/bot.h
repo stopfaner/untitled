@@ -24,19 +24,8 @@ public:
     void setBody (b2Body* body);
     b2Body *body;
 private:
+    Textures::Type getTextureType(BodyPart::Type bodyPart);
     bool canJump;
-};
-
-class AI {
-public:
-    AI();
-    AI(Player *player, Bot *bot);
-    updateAI();
-    Bot *bot;
-private:
-    void horisontalControl();
-    void verticalControl();
-    b2Body *player;
 };
 
 #endif // BOT_H

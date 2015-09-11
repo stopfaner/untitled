@@ -5,29 +5,38 @@ Textures::Textures(){
 }
 
 void Textures::loadAll (){
-    loadTexture(CRATE, "crate.png");
-    loadTexture(PLAYER, "player.png", 1, 9);
-    loadTexture(WALL, "wall.png");
-    loadTexture(BOT, "bot.png");
-    loadTexture(BACKGROUND, "background.png");
-    loadTexture(TEST1, "1.png");
-    loadTexture(TEST2, "2.png");
-    loadTexture(TEST3, "3.png");
-    loadTexture(RUN, "run.png", 1, 4);
-    loadTexture(JUMP, "jump.png", 1, 5);
-    loadTexture(VEHICLE, "vehicle.png");
-    loadTexture(LADDER, "ladder.png");
-    loadTexture(CLIMBING, "climbing.png", 1, 2);
-    loadTexture(CLIMBING_IDLE, "climbingstop.png");
+    loadTexture(CRATE, "images/crate.png");
+    loadTexture(PLAYER, "images/player.png", 1, 9);
+    loadTexture(WALL, "images/wall.png");
+    loadTexture(BOT, "images/bot.png");
+    loadTexture(BACKGROUND, "images/background.png");
+    loadTexture(TEST1, "images/1.png");
+    loadTexture(TEST2, "images/2.png");
+    loadTexture(TEST3, "images/3.png");
+    loadTexture(RUN, "images/run.png", 1, 4);
+    loadTexture(JUMP, "images/jump.png", 1, 5);
+    loadTexture(VEHICLE, "images/vehicle.png");
+    loadTexture(LADDER, "images/ladder.png");
+    loadTexture(CLIMBING, "images/climbing.png", 1, 2);
+    loadTexture(CLIMBING_IDLE, "images/climbingstop.png");
 
-    loadTexture(BODY, "body.png");
-    loadTexture(SHIN, "shin.png");
-    loadTexture(HIP, "hip.png");
-    loadTexture(SHOULDER, "shoulder.png");
-    loadTexture(FOREARM, "forearm.png");
-    loadTexture(FOOT, "foot.png");
-    loadTexture(WRIST, "wrist.png");
-    loadTexture(HEAD, "head.png");
+    loadTexture(BODY, "images/body.png");
+    loadTexture(SHIN, "images/shin.png");
+    loadTexture(HIP, "images/hip.png");
+    loadTexture(SHOULDER, "images/shoulder.png");
+    loadTexture(FOREARM, "images/forearm.png");
+    loadTexture(FOOT, "images/foot.png");
+    loadTexture(WRIST, "images/wrist.png");
+    loadTexture(HEAD, "images/head.png");
+
+    loadTexture(NPC_BODY, "images/NPC/body.png");
+    loadTexture(NPC_SHIN, "images/NPC/shin.png");
+    loadTexture(NPC_HIP, "images/NPC/hip.png");
+    loadTexture(NPC_SHOULDER, "images/NPC/shoulder.png");
+    loadTexture(NPC_FOREARM, "images/NPC/forearm.png");
+    loadTexture(NPC_FOOT, "images/NPC/foot.png");
+    loadTexture(NPC_WRIST, "images/NPC/wrist.png");
+    loadTexture(NPC_HEAD, "images/NPC/head.png");
 
 }
 

@@ -2,14 +2,14 @@
 #define INTERACTIVEOBJECT_H
 #include "Sources/GameObjects/noninteractive.h"
 
-class Player;
+class Entity;
 
 class InteractiveObject : public NonInteractive{
 
 public:
     InteractiveObject();
 
-    virtual void use (Player* player) = 0;
+    virtual void use (Entity* entity) = 0;
 };
 
 #endif // INTERACTIVEOBJECT_H

@@ -1,10 +1,9 @@
 #include "build.h"
 
-Build::Build( Textures* texture_p, b2World* world)
+Build::Build()
 {
-   this->texture_p=texture_p;
-   this->world=world;
-
+   this->textures = GeneralInfo::getInstance().textures;
+   this->world = GeneralInfo::getInstance().world;
    downDoorRooms = new FactoryDownDoorRoom;
    leftDoorRooms = new FactoryLeftDoorRoom;
    rightDoorRooms = new FactoryRightDoorRoom;
@@ -211,28 +210,28 @@ void Build::generateMap(int maxNumberRoomInHeight, int maxNumberRoomInWidth)
 
 void Build::generateDungeon(b2Vec2 center, int maxNumberRoomInHeight, int maxNumberRoomInWidth)
 {
-    room = new Room(texture_p, world);
+    room = new Room(textures, world);
     generateMap(maxNumberRoomInHeight,maxNumberRoomInWidth);
     for(int i=0;i<maxNumberRoomInHeight;i++){
         for(int j=0;j<maxNumberRoomInWidth;j++){
             switch (planBuild[i][j]) {
             case LEFT_DOOR:
-                leftDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), texture_p, world);
+                leftDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), textures, world);
                 break;
             case RIGHT_DOOR:
-                rightDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), texture_p, world);
+                rightDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), textures, world);
                 break;
             case LEFT_AND_RIGHT_DOOR:
-                leftAndRightDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), texture_p, world);
+                leftAndRightDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), textures, world);
                 break;
             case UP_DOOR:
-                upDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), texture_p, world);
+                upDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), textures, world);
                 break;
             case DOWN_DOOR:
-                downDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), texture_p, world);
+                downDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), textures, world);
                 break;
             case UP_AND_DOWN_DOOR:
-                upAndDownDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), texture_p, world);
+                upAndDownDoorRooms->createObject(b2Vec2(center.x+(room->size.x-room->wallWidth)*j,center.y-(room->size.y-room->wallWidth)*i), textures, world);
                 break;
             }
         }

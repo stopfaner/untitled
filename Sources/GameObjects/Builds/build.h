@@ -6,10 +6,12 @@
 #include <time.h>
 
 #include "Sources/GameObjects/Rooms/room.h"
+#include "Sources/generalinfo.h"
+
 class Build
 {
 public:
-    Build(Textures * texture_p, b2World *world);
+    Build();
     void generateDungeon(b2Vec2 center,int maxNumberRoomInHeight,int maxNumberRoomInWidth);
 private:
     void generateMap(int maxNumberRoomInHeight, int maxNumberRoomInWidth);
@@ -31,7 +33,7 @@ private:
     FactoryLeftDoorRoom* leftDoorRooms;
     FactoryUpAndDownDoorRoom* upAndDownDoorRooms;
     FactoryLeftAndRightDoorRoom* leftAndRightDoorRooms;
-    Textures* texture_p;
+    Textures* textures;
     b2World* world;
 
 };

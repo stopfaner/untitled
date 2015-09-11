@@ -27,11 +27,12 @@
 #include <vector>
 #include <time.h>
 
-#include "Sources/UserInterface/textures.h"
-
+#include "GameObjects/Characters/npc.h"
 #include "GameObjects/Characters/bot.h"
 #include "GameObjects/Characters/player.h"
 #include "GameObjects/Characters/bodypart.h"
+#include "GameObjects/enum.h"
+#include "GameObjects/entitylist.h"
 
 #include "GameObjects/gameobject.h"
 #include "GameObjects/InteractiveObjects/ladder.h"
@@ -40,6 +41,7 @@
 
 #include "GameObjects/Builds/build.h"
 
+#include "UserInterface/textures.h"
 #include "UserInterface/color.h"
 #include "UserInterface/displaydata.h"
 #include "UserInterface/keylinedata.h"
@@ -47,6 +49,7 @@
 #include "UserInterface/nondrawable.h"
 #include "UserInterface/HUD/hudelement.h"
 
+#include "generalinfo.h"
 #include "userdata.h"
 
 /**
@@ -60,12 +63,7 @@ class GameWidget : public QGLWidget {
 
 public:
 
-    enum CollisionType {
-       BASIC =          0x0001,
-       BODYPART =     0x0002,
-     };
-
-    /**
+     /**
      * @brief GameWidget - constructor
      * @param parent - parent widget instance
      */
@@ -82,8 +80,7 @@ private:
     float P2M=1/M2P;
 
     Player *player;
-    //vector<Bot*> bots;
-    vector<AI*> Ai;
+
 
     QTimer *timer;
 
@@ -110,12 +107,11 @@ private:
     void drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData);
 
 
-    void addPlayer ();
     void createWorld();
 
     b2Body *addBot(Bot* bot);
 
-    Textures textures;
+    Textures *textures;
 
     std::list<UIElement*> displayItems;
 };

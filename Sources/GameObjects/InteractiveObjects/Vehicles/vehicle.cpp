@@ -1,5 +1,5 @@
 #include "vehicle.h"
 
-Vehicle::Vehicle(b2World *world) : InteractiveObject (){
-    this->world = world;
+Vehicle::Vehicle() : InteractiveObject (){
+    this->world = GeneralInfo::getInstance().world;
 }

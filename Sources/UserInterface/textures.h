@@ -28,7 +28,16 @@ public:
         FOREARM,
         FOOT,
         WRIST,
-        HEAD
+        HEAD,
+
+        NPC_BODY,
+        NPC_SHIN,
+        NPC_HIP,
+        NPC_SHOULDER,
+        NPC_FOREARM,
+        NPC_FOOT,
+        NPC_WRIST,
+        NPC_HEAD
     };
     struct Texture {
         GLuint id;

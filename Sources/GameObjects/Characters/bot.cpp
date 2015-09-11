@@ -11,6 +11,11 @@ void Bot::setBody (b2Body* body){
     this->body = body;
 }
 
+Textures::Type Bot::getTextureType(BodyPart::Type bodyPart)
+{
+
+}
+
 Bot::Bot(int x, int y, b2World *world, DisplayData *displayData) : Bot(displayData) {
     b2BodyDef bodydef;
     bodydef.position.Set(x/20,y/20);
@@ -77,32 +82,3 @@ bool Bot::onGround() {
 
 
 
-
-
-
-AI::AI() {
-
-}
-
-AI::AI(Player *player, Bot *bot) {
-    this->player = player->body;
-    this->bot = bot;
-}
-
-AI::updateAI() {
-    horisontalControl();
-    verticalControl();
-}
-
-void AI::horisontalControl() {
-    if(player->GetPosition().x < bot->body->GetPosition().x)
-        bot->moveState = Bot::MS_LEFT;
-    else if(player->GetPosition().x > bot->body->GetPosition().x)
-            bot->moveState = Bot::MS_RIGHT;
-    else bot->moveState = Bot::MS_STAND;
-}
-
-void AI::verticalControl() {
-    if(bot->moveState && bot->body->GetLinearVelocity().x > -0.01 && bot->body->GetLinearVelocity().x < 0.01)
-        bot->jump();
-}
