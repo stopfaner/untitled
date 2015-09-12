@@ -71,17 +71,6 @@ void Entity::constructBody (){
                                                        textures->getTexture(this->getTextureType(BodyPart::Type::BODY)), DisplayData::Layer::PLAYER)));
 
 
-    //add sensor
-
-    shape.SetAsBox(playerWidth / 3, playerHeight / 4, b2Vec2(0, - playerHeight / 2), 0);
-    fixturedef.shape = &shape;
-    fixturedef.isSensor = true;
-    b2Fixture* sensorFixture = body->CreateFixture(&fixturedef);
-    sensorFixture->SetUserData(static_cast<void*>(new UserData(new GroundSensor,
-                                                               static_cast<DisplayData*>(new KeyLineData(Color(150, 30, 200), DisplayData::Layer::TEST)))));
-    fixturedef.isSensor = false;
-
-    //
 
 
 
@@ -152,7 +141,8 @@ void Entity::constructBody (){
         b2RevoluteJointDef RJDknee;
         RJDknee.enableLimit = true;
         RJDknee.upperAngle = 0;
-        RJDknee.lowerAngle = - M_PI / 2;
+        //RJDknee.lowerAngle = - M_PI + R2D(10);
+        RJDknee.lowerAngle = - D2R (170.0f);
         RJDknee.maxMotorTorque = motorTorque * 1.5;
         RJDknee.Initialize(hip, shin, b2Vec2(hip->GetPosition().x, hip->GetPosition().y - playerHeight * (0.2 - offset) / 2.0f));
         b2RevoluteJoint* RJkneeTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDknee));
@@ -166,7 +156,7 @@ void Entity::constructBody (){
         bodydefFoot.fixedRotation = false;
         b2Body* foot = world->CreateBody(&bodydefFoot);
         shape.SetAsBox(playerHeight * 0.04 / 2.0f, playerWidth * 0.8 / 2.0f);
-        fixturedef.friction = 3;
+        fixturedef.friction = 5;
         fixturedef.shape = &shape;
 
         mainFixture = foot->CreateFixture(&fixturedef);
@@ -435,15 +425,16 @@ void Entity::move()
             forearm->desiredAngle = 0;
 
             hip->desiredAngle = D2R (-15.0f * direction);
-            shin->motorSpeed = 1;
+            shin->motorSpeed = 3;
             shin->desiredAngle = 0;
-            float verticalImpulse = body->GetMass() * (3 + surfaceAngle * 12);
+            float verticalImpulse = body->GetMass() * (8 + surfaceAngle * 12);
             body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, verticalImpulse), body->GetPosition(), true);
 
         }
 
     }
     else{
+        //descending leg
         float ascendLimit = 0;
 
         BodyPart* curFoot;
@@ -584,12 +575,14 @@ void Entity::applyForce(){
             else foot->desiredAngle = M_PI / 2 + M_PI;
             foot->angleDeviation = D2R(10.0f);
             if (moveState == MoveState::MS_STAND){
+                body->SetLinearDamping(5);
                 shoulder->desiredAngle = 0;
                 forearm->desiredAngle = 0;
                 shin->desiredAngle = 0;
                 hip->desiredAngle = 0;
                 wrist->desiredAngle = 0;
             }
+            else body->SetLinearDamping(0);
         }
 
         //moving
@@ -621,7 +614,7 @@ void Entity::applyForce(){
             if (moveStateVertical == MSV_UP)
                 if (checkForLadder()) isOnLadder = true;
             if (moveStateVertical == MSV_DOWN)
-                crouch();//TODO
+                crouch();
         }
     }
     bodyParts.setSpeed();
@@ -635,34 +628,36 @@ void Entity::changeLeg(){
 }
 
 void Entity::crouch(){
-    bodyParts.forearm->RJ->SetMotorSpeed(2);
-    bodyParts.forearm2->RJ->SetMotorSpeed(2);
-    float crouchAngle = 90.0f;
-    if (R2D(bodyParts.shin->RJ->GetJointAngle()) > - crouchAngle){
-        bodyParts.shin->RJ->SetMotorSpeed(-0.75);
-        bodyParts.hip->RJ->SetMotorSpeed(0.6);
-
-        if (fabs(bodyParts.shin->RJ->GetJointAngle() - crouchAngle) > 3 ){
-            body->ApplyAngularImpulse(-1, true);
+    for (int i = 0; i < 2; ++i){
+        BodyPart *shoulder, *forearm, *wrist, *hip, *shin, *foot;
+        if (i){
+            shoulder = bodyParts.shoulder;
+            forearm = bodyParts.forearm;
+            wrist = bodyParts.wrist;
+            hip = bodyParts.hip;
+            shin = bodyParts.shin;
+            foot = bodyParts.foot;
         }
-        body->SetAngularVelocity(-1.75);
-    }
-    else{
-        body->SetAngularVelocity(0);
-
-
-    }
-    if (R2D(bodyParts.shin2->RJ->GetJointAngle()) > - crouchAngle){
-        bodyParts.shin2->RJ->SetMotorSpeed(-0.75);
-        bodyParts.hip2->RJ->SetMotorSpeed(0.6);
-
-        if (fabs(bodyParts.shin2->RJ->GetJointAngle() - crouchAngle) > 3 ){
-            body->ApplyAngularImpulse(-1, true);
+        else{
+            shoulder = bodyParts.shoulder2;
+            forearm = bodyParts.forearm2;
+            wrist = bodyParts.wrist2;
+            hip = bodyParts.hip2;
+            shin = bodyParts.shin2;
+            foot = bodyParts.foot2;
         }
-        body->SetAngularVelocity(-1.75);
-    }
-    else{
-        body->SetAngularVelocity(0);
+        float direction;
+        if (isRightDirection)
+            direction = 1;
+        else direction = -1;
+
+        forearm->desiredAngle = D2R (90) * direction;
+
+        hip->desiredAngle = D2R (90) * direction;
+        shin->desiredAngle = D2R (-130) * direction;
+        if (isRightDirection)
+            foot->desiredAngle = M_PI / 2 + D2R(45);
+        else foot->desiredAngle = M_PI / 2 - D2R(45) + M_PI;
 
     }
 }
@@ -721,17 +716,19 @@ void Entity::update()
 
     //rotate body
     float maxDeviation = 0.01;
-    float deviation = fabs(body->GetAngle() - maxDeviation);
+    float maxDeviationSpeed = 2;
+    float deviationSpeed = 10 * fabs( maxDeviationSpeed ) * fabs (body->GetAngle());
     if (!vehicle){
         if (body->GetAngle() > maxDeviation)
-            body->SetAngularVelocity (-3 * deviation);
+            body->SetAngularVelocity (-deviationSpeed);
         else
             if (body->GetAngle() < - maxDeviation)
-                body->SetAngularVelocity (3 * deviation);
-        if (fabs(body->GetAngle()) < 0.02)
-            body->SetAngularVelocity(body->GetAngularVelocity() / 2.0f);
-
+                body->SetAngularVelocity (deviationSpeed);
+        // if (body->GetAngle() > maxDeviation * 2.0f)
+        //     body->SetAngularVelocity(body->GetAngularVelocity() / 2.0f);
     }
+
+
     if (jumpCooldown) --jumpCooldown;
     if (useCooldown) --useCooldown;
     if (isOnLadder && !checkForLadder()) isOnLadder = false;
