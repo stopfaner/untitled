@@ -23,6 +23,8 @@ Entity::Entity(float x, float y) : GameObject ()
     moveStateVertical = MSV_STAND;
     isOnLadder = false;
     isJumping = false;
+    isSitting = false;
+    isStanding = false;
     isUsingLeftLeg = true;
     isAscendingLeg = true;
     isRightDirection = true;
@@ -358,6 +360,8 @@ void Entity::constructBody (){
         this->bodyParts.setPart(BPforearm);
         this->bodyParts.setPart(BPwrist);
     }
+
+
 }
 
 
@@ -537,8 +541,6 @@ void Entity::applyForce(){
         if (isRightDirection) direction = 1;
         else direction = -1;
 
-        if (isJumping)
-            jump();
 
         BodyPart* foot;
         BodyPart* hip;
@@ -581,9 +583,24 @@ void Entity::applyForce(){
                 shin->desiredAngle = 0;
                 hip->desiredAngle = 0;
                 wrist->desiredAngle = 0;
+
+                bodyParts.resetSpeed();
             }
             else body->SetLinearDamping(0);
         }
+
+
+        if (fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 2)){
+            isStanding = true;
+            qDebug()<<"stand";
+        }
+        else isStanding = false;
+
+        //jumping
+
+        if (isJumping)
+            jump();
+
 
         //moving
         switch ( moveState ){
@@ -659,6 +676,13 @@ void Entity::crouch(){
             foot->desiredAngle = M_PI / 2 + D2R(45);
         else foot->desiredAngle = M_PI / 2 - D2R(45) + M_PI;
 
+
+        if (fabs(fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 4) &&
+                fabs(hip->desiredAngle - hip->RJ->GetJointAngle() < hip->angleDeviation / 4))){
+            isSitting = true;
+            qDebug()<<"sit";
+        }
+        else isSitting = false;
     }
 }
 
@@ -698,6 +722,43 @@ bool Entity::isGrounded(bool leftLeg){
 }
 
 void Entity::jump(){
+    if (isGrounded())
+        if (!isSitting)
+            crouch();
+        else{
+            for (int i = 0; i < 2; ++i){
+                BodyPart *shoulder, *forearm, *wrist, *hip, *shin, *foot;
+                if (i){
+                    hip = bodyParts.hip;
+                    shin = bodyParts.shin;
+                    shoulder = bodyParts.shoulder;
+                    forearm = bodyParts.forearm;
+                    foot = bodyParts.foot;
+                    wrist = bodyParts.wrist;
+                }
+                else {
+                    hip = bodyParts.hip2;
+                    shin = bodyParts.shin2;
+                    shoulder = bodyParts.shoulder2;
+                    forearm = bodyParts.forearm2;
+                    foot = bodyParts.foot2;
+                    wrist = bodyParts.wrist2;
+                }
+                float jumpK = 2;
+                hip->motorSpeed *= jumpK;
+                shin->motorSpeed *= jumpK;
+                foot->motorSpeed *= jumpK;
+
+            }
+            if (isStanding){
+                isSitting = false;
+                float angle = body->GetAngle();
+                float impulse = body->GetMass() * 60;
+                body->ApplyLinearImpulse(b2Vec2(impulse * cos(angle), impulse * sin(angle)), body->GetWorldCenter(), true);
+            }
+        }
+
+    /*
     float jumpHeight;
 
     jumpHeight = 30;
@@ -707,17 +768,18 @@ void Entity::jump(){
         jumpCooldown = jumpCooldownMax;
         if (isGrounded())
             body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), body->GetPosition(), true);
-
     }
+            */
+
 }
 
 void Entity::update()
 {
 
     //rotate body
-    float maxDeviation = 0.01;
+    float maxDeviation = 0.005;
     float maxDeviationSpeed = 2;
-    float deviationSpeed = 10 * fabs( maxDeviationSpeed ) * fabs (body->GetAngle());
+    float deviationSpeed = 10 * fabs( maxDeviationSpeed  * body->GetAngle() );
     if (!vehicle){
         if (body->GetAngle() > maxDeviation)
             body->SetAngularVelocity (-deviationSpeed);
@@ -728,7 +790,7 @@ void Entity::update()
         //     body->SetAngularVelocity(body->GetAngularVelocity() / 2.0f);
     }
 
-
+    if (!isJumping) isSitting = false;
     if (jumpCooldown) --jumpCooldown;
     if (useCooldown) --useCooldown;
     if (isOnLadder && !checkForLadder()) isOnLadder = false;

@@ -28,6 +28,7 @@ public:
     float angleDeviation;
     float desiredAngle;
     float motorSpeed;
+    float defaultMotorSpeed;
     Type type;
     b2Body* body;
     Entity* entity;

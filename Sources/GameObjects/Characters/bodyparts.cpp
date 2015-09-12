@@ -23,8 +23,7 @@ BodyParts::BodyParts(){
     forearm2 = nullptr;
 }
 #include "qdebug.h"
-void BodyParts::setSpeed()
-{
+void BodyParts::setSpeed(){
     for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
         BodyPart* bodyPart = *iterator;
         if (bodyPart->RJ)
@@ -34,6 +33,13 @@ void BodyParts::setSpeed()
                 if ( bodyPart->RJ->GetJointAngle() - bodyPart->desiredAngle < - bodyPart->angleDeviation)
                     bodyPart->RJ->SetMotorSpeed(bodyPart->motorSpeed);
                 else bodyPart->RJ->SetMotorSpeed(0);
+    }
+}
+
+void BodyParts::resetSpeed(){
+    for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
+        BodyPart* bodyPart = *iterator;
+        bodyPart->motorSpeed = bodyPart->defaultMotorSpeed;
     }
 }
 

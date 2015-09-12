@@ -6,6 +6,7 @@ BodyPart::BodyPart(Entity *entity, Type type, b2Body *body, b2RevoluteJoint* RJ)
     this->body = body;
     this->RJ = RJ;
     desiredAngle = 0;
-    motorSpeed = 5;
-    angleDeviation = 0.2;
+    defaultMotorSpeed = 5;
+    motorSpeed = defaultMotorSpeed;
+    angleDeviation = 0.1;
 }
