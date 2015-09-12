@@ -22,6 +22,7 @@
 #include <QTimer>
 
 #include <Box2D/Box2D.h>
+#include "Box2D/Json/b2dJson.h"
 
 #include <SOIL.h>
 #include <vector>
@@ -49,6 +50,7 @@
 #include "UserInterface/nondrawable.h"
 #include "UserInterface/HUD/hudelement.h"
 
+
 #include "generalinfo.h"
 #include "userdata.h"
 
@@ -72,6 +74,7 @@ public:
     void updateGame();
     void addWalkingMachine();
     void drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData *textureData);
+    void loadBackground();
 private:
     int WIDTH = 600;
     int HEIGHT = 600;

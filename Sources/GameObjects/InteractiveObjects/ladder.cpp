@@ -1,6 +1,8 @@
 #include "ladder.h"
 
-Ladder::Ladder(Textures *textures, b2World *world, b2Vec2 center, b2Vec2 size){
+Ladder::Ladder(b2Vec2 center, b2Vec2 size){
+    b2World *world = GeneralInfo::getInstance().world;
+    Textures *textures = GeneralInfo::getInstance().textures;
     b2BodyDef bodydefLadder;
     bodydefLadder.position.Set(center.x, center.y);
     bodydefLadder.type=b2_staticBody;

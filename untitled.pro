@@ -95,7 +95,11 @@ SOURCES += main.cpp \
     Sources/userdata.cpp \
     Sources/GameObjects/Characters/bodyparts.cpp \
     Sources/generalinfo.cpp \
-    Sources/GameObjects/Sensors/groundsensor.cpp
+    Sources/GameObjects/Sensors/groundsensor.cpp \
+    Box2D/Json/b2dJson.cpp \
+    Box2D/Json/b2dJsonImage.cpp \
+    Box2D/Json/b2dJsonImage_OpenGL.cpp \
+    Box2D/Json/jsoncpp.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -186,8 +190,13 @@ HEADERS  += \
     Sources/GameObjects/entitylist.h \
     Sources/generalinfo.h \
     Sources/GameObjects/enum.h \
-    Sources/GameObjects/Sensors/groundsensor.h
-
+    Sources/GameObjects/Sensors/groundsensor.h \
+    Box2D/Json/json/json-forwards.h \
+    Box2D/Json/json/json.h \
+    Box2D/Json/b2dJson.h \
+    Box2D/Json/b2dJsonImage.h \
+    Box2D/Json/b2dJsonImage_OpenGL.h \
+    Box2D/Json/bitmap.h
 
 
 unix|win32: LIBS += -L$$PWD/SOIL/ -llibSOIL

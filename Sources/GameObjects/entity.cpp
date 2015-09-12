@@ -526,7 +526,7 @@ void Entity::setBody (b2Body* body){
 void Entity::applyForce(){
     if (vehicle){
         float desiredVel = 0;
-        float desiredVelMax = 30 * 360 / 180 * M_PI;
+        float desiredVelMax = 1 * 360 / 180 * M_PI;
         switch (moveState)
         {
         case MS_LEFT:  desiredVel = desiredVelMax; break;
@@ -592,7 +592,6 @@ void Entity::applyForce(){
 
         if (fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 2)){
             isStanding = true;
-            qDebug()<<"stand";
         }
         else isStanding = false;
 
@@ -680,7 +679,6 @@ void Entity::crouch(){
         if (fabs(fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 4) &&
                 fabs(hip->desiredAngle - hip->RJ->GetJointAngle() < hip->angleDeviation / 4))){
             isSitting = true;
-            qDebug()<<"sit";
         }
         else isSitting = false;
     }
@@ -753,8 +751,8 @@ void Entity::jump(){
             if (isStanding){
                 isSitting = false;
                 float angle = body->GetAngle();
-                float impulse = body->GetMass() * 60;
-                body->ApplyLinearImpulse(b2Vec2(impulse * cos(angle), impulse * sin(angle)), body->GetWorldCenter(), true);
+                float impulse = body->GetMass() * 100;
+                body->ApplyLinearImpulse(b2Vec2(impulse * sin(angle), impulse * cos(angle)), body->GetWorldCenter(), true);
             }
         }
 

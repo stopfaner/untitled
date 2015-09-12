@@ -1,7 +1,9 @@
 #include "car.h"
 
-Car::Car() : Vehicle()
+Car::Car(b2Vec2 center, float scale) : Vehicle()
 {
+    float x = center.x;
+    float y = center.y;
     Textures *textures = GeneralInfo::getInstance().textures;
     entityJoint = nullptr;
 
@@ -14,41 +16,41 @@ Car::Car() : Vehicle()
     jointDef.motorSpeed = 0.0f;
     jointDef.enableMotor = true;
 
-    b2Body* mainPlank = addRect(0, 5*2, 10*2, 0.5*2, true);
-    b2Body* rule = addRect(0, 6.5*2-1.5, 0.5*2, 3, true);
+    b2Body* mainPlank = addRect(x, y + 5*2 * scale, 10*2 * scale, 0.5*2 * scale, true);
+    b2Body* rule = addRect(x, y +( 6.5*2-1.5) * scale, 0.5*2 * scale, 3 * scale, true);
 
     centerBody = rule;
 
     b2BodyDef bodydef;
-    bodydef.position.Set(2.5*2*2, 5*2);
+    bodydef.position.Set(x + 2.5*2*2 * scale, y + 5*2 * scale);
     bodydef.type = b2_dynamicBody;
     b2Body* circle1 = world->CreateBody(&bodydef);
     circle1->SetUserData((void*) new UserData (carPart, circleDD));
 
     b2CircleShape circleShape;
     circleShape.m_p.Set(0, 0);
-    circleShape.m_radius = 5;
+    circleShape.m_radius = 5 * scale;
 
     b2FixtureDef fixturedef;
     fixturedef.shape = &circleShape;
     fixturedef.density = 0.8;
+    fixturedef.friction = 5;
 
     b2Fixture* circleFix = circle1->CreateFixture(&fixturedef);
     circleFix->SetUserData((void*) new UserData (carPart, circleDD));
 
-    fixturedef.density = 0.8;
-
-    bodydef.position.Set(-10, 10);
+    bodydef.position.Set(x - 10 * scale, y + 10 * scale);
     b2Body* circle2 = world->CreateBody(&bodydef);
     circle2->SetUserData((void*) new UserData (carPart));
     b2Fixture* circleFix2 =  circle2->CreateFixture(&fixturedef);
     circleFix2->SetUserData((void*) new UserData (carPart, circleDD));
-    jointDef.Initialize(mainPlank, circle1, b2Vec2(2.5*2*2, 5*2));
+    jointDef.Initialize(mainPlank, circle1, b2Vec2(x + 2.5*2*2 * scale, y + 5*2 * scale));
     motor = (b2RevoluteJoint*) world->CreateJoint( &jointDef );
-    jointDef.Initialize(mainPlank, circle2, b2Vec2(-2.5*2*2, 5*2));
+    jointDef.enableMotor = false;
+    jointDef.Initialize(mainPlank, circle2, b2Vec2(x - 2.5*2*2 * scale, y + 5*2 * scale));
     world->CreateJoint( &jointDef );
     b2WeldJointDef weldJointDef;
-    weldJointDef.Initialize(rule, mainPlank, b2Vec2(0, 5*2));
+    weldJointDef.Initialize(rule, mainPlank, b2Vec2(x, y + 5*2 * scale));
     world->CreateJoint( &weldJointDef );
 
 

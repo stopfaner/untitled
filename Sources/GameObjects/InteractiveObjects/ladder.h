@@ -8,7 +8,7 @@ class Textures;
 class Ladder : public InteractiveObject{
 
 public:
-    Ladder(Textures* textures, b2World* world,  b2Vec2 center, b2Vec2 size);
+    Ladder(b2Vec2 center, b2Vec2 size);
     void use(Entity* entity);
 };
 

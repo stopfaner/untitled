@@ -64,7 +64,7 @@ class UpDoorRoom : public Room{
 public:
     UpDoorRoom(b2Vec2 center,Textures * texture_p, b2World *world) : Room (texture_p,world)
     {
-        Ladder* ladder = new Ladder(texture_p, world, center, b2Vec2(2,heightRoom/2));
+        Ladder* ladder = new Ladder(center, b2Vec2(2,heightRoom/2));
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=size.y-2*wallWidth;
         this->size.x=widthRoom/6;
@@ -86,7 +86,7 @@ class DownDoorRoom : public Room{
 public:
     DownDoorRoom(b2Vec2 center,Textures * texture_p, b2World *world) : Room (texture_p,world)
     {
-        Ladder* ladder = new Ladder(texture_p, world, center, b2Vec2(2,heightRoom/2));
+        Ladder* ladder = new Ladder(center, b2Vec2(2,heightRoom/2));
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=size.y-2*wallWidth;
         this->size.x=widthRoom/6;
@@ -110,7 +110,7 @@ class UpAndDownDoorRoom : public Room{
 public:
     UpAndDownDoorRoom(b2Vec2 center,Textures * texture_p, b2World *world) : Room (texture_p,world)
     {
-        Ladder* ladder = new Ladder(texture_p, world, center, b2Vec2(2,heightRoom/2));
+        Ladder* ladder = new Ladder(center, b2Vec2(2,heightRoom/2));
         this->passageHeightLeft=size.y-2*wallWidth;
         this->passageHeightRight=size.y-2*wallWidth;
         this->size.x=widthRoom/6;

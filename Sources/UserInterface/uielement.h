@@ -23,7 +23,7 @@
 
 class UIElement : public DisplayData{
 public:
-    UIElement(TextureData* textureData, b2Vec2 center, b2Vec2 size, float angle);
+    UIElement(TextureData* textureData, b2Vec2 center, b2Vec2 size, float angle, bool isShifting = false);
     TextureData* textureData;
     b2Vec2 center;
     b2Vec2 size;

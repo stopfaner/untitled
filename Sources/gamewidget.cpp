@@ -39,6 +39,28 @@ void GameWidget::createWorld(){
     world = new b2World(b2Vec2(0.0,-9.81));
     GeneralInfo::getInstance().world = world;
 
+    loadBackground();
+
+
+    b2Vec2 delta( 0, -50 ); // move all bodies by this offset
+
+    string errorMsg;
+    b2dJson json;
+    json.readFromFile("json/test.json", errorMsg, world);
+
+    vector<b2Body*> bodies;
+    json.getAllBodies(bodies);
+    for (int i = 0; i < bodies.size(); ++i){
+        b2Body* body = bodies.at(i);
+        b2Fixture* fixture = body->GetFixtureList();
+        while (fixture){
+            body->GetFixtureList()->SetUserData(static_cast<void*>(new UserData(
+                                                                       new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
+            body->ResetMassData();
+            fixture = fixture->GetNext();
+        }
+        body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
+    }
 
     b2AABB *borderWorld = new b2AABB();
     borderWorld->lowerBound.Set(-1000.0, -1000.0);
@@ -47,8 +69,11 @@ void GameWidget::createWorld(){
 
     player = new Player (20, 10);
     player->constructBody();
-    NPC* npc = new NPC (10, 10);
-    npc->constructBody();
+    for (int i = 0; i < 5; ++i){
+        NPC* npc = new NPC (20 + 3 * i, 10);
+        npc->constructBody();
+    }
+    new Ladder (b2Vec2(-20, -5), b2Vec2(2, 10));
 
     //addWalkingMachine();
     addRect(0, -1000, 1000, 2, false, Textures::Type::WALL);
@@ -58,8 +83,7 @@ void GameWidget::createWorld(){
     // addRect(0, -260, 500, 500, false, Textures::Type::WALL);
 
     //creating chain
-
-
+    /*
     b2BodyDef chaindef;
     chaindef.position.Set(0, 0);
     chaindef.type = b2_staticBody;
@@ -89,27 +113,26 @@ void GameWidget::createWorld(){
     vs[0].x = -1000;
     vs[i].x = 1000;
 
-
     b2ChainShape chainShape;
 
     chain->SetUserData((void*) new UserData);
-
     chainShape.CreateChain(vs, i);
 
     b2FixtureDef chainFixtureDef;
     chainFixtureDef.shape = &chainShape;
     chainFixtureDef.density = 1.0;
-
     b2Fixture* chainFix = chain->CreateFixture(&chainFixtureDef);
-
     DisplayData* chainDD = (DisplayData*) new KeyLineData (Color(0, 0, 255), DisplayData::Layer::LANDSCAPE);
     chainFix->SetUserData((void*) new UserData (new GameObject, chainDD));
+*/
+    //
+
 
     addSpecRect();
 
-    new Car ();
+    new Car (b2Vec2(10, 10), 0.8);
 
-    Build build();
+    //Build build();
     // build.generateDungeon(b2Vec2(0, 70), 5, 5);
 
 
@@ -344,17 +367,21 @@ void GameWidget::resizeGL(int nWidth, int nHeight) {
     glLoadIdentity(); // загрузка матрицы
 }
 
+void GameWidget::loadBackground (){
+
+    TextureData* backgroundTD = new TextureData (textures->getTexture(Textures::Type::BACKGROUND), DisplayData::Layer::BACKGROUND);
+
+    displayItems.push_back(new UIElement (backgroundTD, b2Vec2(0, 0), b2Vec2 (20, 10), 0, true));
+}
+
 void GameWidget::paintGL() {
+
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glLoadIdentity();
 
-    //background
-    TextureData* backgroundTD = new TextureData (textures->getTexture(Textures::Type::BACKGROUND), DisplayData::Layer::BACKGROUND);
-    b2Vec2 pointsBackground[4] = {b2Vec2(-WIDTH*P2M,-WIDTH*P2M),b2Vec2(WIDTH*P2M,-WIDTH*P2M),
-                                  b2Vec2(WIDTH*P2M,WIDTH*P2M),b2Vec2(-WIDTH*P2M,WIDTH*P2M)};
-    drawPolygon (pointsBackground, 4, b2Vec2(0, 0), 0, backgroundTD);
+
 
     //bodies
 
@@ -368,9 +395,7 @@ void GameWidget::paintGL() {
 
             DisplayData* displayData = nullptr;
             void* UD = curFixture->GetUserData();
-            if (!UD) qDebug()<<"NO USERDATA";
-            else
-                displayData = static_cast<UserData*>(UD)->displayData;
+            displayData = static_cast<UserData*>(UD)->displayData;
             if (displayData){
                 if (curFixtureType ==  b2Shape::e_polygon){
                     int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
@@ -441,14 +466,14 @@ void GameWidget::paintGL() {
                             }
             }
             //draw joints
-
+            /*
             b2JointEdge* curJoint = tmp->GetJointList();
             while(curJoint){
                 drawCircle(0.07, curJoint->joint->GetAnchorA(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
                 drawCircle(0.07, curJoint->joint->GetAnchorB(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
                 curJoint = curJoint->next;
             }
-
+*/
             curFixture=curFixture->GetNext();
         }
         tmp=tmp->GetNext();
@@ -456,8 +481,8 @@ void GameWidget::paintGL() {
     }
 
 
+
     //interface
-    //DisplayData* displayItem = displayItems.front();
     for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
         UIElement* item = *iterator;
         if (item)
@@ -680,6 +705,7 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
 }
 
 void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData, float angle){
+
     glPushMatrix();
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
     glTranslatef(center.x*M2P/WIDTH, center.y*M2P/WIDTH, keyLineData->layer/ (float) DisplayData::Layer::MAX);
@@ -688,7 +714,7 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
 
     glBegin(GL_LINE_LOOP);
 
-    for (int i=0; i < 360; i++)
+    for (int i=0; i < 360; i += 20)
     {
         float rad = i*M_PI/180.0f;
         glVertex2f(cos(rad)*radius*M2P/WIDTH, sin(rad)*radius*M2P/WIDTH);
@@ -704,5 +730,6 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
 
 
     glPopMatrix();
+
 }
 

@@ -16,11 +16,11 @@
 
 #include "uielement.h"
 
-UIElement::UIElement(TextureData *textureData, b2Vec2 center, b2Vec2 size, float angle) : DisplayData(){
+UIElement::UIElement(TextureData *textureData, b2Vec2 center, b2Vec2 size, float angle, bool isShifting) : DisplayData(){
     this->textureData = textureData;
     this->center = center;
     this->size = size;
     this->angle = angle;
-    textureData->isShifting = false;
+    textureData->isShifting = isShifting;
 }
 

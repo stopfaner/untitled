@@ -12,7 +12,7 @@
 class Car : public Vehicle
 {
 public:
-    Car();
+    Car(b2Vec2 center, float scale);
     b2Body *addRect(float x, float y, float w, float h, bool dyn);
 
     void use(Entity *entity);
