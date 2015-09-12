@@ -94,7 +94,8 @@ SOURCES += main.cpp \
     Sources/UserInterface/nondrawable.cpp \
     Sources/userdata.cpp \
     Sources/GameObjects/Characters/bodyparts.cpp \
-    Sources/generalinfo.cpp
+    Sources/generalinfo.cpp \
+    Sources/GameObjects/Sensors/groundsensor.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -183,7 +184,9 @@ HEADERS  += \
     Sources/userdata.h \
     Sources/GameObjects/Characters/bodyparts.h \
     Sources/GameObjects/entitylist.h \
-    Sources/generalinfo.h
+    Sources/generalinfo.h \
+    Sources/GameObjects/enum.h \
+    Sources/GameObjects/Sensors/groundsensor.h
 
 
 

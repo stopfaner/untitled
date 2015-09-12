@@ -15,6 +15,7 @@ Entity::Entity(float x, float y) : GameObject ()
 {
     this->x = x;
     this->y = y;
+    surfaceAngle = 0;
 
     EntityList::getInstance().list.push_back(this);
 
@@ -69,6 +70,21 @@ void Entity::constructBody (){
     mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
                                                        textures->getTexture(this->getTextureType(BodyPart::Type::BODY)), DisplayData::Layer::PLAYER)));
 
+
+    //add sensor
+
+    shape.SetAsBox(playerWidth / 3, playerHeight / 4, b2Vec2(0, - playerHeight / 2), 0);
+    fixturedef.shape = &shape;
+    fixturedef.isSensor = true;
+    b2Fixture* sensorFixture = body->CreateFixture(&fixturedef);
+    sensorFixture->SetUserData(static_cast<void*>(new UserData(new GroundSensor,
+                                                               static_cast<DisplayData*>(new KeyLineData(Color(150, 30, 200), DisplayData::Layer::TEST)))));
+    fixturedef.isSensor = false;
+
+    //
+
+
+
     ///
 
     float motorTorque = body->GetMass() * 13;
@@ -84,6 +100,7 @@ void Entity::constructBody (){
         b2Body* hip = world->CreateBody(&bodydefHip);
         shape.SetAsBox(playerWidth * 0.4 / 2.0f, playerHeight * 0.2 / 2.0f);
 
+        fixturedef.density = 1.0f;
         fixturedef.shape = &shape;
 
         mainFixture = hip->CreateFixture(&fixturedef);
@@ -99,7 +116,7 @@ void Entity::constructBody (){
         if (i) layer = DisplayData::Layer::PLAYER_FAR;
         else layer = DisplayData::Layer::PLAYER_NEAR;
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                            textures->getTexture(getTextureType(BodyPart::Type::HIP)), layer)));
+                                                           textures->getTexture(getTextureType(BodyPart::Type::HIP)), layer)));
 
 
         b2RevoluteJointDef RJDhip;
@@ -107,7 +124,7 @@ void Entity::constructBody (){
         RJDhip.upperAngle = M_PI * 0.9;
         RJDhip.lowerAngle = - M_PI / 6;
         RJDhip.maxMotorTorque = motorTorque * 5.0f;
-        RJDhip.Initialize(body, hip, b2Vec2(body->GetWorldCenter().x, body->GetWorldCenter().y - playerHeight * 0.4 / 2.0f));
+        RJDhip.Initialize(body, hip, b2Vec2(body->GetPosition().x, body->GetPosition().y - playerHeight * 0.4 / 2.0f));
         b2RevoluteJoint* RJhipTemp = static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDhip));
         RJhipTemp->EnableMotor(true);
 
@@ -129,7 +146,7 @@ void Entity::constructBody (){
         bodyPart = BPShin;
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                                   textures->getTexture(getTextureType(BodyPart::Type::SHIN)), layer)));
+                                                           textures->getTexture(getTextureType(BodyPart::Type::SHIN)), layer)));
 
 
         b2RevoluteJointDef RJDknee;
@@ -137,19 +154,19 @@ void Entity::constructBody (){
         RJDknee.upperAngle = 0;
         RJDknee.lowerAngle = - M_PI / 2;
         RJDknee.maxMotorTorque = motorTorque * 1.5;
-        RJDknee.Initialize(hip, shin, b2Vec2(hip->GetWorldCenter().x, hip->GetWorldCenter().y - playerHeight * (0.2 - offset) / 2.0f));
+        RJDknee.Initialize(hip, shin, b2Vec2(hip->GetPosition().x, hip->GetPosition().y - playerHeight * (0.2 - offset) / 2.0f));
         b2RevoluteJoint* RJkneeTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDknee));
         RJkneeTemp->EnableMotor(true);
 
 
 
         b2BodyDef bodydefFoot;
-        bodydefFoot.position.Set(x, shin->GetWorldCenter().y - playerHeight *  0.13);
+        bodydefFoot.position.Set(x, shin->GetPosition().y - playerHeight *  0.13);
         bodydefFoot.type = b2_dynamicBody;
         bodydefFoot.fixedRotation = false;
         b2Body* foot = world->CreateBody(&bodydefFoot);
-        shape.SetAsBox(playerHeight * 0.025 / 2.0f, playerWidth * 0.8 / 2.0f);
-        fixturedef.friction = 1.1;
+        shape.SetAsBox(playerHeight * 0.04 / 2.0f, playerWidth * 0.8 / 2.0f);
+        fixturedef.friction = 3;
         fixturedef.shape = &shape;
 
         mainFixture = foot->CreateFixture(&fixturedef);
@@ -161,14 +178,14 @@ void Entity::constructBody (){
         bodyPart = BPFoot;
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                            textures->getTexture(getTextureType(BodyPart::Type::FOOT)), layer)));
+                                                           textures->getTexture(getTextureType(BodyPart::Type::FOOT)), layer)));
 
         b2RevoluteJointDef RJDfoot;
         RJDfoot.enableLimit = false;
         RJDfoot.upperAngle = M_PI;
-        RJDfoot.lowerAngle = 0;
+        RJDfoot.lowerAngle = 0 + M_PI / 4;
         RJDfoot.maxMotorTorque = motorTorque;
-        RJDfoot.Initialize(shin, foot, b2Vec2(foot->GetWorldCenter().x, foot->GetWorldCenter().y + playerHeight * 0.03));
+        RJDfoot.Initialize(shin, foot, b2Vec2(foot->GetPosition().x, foot->GetPosition().y + playerHeight * 0.03));
         b2RevoluteJoint* RJfootTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDfoot));
         RJfootTemp->EnableMotor(true);
 
@@ -218,7 +235,7 @@ void Entity::constructBody (){
     RJDhead.upperAngle = 0.1;
     RJDhead.lowerAngle = -0.1;
     RJDhead.maxMotorTorque = motorTorque;
-    RJDhead.Initialize(body, head, b2Vec2(head->GetWorldCenter().x, head->GetWorldCenter().y - playerWidth * 0.5));
+    RJDhead.Initialize(body, head, b2Vec2(head->GetPosition().x, head->GetPosition().y - playerWidth * 0.5));
     world->CreateJoint(&RJDhead);
 
 
@@ -242,7 +259,7 @@ void Entity::constructBody (){
         mainFixture = shoulder->CreateFixture(&fixturedef);
         DisplayData::Layer layer;
         if (i){
-            layer = DisplayData::Layer::PLAYER_FAR;
+            layer = DisplayData::Layer::PLAYER_FAR_FAR;
             bodyDD = (DisplayData*) new KeyLineData(Color(0, 255, 0), DisplayData::Layer::PLAYER);
         }
         else{
@@ -254,7 +271,7 @@ void Entity::constructBody (){
 
 
         mainFixture->SetUserData((void*) new UserData (bodyPart,  new TextureData(
-                                                            textures->getTexture(getTextureType(BodyPart::Type::SHOULDER)), layer)));
+                                                           textures->getTexture(getTextureType(BodyPart::Type::SHOULDER)), layer)));
 
 
         b2RevoluteJointDef RJDshoulder;
@@ -262,7 +279,7 @@ void Entity::constructBody (){
         RJDshoulder.upperAngle = M_PI;
         RJDshoulder.lowerAngle = - M_PI / 2;
         RJDshoulder.maxMotorTorque = motorTorque;
-        RJDshoulder.Initialize(body, shoulder, b2Vec2(body->GetWorldCenter().x, body->GetWorldCenter().y + playerHeight * 0.4 / 2.0f));
+        RJDshoulder.Initialize(body, shoulder, b2Vec2(body->GetPosition().x, body->GetPosition().y + playerHeight * 0.4 / 2.0f));
         b2RevoluteJoint* RJshoulderTemp = static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDshoulder));
         RJshoulderTemp->EnableMotor(true);
 
@@ -286,7 +303,7 @@ void Entity::constructBody (){
 
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                            textures->getTexture(getTextureType(BodyPart::Type::FOREARM)), layer)));
+                                                           textures->getTexture(getTextureType(BodyPart::Type::FOREARM)), layer)));
 
 
         b2RevoluteJointDef RJDforearm;
@@ -294,8 +311,8 @@ void Entity::constructBody (){
         RJDforearm.upperAngle = M_PI;
         RJDforearm.lowerAngle = 0;
         RJDforearm.maxMotorTorque = motorTorque;
-        //RJDforearm.Initialize(shoulder, forearm, b2Vec2(shoulder->GetWorldCenter().x, shoulder->GetWorldCenter().y - playerHeight * (0.2 - offset) / 2.0f));
-        RJDforearm.Initialize(shoulder, forearm, b2Vec2(shoulder->GetWorldCenter().x, body->GetWorldCenter().y));
+        //RJDforearm.Initialize(shoulder, forearm, b2Vec2(shoulder->GetPosition().x, shoulder->GetPosition().y - playerHeight * (0.2 - offset) / 2.0f));
+        RJDforearm.Initialize(shoulder, forearm, b2Vec2(shoulder->GetPosition().x, body->GetPosition().y));
 
         b2RevoluteJoint* RJforearmTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDforearm));
         RJforearmTemp->EnableMotor(true);
@@ -321,15 +338,15 @@ void Entity::constructBody (){
         bodyPart = BPwrist;
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                            textures->getTexture(getTextureType(BodyPart::Type::WRIST)), layer)));
+                                                           textures->getTexture(getTextureType(BodyPart::Type::WRIST)), layer)));
 
         b2RevoluteJointDef RJDwrist;
         RJDwrist.enableLimit = true;
         RJDwrist.upperAngle = 1;
         RJDwrist.lowerAngle = -1;
         RJDwrist.maxMotorTorque = motorTorque;
-        //RJDwrist.Initialize(forearm, wrist, b2Vec2(wrist->GetWorldCenter().x - 0.9 / 2.0f, wrist->GetWorldCenter().y));
-        RJDwrist.Initialize(forearm, wrist, b2Vec2(wrist->GetWorldCenter().x, wrist->GetWorldCenter().y + playerWidth * 0.9 / 2.0f));
+        //RJDwrist.Initialize(forearm, wrist, b2Vec2(wrist->GetPosition().x - 0.9 / 2.0f, wrist->GetPosition().y));
+        RJDwrist.Initialize(forearm, wrist, b2Vec2(wrist->GetPosition().x, wrist->GetPosition().y + playerWidth * 0.9 / 2.0f));
         b2RevoluteJoint* RJwristTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDwrist));
         RJwristTemp->EnableMotor(true);
 
@@ -369,16 +386,15 @@ void Entity::move()
     float direction;
     if (isRightDirection) direction = 1;
     else direction = -1;
-/*
-    if (isGrounded() && fabs(bodyParts.foot->RJ->GetJointAngle() - bodyParts.foot->desiredAngle < D2R(10.0f))){
-        qDebug()<<"1";
-        bodyParts.foot->angleDeviation = M_PI / 2;
+
+    if (isRightDirection){
+        bodyParts.foot->desiredAngle = surfaceAngle + M_PI / 2;
+        bodyParts.foot2->desiredAngle = surfaceAngle + M_PI / 2;
     }
-    if (isGrounded() && fabs(bodyParts.foot2->RJ->GetJointAngle() - bodyParts.foot2->desiredAngle < D2R(10.0f))){
-        qDebug()<<"2";
-        bodyParts.foot2->angleDeviation = M_PI / 2;
+    else{
+        bodyParts.foot->desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
+        bodyParts.foot2->desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
     }
-*/
     BodyPart *hip, *shin;
     BodyPart *shoulder, *forearm;
     if (isUsingLeftLeg){
@@ -394,12 +410,14 @@ void Entity::move()
         forearm = bodyParts.forearm;
     }
     if (isAscendingLeg){
-        if ( (hip->RJ->GetJointAngle() < D2R (70.0f) && isRightDirection ) ||
-             (hip->RJ->GetJointAngle() > D2R (-70.0f) && !isRightDirection)){
-            hip->desiredAngle = D2R (80.0f * direction);
+        float hipMaxAngle = D2R(70.0f) + surfaceAngle * 2;
+        float shinMaxAngle = D2R(-50.0f) - surfaceAngle;
+        if ( (hip->RJ->GetJointAngle() < hipMaxAngle && isRightDirection ) ||
+             (hip->RJ->GetJointAngle() > - hipMaxAngle && !isRightDirection)){
+            hip->desiredAngle = (hipMaxAngle + D2R(10)) * direction;
             hip->motorSpeed = 1.8;
-            shin->desiredAngle = D2R (-50.0f * direction);
-            shin->motorSpeed = 2;
+            shin->desiredAngle = shinMaxAngle * direction;
+            shin->motorSpeed = 3;
 
             shoulder->desiredAngle = D2R (30.0f * direction);
             shoulder->motorSpeed = 1;
@@ -410,19 +428,43 @@ void Entity::move()
         else{
             isAscendingLeg = false;
 
+            if (isUsingLeftLeg) bodyParts.foot->desiredAngle = M_PI / 2;
+            else bodyParts.foot2->desiredAngle = M_PI / 2;
+
             shoulder->desiredAngle = D2R (-5.0f * direction);
             forearm->desiredAngle = 0;
 
             hip->desiredAngle = D2R (-15.0f * direction);
+            shin->motorSpeed = 1;
             shin->desiredAngle = 0;
-            body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, body->GetMass() * 3), body->GetWorldCenter(), true);
+            float verticalImpulse = body->GetMass() * (3 + surfaceAngle * 12);
+            body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, verticalImpulse), body->GetPosition(), true);
 
         }
 
     }
     else{
-        if ((hip->RJ->GetJointAngle() < 0 && isRightDirection) ||
-                (hip->RJ->GetJointAngle() > 0 && !isRightDirection)){
+        float ascendLimit = 0;
+
+        BodyPart* curFoot;
+        if (isUsingLeftLeg) curFoot = bodyParts.foot;
+        else curFoot = bodyParts.foot2;
+
+        // if (fabs(bodyParts.hip->RJ->GetJointAngle() - bodyParts.hip2->RJ->GetJointAngle()) > 3.0f)
+        if ((hip->RJ->GetJointAngle() < ascendLimit && isRightDirection) ||
+                (hip->RJ->GetJointAngle() > - ascendLimit && !isRightDirection) ||
+                ( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() > D2R(10.0f)) ||
+                ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() < D2R(-10.0f))
+                ){
+            /*
+                BodyPart* foot;
+                if (isUsingLeftLeg) foot = bodyParts.foot;
+                else foot = bodyParts.foot2;
+                if (isRightDirection)
+                    surfaceAngle =  foot->RJ->GetJointAngle() - M_PI / 2;
+                else surfaceAngle = M_PI / 2 - foot->RJ->GetJointAngle() + M_PI;
+                qDebug()<<R2D(surfaceAngle);
+                */
             isAscendingLeg = true;
             changeLeg();
         }
@@ -540,7 +582,7 @@ void Entity::applyForce(){
             if (isRightDirection)
                 foot->desiredAngle = M_PI / 2;
             else foot->desiredAngle = M_PI / 2 + M_PI;
-            foot->angleDeviation = D2R(20.0f);
+            foot->angleDeviation = D2R(10.0f);
             if (moveState == MoveState::MS_STAND){
                 shoulder->desiredAngle = 0;
                 forearm->desiredAngle = 0;
@@ -633,14 +675,30 @@ void Entity::fall()
 bool Entity::isGrounded(){
     for (b2ContactEdge* ce = bodyParts.foot->body->GetContactList(); ce; ce = ce->next)
     {
-        return true;
-        break;
+        if (ce->contact->IsTouching())
+            return true;
     }
     for (b2ContactEdge* ce = bodyParts.foot2->body->GetContactList(); ce; ce = ce->next)
     {
-        return true;
-        break;
+        if (ce->contact->IsTouching())
+            return true;
     }
+    return false;
+}
+
+bool Entity::isGrounded(bool leftLeg){
+    if (leftLeg)
+        for (b2ContactEdge* ce = bodyParts.foot->body->GetContactList(); ce; ce = ce->next)
+        {
+            if (ce->contact->IsTouching())
+                return true;
+        }
+    else
+        for (b2ContactEdge* ce = bodyParts.foot2->body->GetContactList(); ce; ce = ce->next)
+        {
+            if (ce->contact->IsTouching())
+                return true;
+        }
     return false;
 }
 
@@ -653,20 +711,23 @@ void Entity::jump(){
     if (!jumpCooldown){
         jumpCooldown = jumpCooldownMax;
         if (isGrounded())
-            body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), body->GetWorldCenter(), true);
+            body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * jumpHeight), body->GetPosition(), true);
 
     }
 }
 
-void Entity::update(Textures* textures)
+void Entity::update()
 {
+
     //rotate body
-    if (!vehicle && !body->IsFixedRotation()){
-        if (body->GetAngle() > 0.01)
-            body->SetAngularVelocity (-3 - body->GetAngularVelocity());
+    float maxDeviation = 0.01;
+    float deviation = fabs(body->GetAngle() - maxDeviation);
+    if (!vehicle){
+        if (body->GetAngle() > maxDeviation)
+            body->SetAngularVelocity (-3 * deviation);
         else
-            if (body->GetAngle() < - 0.01)
-                body->SetAngularVelocity (3 - body->GetAngularVelocity());
+            if (body->GetAngle() < - maxDeviation)
+                body->SetAngularVelocity (3 * deviation);
         if (fabs(body->GetAngle()) < 0.02)
             body->SetAngularVelocity(body->GetAngularVelocity() / 2.0f);
 

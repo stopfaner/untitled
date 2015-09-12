@@ -45,12 +45,14 @@ void BodyParts::mirror()
         if (bodyPart->RJ && bodyPart->RJ->IsLimitEnabled())
             bodyPart->RJ->SetLimits(- bodyPart->RJ->GetUpperLimit(), - bodyPart->RJ->GetLowerLimit());
     }
+
     BodyPart* foot;
     for (int i = 0; i < 2; ++i){
         if (i)
             foot = this->foot;
         else
             foot = this->foot2;
+        foot->RJ->SetLimits(M_PI + M_PI / 4, 2 * M_PI);
        // foot->body->SetTransform(foot->body->GetPosition(), D2R(180));
     }
 }

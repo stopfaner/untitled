@@ -317,7 +317,7 @@ void GameWidget::updateGame(){
     for (std::list<Entity*>::const_iterator iterator = EntityList::getInstance().list.begin(),
          end = EntityList::getInstance().list.end(); iterator != end; ++iterator) {
         Entity* item = *iterator;
-        item->update(textures);
+        item->update();
     }
 
 }

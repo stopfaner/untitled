@@ -9,6 +9,7 @@
 #include "Sources/GameObjects/InteractiveObjects/interactiveobject.h"
 #include "Sources/GameObjects/InteractiveObjects/ladder.h"
 #include "Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h"
+#include "Sources/GameObjects/Sensors/groundsensor.h"
 #include "Sources/UserInterface/keylinedata.h"
 #include "Sources/UserInterface/texturedata.h"
 #include "Sources/userdata.h"
@@ -49,17 +50,19 @@ public:
     void jump();
     void crouch();
     void fall();
-    void update(Textures* textures);
+    void update();
     void setBody (b2Body* body);
     b2Body *body;
     bool checkForLadder();
     void changeLeg();
     bool isGrounded();
+    bool isGrounded(bool leftLeg);
     void constructBody();
 private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;
     float x, y;
+    float surfaceAngle;
     void applyForce();
     virtual Textures::Type getTextureType(BodyPart::Type bodyPart) = 0;
 };
