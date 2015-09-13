@@ -54,6 +54,8 @@
 #include "generalinfo.h"
 #include "userdata.h"
 
+#include "triangulate.h"
+
 /**
  * @brief The GameWidget class describes main window activity
  */
@@ -82,6 +84,10 @@ private:
     float M2P = 40;
     float P2M=1/M2P;
 
+    //zoom koef
+    float kx = 1;
+    float ky = 1;
+
     Player *player;
 
 
@@ -100,6 +106,7 @@ private:
     void keyPressEvent(QKeyEvent* event);
     void keyReleaseEvent(QKeyEvent* event);
 
+    b2Body *addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type);
     b2Body* addRect(float x, float y, float width, float height, bool dyn, Textures::Type type);
 
     b2Body* addSpecRect ();

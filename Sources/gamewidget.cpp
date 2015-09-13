@@ -32,6 +32,7 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
 
 
 void GameWidget::createWorld(){
+
     timer = new QTimer;
     connect (timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     timer->start(10);
@@ -47,6 +48,7 @@ void GameWidget::createWorld(){
     string errorMsg;
     b2dJson json;
     json.readFromFile("json/test.json", errorMsg, world);
+//    json.readFromFile("json/spider.json", errorMsg, world);
 
     vector<b2Body*> bodies;
     json.getAllBodies(bodies);
@@ -54,8 +56,8 @@ void GameWidget::createWorld(){
         b2Body* body = bodies.at(i);
         b2Fixture* fixture = body->GetFixtureList();
         while (fixture){
-            body->GetFixtureList()->SetUserData(static_cast<void*>(new UserData(
-                                                                       new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
+            fixture->SetUserData(static_cast<void*>
+                      (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
             body->ResetMassData();
             fixture = fixture->GetNext();
         }
@@ -498,9 +500,11 @@ void GameWidget::paintGL() {
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
     Qt::MouseButtons mouseButtons = event->buttons();
+    b2Vec2 worldCoord;
+    worldCoord.x =  (event->pos().x() / kx - WIDTH/2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
+    worldCoord.y = -(event->pos().y() / ky - HEIGHT/2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
     if (mouseButtons == Qt::LeftButton)
-        addRect((event->pos().x()+player->body->GetWorldCenter().x*M2P/2-WIDTH/2)*2*P2M,
-                -(event->pos().y()-player->body->GetWorldCenter().y*M2P/2-HEIGHT/2)*2*P2M, 2, 2, true, Textures::Type::CRATE);
+        addRect(worldCoord, 2, 2, true, Textures::Type::CRATE);
     else
         if (mouseButtons == Qt::RightButton){
             b2Body* body1 = addRect(0, 6, 10, 2, true, Textures::Type::CRATE);
@@ -513,6 +517,14 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
     int key = event->key();
+    if (key == Qt::Key_Minus){
+        kx /= 2;
+        ky /= 2;
+    }
+    if (key == Qt::Key_Plus){
+        kx *= 2;
+        ky *= 2;
+    }
     if (key == Qt::Key_Left || key == Qt::Key_A)
         player->moveState = Player::MS_LEFT;
     if (key == Qt::Key_Right || key == Qt::Key_D)
@@ -525,6 +537,13 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->isJumping = true;
     if (key == Qt::Key_E)
         player->useObject();
+
+    if (key == Qt::Key_T){
+        b2dJson json;
+        json.writeToFile(world, "json/world.json");
+        qDebug()<<"saved";
+    }
+
     if (key == Qt::Key_F)
         player->fall();
     if (key == Qt::Key_Escape) this->close();
@@ -552,7 +571,9 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
         player->isJumping = false;
 }
 
-
+b2Body* GameWidget::addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type) {
+    return addRect(center.x, center.y, w, h , dyn, type);
+}
 
 b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textures::Type type) {
     b2BodyDef bodydef;
@@ -652,9 +673,9 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
 
     glPushMatrix();
     glColor3f(1, 1, 1);
-    glTranslatef(center.x*M2P/WIDTH, center.y*M2P/WIDTH, textureData->layer/ (float) DisplayData::Layer::MAX);
+    glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, textureData->layer/ (float) DisplayData::Layer::MAX);
     if(textureData->isShifting)
-        glTranslatef(-player->body->GetWorldCenter().x*M2P/WIDTH,-player->body->GetWorldCenter().y*M2P/WIDTH, 0);
+        glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
 
     glRotatef(angle*180.0/M_PI,0,0,1);
 
@@ -665,7 +686,7 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glBegin(GL_POLYGON);
     for(int i = 0; i < count; i++){
         glTexCoord2f(texPoints[i].x, texPoints[i].y);
-        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
+        glVertex2f(points[i].x * M2P / WIDTH * kx, points[i].y * M2P / WIDTH * ky);
     }
     glEnd();
 
@@ -677,13 +698,13 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData
 
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
     glPushMatrix();
-    glTranslatef(center.x*M2P/WIDTH, center.y*M2P/WIDTH, keyLineData->layer/ (float) DisplayData::Layer::MAX);
+    glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, keyLineData->layer/ (float) DisplayData::Layer::MAX);
     if(keyLineData->isShifting)
-        glTranslatef(-player->body->GetWorldCenter().x*M2P/WIDTH,-player->body->GetWorldCenter().y*M2P/WIDTH, 0);
+        glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
 
     glBegin(GL_LINE_STRIP);
     for(int i = 0; i < count; i++)
-        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
+        glVertex2f(points[i].x * M2P / WIDTH * kx, points[i].y * M2P / WIDTH * ky);
     glEnd();
     glPopMatrix();
 }
@@ -691,15 +712,15 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData
 void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, KeyLineData *keyLineData) {
     glPushMatrix();
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
-    glTranslatef(center.x*M2P/WIDTH, center.y*M2P/WIDTH, keyLineData->layer/ (float) DisplayData::Layer::MAX);
+    glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, keyLineData->layer/ (float) DisplayData::Layer::MAX);
     if(keyLineData->isShifting)
-        glTranslatef(-player->body->GetWorldCenter().x*M2P/WIDTH,-player->body->GetWorldCenter().y*M2P/WIDTH, 0);
-    //glTranslatef (center.x*M2P/WIDTH, center.y*M2P/WIDTH, 0);
+        glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
+    //glTranslatef (center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH, 0);
     glRotatef(angle*180.0/M_PI, 0, 0, 1);
     //glBegin(GL_POLYGON);
     glBegin(GL_LINE_LOOP);
     for(int i=0;i<count;i++)
-        glVertex2f(points[i].x*M2P/WIDTH,points[i].y*M2P/WIDTH);
+        glVertex2f(points[i].x * M2P / WIDTH * kx, points[i].y * M2P / WIDTH * ky);
     glEnd();
     glPopMatrix();
 }
@@ -708,23 +729,23 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
 
     glPushMatrix();
     glColor4f(keyLineData->color.red, keyLineData->color.green, keyLineData->color.blue, keyLineData->color.alpha);
-    glTranslatef(center.x*M2P/WIDTH, center.y*M2P/WIDTH, keyLineData->layer/ (float) DisplayData::Layer::MAX);
+    glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, keyLineData->layer/ (float) DisplayData::Layer::MAX);
     if(keyLineData->isShifting)
-        glTranslatef(-player->body->GetWorldCenter().x*M2P/WIDTH,-player->body->GetWorldCenter().y*M2P/WIDTH, 0);
+        glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
 
     glBegin(GL_LINE_LOOP);
 
     for (int i=0; i < 360; i += 20)
     {
         float rad = i*M_PI/180.0f;
-        glVertex2f(cos(rad)*radius*M2P/WIDTH, sin(rad)*radius*M2P/WIDTH);
+        glVertex2f(cos(rad)*radius*M2P/WIDTH * kx, sin(rad)*radius*M2P/WIDTH * ky);
     }
 
     glEnd();
 
 
     glBegin(GL_LINE_LOOP);
-    glVertex2f(cos(angle)*radius*M2P/WIDTH / 2.0f, sin(angle)*radius*M2P/WIDTH / 2.0f);
+    glVertex2f(cos(angle)*radius*M2P/WIDTH / 2.0f * kx, sin(angle)*radius*M2P/WIDTH / 2.0f * ky);
     glVertex2f(0, 0);
     glEnd();
 
