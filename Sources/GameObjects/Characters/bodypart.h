@@ -22,7 +22,7 @@ public:
         FOREARM,
         SHOULDER
     };
-
+    void setDefaultSpeed(float speed);
     BodyPart(Entity* entity, Type type, b2Body* body, b2RevoluteJoint* RJ = nullptr);
     b2RevoluteJoint* RJ;
     float angleDeviation;

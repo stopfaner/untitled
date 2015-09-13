@@ -85,8 +85,8 @@ private:
     float P2M=1/M2P;
 
     //zoom koef
-    float kx = 1;
-    float ky = 1;
+    float kx = 0.7;
+    float ky = 0.7;
 
     Player *player;
 

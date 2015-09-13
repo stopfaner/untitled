@@ -2,7 +2,6 @@
 
 NPC::NPC(float x, float y) : Entity (x, y){
     moveState = MS_RIGHT;
-    isJumping = true;
 }
 
 Textures::Type NPC::getTextureType(BodyPart::Type bodyPart)

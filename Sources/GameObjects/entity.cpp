@@ -145,7 +145,7 @@ void Entity::constructBody (){
         RJDknee.upperAngle = 0;
         //RJDknee.lowerAngle = - M_PI + R2D(10);
         RJDknee.lowerAngle = - D2R (170.0f);
-        RJDknee.maxMotorTorque = motorTorque * 1.5;
+        RJDknee.maxMotorTorque = motorTorque * 2;
         RJDknee.Initialize(hip, shin, b2Vec2(hip->GetPosition().x, hip->GetPosition().y - playerHeight * (0.2 - offset) / 2.0f));
         b2RevoluteJoint* RJkneeTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDknee));
         RJkneeTemp->EnableMotor(true);
@@ -158,7 +158,7 @@ void Entity::constructBody (){
         bodydefFoot.fixedRotation = false;
         b2Body* foot = world->CreateBody(&bodydefFoot);
         shape.SetAsBox(playerHeight * 0.04 / 2.0f, playerWidth * 0.8 / 2.0f);
-        fixturedef.friction = 5;
+        fixturedef.friction = 3;
         fixturedef.shape = &shape;
 
         mainFixture = foot->CreateFixture(&fixturedef);
@@ -361,7 +361,7 @@ void Entity::constructBody (){
         this->bodyParts.setPart(BPwrist);
     }
 
-
+    body->SetAngularDamping(5);
 }
 
 
@@ -390,28 +390,36 @@ void Entity::move()
         bodyParts.foot2->desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
     }
     BodyPart *hip, *shin;
-    BodyPart *shoulder, *forearm;
+    BodyPart *shoulder, *forearm, *foot;
     if (isUsingLeftLeg){
         hip = bodyParts.hip;
         shin = bodyParts.shin;
+        foot = bodyParts.foot;
         shoulder = bodyParts.shoulder2;
         forearm = bodyParts.forearm2;
     }
     else{
         hip = bodyParts.hip2;
         shin = bodyParts.shin2;
+        foot = bodyParts.foot2;
         shoulder = bodyParts.shoulder;
         forearm = bodyParts.forearm;
     }
     if (isAscendingLeg){
         float hipMaxAngle = D2R(70.0f) + surfaceAngle * 2;
+        if (moveStateVertical == MSV_UP)
+            hipMaxAngle = D2R(80.0f);
         float shinMaxAngle = D2R(-50.0f) - surfaceAngle;
         if ( (hip->RJ->GetJointAngle() < hipMaxAngle && isRightDirection ) ||
              (hip->RJ->GetJointAngle() > - hipMaxAngle && !isRightDirection)){
             hip->desiredAngle = (hipMaxAngle + D2R(10)) * direction;
-            hip->motorSpeed = 1.8;
+            hip->motorSpeed = 2.3;
             shin->desiredAngle = shinMaxAngle * direction;
             shin->motorSpeed = 3;
+            if (moveStateVertical == MSV_UP)
+                if (isRightDirection)
+                    foot->desiredAngle = D2R(110);
+                else foot->desiredAngle = D2R(110 + 90);
 
             shoulder->desiredAngle = D2R (30.0f * direction);
             shoulder->motorSpeed = 1;
@@ -429,18 +437,33 @@ void Entity::move()
             forearm->desiredAngle = 0;
 
             hip->desiredAngle = D2R (-15.0f * direction);
-            shin->motorSpeed = 3;
-            shin->desiredAngle = 0;
+            if (moveStateVertical == MSV_UP){
+                shin->desiredAngle = D2R(-20) * direction;
+            }
+            else
+                shin->desiredAngle = D2R(0) * direction;
             float verticalImpulse = body->GetMass() * (8 + surfaceAngle * 12);
-            body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, verticalImpulse), body->GetPosition(), true);
+            if (moveStateVertical == MSV_UP){
+                body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, verticalImpulse * 2), body->GetPosition() - b2Vec2(0, 3), true);
+                float footAngle = 110;
+                if (!isRightDirection)
+                    footAngle = 180 + 90 - 10;
+                bodyParts.foot->desiredAngle = D2R(footAngle);
+                bodyParts.foot2->desiredAngle = D2R(footAngle);
+            }
+            else
+                body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 6 * direction, verticalImpulse), body->GetPosition() - b2Vec2(0, 3), true);
 
         }
 
     }
     else{
         //descending leg
-        float ascendLimit = 0;
 
+        float ascendLimit = 5;
+
+        if (moveStateVertical == MSV_UP)
+            ascendLimit = D2R(10);
         BodyPart* curFoot;
         if (isUsingLeftLeg) curFoot = bodyParts.foot;
         else curFoot = bodyParts.foot2;
@@ -451,6 +474,9 @@ void Entity::move()
                 ( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() > D2R(10.0f)) ||
                 ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() < D2R(-10.0f))
                 ){
+            if (( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() > D2R(10.0f)) ||
+                    ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() < D2R(-10.0f)))
+                body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * 10), body->GetPosition(), true);
             /*
                 BodyPart* foot;
                 if (isUsingLeftLeg) foot = bodyParts.foot;
@@ -677,7 +703,7 @@ void Entity::crouch(){
 
 
         if (fabs(fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 4) &&
-                fabs(hip->desiredAngle - hip->RJ->GetJointAngle() < hip->angleDeviation / 4))){
+                 fabs(hip->desiredAngle - hip->RJ->GetJointAngle() < hip->angleDeviation / 4))){
             isSitting = true;
         }
         else isSitting = false;
@@ -776,8 +802,12 @@ void Entity::update()
 
     //rotate body
     float maxDeviation = 0.005;
-    float maxDeviationSpeed = 2;
-    float deviationSpeed = 10 * fabs( maxDeviationSpeed  * body->GetAngle() );
+    float maxDeviationSpeed = 20;
+    if (moveStateVertical == MSV_UP){
+        maxDeviation *= 2;
+        maxDeviationSpeed /= 3;
+    }
+    float deviationSpeed = fabs( maxDeviationSpeed  * body->GetAngle() );
     if (!vehicle){
         if (body->GetAngle() > maxDeviation)
             body->SetAngularVelocity (-deviationSpeed);

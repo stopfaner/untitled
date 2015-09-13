@@ -384,7 +384,6 @@ void GameWidget::paintGL() {
     glLoadIdentity();
 
 
-
     //bodies
 
     b2Body* tmp=world->GetBodyList();
@@ -481,6 +480,7 @@ void GameWidget::paintGL() {
         tmp=tmp->GetNext();
 
     }
+
 
 
 
