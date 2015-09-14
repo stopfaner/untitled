@@ -60,7 +60,7 @@ void Entity::constructBody (){
     fixturedef.shape = &shape;
     fixturedef.filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
     fixturedef.filter.maskBits = GeneralInfo::CollisionType::BASIC;
-    fixturedef.density = 0.7;
+    fixturedef.density = 0.65f;
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
 
@@ -91,7 +91,7 @@ void Entity::constructBody (){
         b2Body* hip = world->CreateBody(&bodydefHip);
         shape.SetAsBox(playerWidth * 0.4 / 2.0f, playerHeight * 0.2 / 2.0f);
 
-        fixturedef.density = 1.0f;
+        fixturedef.density = 1.025f;
         fixturedef.shape = &shape;
 
         mainFixture = hip->CreateFixture(&fixturedef);
