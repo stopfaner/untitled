@@ -49,12 +49,13 @@
 #include "UserInterface/texturedata.h"
 #include "UserInterface/nondrawable.h"
 #include "UserInterface/HUD/hudelement.h"
+#include "UserInterface/triangletexturedata.h"
 
 
 #include "generalinfo.h"
 #include "userdata.h"
 
-#include "triangulate.h"
+#include "poly2tri/poly2tri.h"
 
 /**
  * @brief The GameWidget class describes main window activity
@@ -111,6 +112,7 @@ private:
 
     b2Body* addSpecRect ();
 
+    void drawTriangle(b2Vec2 *points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, TextureData *textureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, KeyLineData *keyLineData);
     void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData, float angle);

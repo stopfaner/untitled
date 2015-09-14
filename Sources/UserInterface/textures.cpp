@@ -19,6 +19,7 @@ void Textures::loadAll (){
     loadTexture(LADDER, "images/ladder.png");
     loadTexture(CLIMBING, "images/climbing.png", 1, 2);
     loadTexture(CLIMBING_IDLE, "images/climbingstop.png");
+    loadTexture(GROUND, "images/ground.png");
 
     loadTexture(BODY, "images/body.png");
     loadTexture(SHIN, "images/shin.png");

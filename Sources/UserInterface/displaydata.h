@@ -20,7 +20,7 @@ public:
         OBJECT = 0x0007,
         JOINT = 0x002,
         HUD = 0x001,
-        NEAREAST = 0x000
+        NEAREST = 0x000
     };
     DisplayData();
     DisplayData(Layer layer);

@@ -19,6 +19,7 @@
 
 #define M_PI		3.14159265358979323846
 
+using namespace p2t;
 
 /**
  * @brief GameWidget::GameWidget - contructor
@@ -47,22 +48,87 @@ void GameWidget::createWorld(){
 
     string errorMsg;
     b2dJson json;
-    json.readFromFile("json/test.json", errorMsg, world);
-//    json.readFromFile("json/spider.json", errorMsg, world);
+    b2World* jsonWorld = json.readFromFile("json/test.json", errorMsg);
 
     vector<b2Body*> bodies;
     json.getAllBodies(bodies);
     for (int i = 0; i < bodies.size(); ++i){
-        b2Body* body = bodies.at(i);
+        b2Body* bodyChain = bodies.at(i);
+        b2Fixture* curFixture = bodyChain->GetFixtureList();
+        b2ChainShape* chain = static_cast<b2ChainShape*>( curFixture->GetShape());
+        int edgeCount = chain->GetChildCount();
+
+        std::vector <Point*> polyline;
+
+        for (int i = 1; i < edgeCount; ++i){
+            b2EdgeShape edge;
+            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
+            polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
+
+        }
+
+        CDT* polygon = new CDT(polyline);
+        polygon->Triangulate();
+
+        b2BodyDef bodydef;
+        bodydef.position.Set(0,10);
+        bodydef.type=b2_staticBody;
+        b2Body* body=world->CreateBody(&bodydef);
+        b2PolygonShape shape;
+
+        for (unsigned int i = 0; i < polygon->GetTriangles().size(); ++i) {
+            Triangle* triangle = polygon->GetTriangles().at(i);
+
+            b2Vec2 points[3];
+            for (unsigned int j = 0; j < 3; ++j){
+                points[j].x = triangle->GetPoint(j)->x;
+                points[j].y = triangle->GetPoint(j)->y;
+            }
+
+            shape.Set(points, 3);
+            b2FixtureDef fixturedef;
+            fixturedef.shape = &shape;
+            fixturedef.density = 1.0;
+            fixturedef.filter.groupIndex = 1;
+
+            b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
+
+            DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
+
+            bodyFix->SetUserData((void*) new UserData(bodyDD));
+
+        }
         b2Fixture* fixture = body->GetFixtureList();
         while (fixture){
             fixture->SetUserData(static_cast<void*>
-                      (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
+                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
             body->ResetMassData();
             fixture = fixture->GetNext();
         }
         body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
     }
+
+    //create polygon
+
+    //  trying to load PBE
+    /*
+    b2dJson jsonPBE;
+    json.readFromFile("json/PBE.json", errorMsg, world);
+
+    b2Fixture* bumperFixture = json.getFixtureByName("test01");
+
+      Json::Value fixtureValue = jsonPBE.b2j( bumperFixture );
+
+
+      b2BodyDef bd;
+      bd.position.Set(0, 0);
+      b2Body* PBEBody = world->CreateBody(&bd);
+      b2Fixture* myFixture = jsonPBE.j2b2Fixture(PBEBody, fixtureValue);
+      myFixture->SetUserData(static_cast<void*>(new UserData(new KeyLineData(Color(0, 255, 0), DisplayData::Layer::LANDSCAPE))));
+
+      //PBEBody->ResetMassData();
+      */
+    //
 
     b2AABB *borderWorld = new b2AABB();
     borderWorld->lowerBound.Set(-1000.0, -1000.0);
@@ -357,6 +423,8 @@ void GameWidget::initializeGL() {
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
+    glAlphaFunc(GL_GREATER, 0.5);
+    glEnable(GL_ALPHA_TEST);
     textures->loadAll();
     createWorld();
 }
@@ -373,7 +441,7 @@ void GameWidget::loadBackground (){
 
     TextureData* backgroundTD = new TextureData (textures->getTexture(Textures::Type::BACKGROUND), DisplayData::Layer::BACKGROUND);
 
-    displayItems.push_back(new UIElement (backgroundTD, b2Vec2(0, 0), b2Vec2 (20, 10), 0, true));
+    displayItems.push_back(new UIElement (backgroundTD, b2Vec2(0, 0), b2Vec2 (80, 40), 0, true));
 }
 
 void GameWidget::paintGL() {
@@ -383,13 +451,18 @@ void GameWidget::paintGL() {
 
     glLoadIdentity();
 
+    //interface
+    for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
+        UIElement* item = *iterator;
+        if (item)
+            drawRectangle(item->center, item->size.x, item->size.y, item->angle, item->textureData);
+    }
 
     //bodies
 
     b2Body* tmp=world->GetBodyList();
 
-    while(tmp)
-    {
+    while(tmp){
         b2Fixture* curFixture = tmp->GetFixtureList();
         while(curFixture){
             b2Shape::Type curFixtureType = curFixture->GetShape()->GetType();
@@ -407,6 +480,7 @@ void GameWidget::paintGL() {
                     NonDrawable* ND_p = dynamic_cast<NonDrawable*>(displayData);
                     TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
                     KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
+                    TriangleTextureData* TTD_p = dynamic_cast<TriangleTextureData*>(displayData);
                     if (!ND_p)
                         if (TD_p){
                             drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
@@ -415,17 +489,19 @@ void GameWidget::paintGL() {
                         else
                             if (KLD_p)
                                 drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
+                            else
+                                if (TTD_p)
+                                    drawTriangle(points, count, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
                 }
                 else
                     if (curFixtureType == b2Shape::e_circle){
                         TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
                         KeyLineData* KLD_p = dynamic_cast<KeyLineData*> (displayData);
+                        float radius = static_cast<b2CircleShape*>(curFixture->GetShape())->m_radius;
                         if (KLD_p)
-                            drawCircle(((b2CircleShape*)curFixture->GetShape())->m_radius,
-                                       tmp->GetPosition(), KLD_p, tmp->GetAngle());
+                            drawCircle(radius, tmp->GetPosition(), KLD_p, tmp->GetAngle());
                         else
                             if (TD_p){
-                                float radius = static_cast<b2CircleShape*>(curFixture->GetShape())->m_radius;
                                 drawRectangle(tmp->GetPosition(), radius, radius, tmp->GetAngle(), TD_p);
                             }
                     }
@@ -479,16 +555,6 @@ void GameWidget::paintGL() {
         }
         tmp=tmp->GetNext();
 
-    }
-
-
-
-
-    //interface
-    for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
-        UIElement* item = *iterator;
-        if (item)
-            drawRectangle(item->center, item->size.x, item->size.y, item->angle, item->textureData);
     }
 
 
@@ -608,7 +674,9 @@ b2Body* GameWidget::addSpecRect() {
     b2PolygonShape shape;
 
     b2Vec2 vertices [5];
-    float sizeK = 0.3;
+
+
+    float sizeK = 1;
     vertices[0].Set(-1, -1);
     vertices[1].Set(-1, 1);
     vertices[2].Set(1, 1);
@@ -706,6 +774,40 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData
     for(int i = 0; i < count; i++)
         glVertex2f(points[i].x * M2P / WIDTH * kx, points[i].y * M2P / WIDTH * ky);
     glEnd();
+    glPopMatrix();
+}
+
+void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData){
+
+    //setting texture's points
+
+    b2Vec2  texPoints [3];
+
+        for (int i = 0; i<3; i++)
+            texPoints[i] = points[i];
+
+    //drawing texture
+
+    glPushMatrix();
+    glColor3f(1, 1, 1);
+    glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, triangleTextureData->layer/ (float) DisplayData::Layer::MAX);
+    if(triangleTextureData->isShifting)
+        glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
+
+    glRotatef(angle*180.0/M_PI,0,0,1);
+
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, triangleTextureData->texture_p->id);
+
+    glBegin(GL_POLYGON);
+    for(int i = 0; i < count; i++){
+        glTexCoord2f(texPoints[i].x, texPoints[i].y);
+        glVertex2f(points[i].x * M2P / WIDTH * kx, points[i].y * M2P / WIDTH * ky);
+    }
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 }
 

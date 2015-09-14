@@ -20,6 +20,7 @@ public:
         CLIMBING,
         CLIMBING_IDLE,
         VEHICLE,
+        GROUND,
 
         BODY,
         SHIN,

@@ -99,7 +99,16 @@ SOURCES += main.cpp \
     Box2D/Json/b2dJson.cpp \
     Box2D/Json/b2dJsonImage.cpp \
     Box2D/Json/b2dJsonImage_OpenGL.cpp \
-    Box2D/Json/jsoncpp.cpp
+    Box2D/Json/jsoncpp.cpp \
+    Sources/GameObjects/entitylist.cpp \
+    Sources/GameObjects/enum.cpp \
+    Sources/triangulate.cpp \
+    poly2tri/common/shapes.cc \
+    poly2tri/sweep/advancing_front.cc \
+    poly2tri/sweep/cdt.cc \
+    poly2tri/sweep/sweep.cc \
+    poly2tri/sweep/sweep_context.cc \
+    Sources/UserInterface/triangletexturedata.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -196,7 +205,16 @@ HEADERS  += \
     Box2D/Json/b2dJson.h \
     Box2D/Json/b2dJsonImage.h \
     Box2D/Json/b2dJsonImage_OpenGL.h \
-    Box2D/Json/bitmap.h
+    Box2D/Json/bitmap.h \
+    poly2tri/common/shapes.h \
+    poly2tri/common/utils.h \
+    poly2tri/sweep/advancing_front.h \
+    poly2tri/sweep/cdt.h \
+    poly2tri/sweep/sweep.h \
+    poly2tri/sweep/sweep_context.h \
+    poly2tri/poly2tri.h \
+    Sources/triangulate.h \
+    Sources/UserInterface/triangletexturedata.h
 
 
 unix|win32: LIBS += -L$$PWD/SOIL/ -llibSOIL
