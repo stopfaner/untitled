@@ -23,6 +23,10 @@ public:
     Entity(float x = 0, float y = 10);
 
 
+    enum AtackState{
+        AS_SWING,
+        AS_HIT,
+    };
     enum MoveState{
         MS_STAND,
         MS_LEFT,
@@ -33,17 +37,20 @@ public:
         MSV_UP,
         MSV_DOWN,
     };
+    bool useWeapon;
     bool isOnLadder;
     bool isJumping;
     bool isUsingLeftLeg;
     bool isAscendingLeg;
     bool isRightDirection;
+    AtackState atackState;
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Vehicle* vehicle;
     DisplayData* displayData;
     BodyParts bodyParts;
 
+    void atack();
     void rotate (bool right);
     void move ();
     void useObject();

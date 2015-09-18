@@ -35,6 +35,21 @@ Entity::Entity(float x, float y) : GameObject ()
     vehicle = nullptr;
 }
 
+void Entity::atack()
+{
+    float direction;
+    if (isRightDirection) direction = 1;
+    else direction = -1;
+
+    bodyParts.shoulder2->desiredAngle = D2R (30.0f * direction);
+    bodyParts.shoulder2->motorSpeed = 1;
+
+    bodyParts.forearm2->desiredAngle = D2R (40.0f * direction);
+    bodyParts.forearm2->motorSpeed = 1;
+
+
+}
+
 void Entity::constructBody (){
     b2World *world = GeneralInfo::getInstance().world;
     Textures *textures = GeneralInfo::getInstance().textures;
@@ -640,6 +655,16 @@ void Entity::applyForce(){
         case MS_STAND:
             if (R2D(shin->body->GetAngle() - shin->body->GetAngle()) < 10.0f)
                 isAscendingLeg = true;
+            break;
+        }
+
+        // atacking
+        switch (atackState) {
+        case AS_SWING:
+            atack();
+            break;
+        case AS_HIT:
+            atack();
             break;
         }
 

@@ -570,14 +570,10 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
     worldCoord.x =  (event->pos().x() / kx - WIDTH/2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
     worldCoord.y = -(event->pos().y() / ky - HEIGHT/2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
     if (mouseButtons == Qt::LeftButton)
-        addRect(worldCoord, 2, 2, true, Textures::Type::CRATE);
+        player->atackState=Player::AS_HIT;
     else
         if (mouseButtons == Qt::RightButton){
-            b2Body* body1 = addRect(0, 6, 10, 2, true, Textures::Type::CRATE);
-            b2Body* body2 = addRect(0, 6, 2, 10, true, Textures::Type::CRATE);
-            b2WeldJointDef jointDef;
-            jointDef.Initialize(body1, body2, b2Vec2(0, 6));
-            b2WeldJointDef* joint = (b2WeldJointDef*)world->CreateJoint( &jointDef );
+           addRect(worldCoord, 2, 2, true, Textures::Type::CRATE);
         }
 }
 
