@@ -569,12 +569,22 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
     b2Vec2 worldCoord;
     worldCoord.x =  (event->pos().x() / kx - WIDTH/2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
     worldCoord.y = -(event->pos().y() / ky - HEIGHT/2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
+
     if (mouseButtons == Qt::LeftButton)
-        player->atackState=Player::AS_HIT;
+        player->attackState=Player::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
            addRect(worldCoord, 2, 2, true, Textures::Type::CRATE);
         }
+}
+
+void GameWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    Qt::MouseButtons mouseButtons = event->button();
+    if (mouseButtons == Qt::LeftButton){
+        player->attackState=Player::AS_HIT;
+
+    }
 }
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {

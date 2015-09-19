@@ -8,6 +8,7 @@
 #include "Sources/GameObjects/Characters/bodyparts.h"
 #include "Sources/GameObjects/InteractiveObjects/interactiveobject.h"
 #include "Sources/GameObjects/InteractiveObjects/ladder.h"
+#include "Sources/GameObjects/InteractiveObjects/weapon.h"
 #include "Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h"
 #include "Sources/GameObjects/Sensors/groundsensor.h"
 #include "Sources/UserInterface/keylinedata.h"
@@ -17,13 +18,14 @@
 #include "entitylist.h"
 
 
+
 class Entity : public GameObject
 {
 public:
     Entity(float x = 0, float y = 10);
 
 
-    enum AtackState{
+    enum AttackState{
         AS_SWING,
         AS_HIT,
     };
@@ -43,14 +45,15 @@ public:
     bool isUsingLeftLeg;
     bool isAscendingLeg;
     bool isRightDirection;
-    AtackState atackState;
+    AttackState attackState;
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Vehicle* vehicle;
     DisplayData* displayData;
     BodyParts bodyParts;
 
-    void atack();
+
+    void attack();
     void rotate (bool right);
     void move ();
     void useObject();
@@ -69,6 +72,7 @@ private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;
     float x, y;
+    bool isSwing;
     bool isSitting;
     bool isStanding;
     float surfaceAngle;

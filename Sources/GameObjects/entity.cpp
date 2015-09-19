@@ -35,17 +35,28 @@ Entity::Entity(float x, float y) : GameObject ()
     vehicle = nullptr;
 }
 
-void Entity::atack()
+void Entity::attack()
 {
     float direction;
     if (isRightDirection) direction = 1;
     else direction = -1;
+    switch (attackState) {
+    case AS_SWING:
+        bodyParts.shoulder2->desiredAngle = D2R (135.0f * direction);
+        bodyParts.shoulder2->motorSpeed = 1;
 
-    bodyParts.shoulder2->desiredAngle = D2R (30.0f * direction);
-    bodyParts.shoulder2->motorSpeed = 1;
+        bodyParts.forearm2->desiredAngle = D2R (135.0f * direction);
+        bodyParts.forearm2->motorSpeed = 1;
 
-    bodyParts.forearm2->desiredAngle = D2R (40.0f * direction);
-    bodyParts.forearm2->motorSpeed = 1;
+        break;
+    case AS_HIT:
+        bodyParts.shoulder2->desiredAngle = D2R (0.0f * direction);
+        bodyParts.shoulder2->motorSpeed = 5;
+
+        bodyParts.forearm2->desiredAngle = D2R (0.0f * direction);
+        bodyParts.forearm2->motorSpeed = 4;
+        break;
+    }
 
 
 }
@@ -436,11 +447,15 @@ void Entity::move()
                     foot->desiredAngle = D2R(110);
                 else foot->desiredAngle = D2R(110 + 90);
 
-            shoulder->desiredAngle = D2R (30.0f * direction);
-            shoulder->motorSpeed = 1;
+            if(attackState != AS_SWING && isUsingLeftLeg)
+            {
+                shoulder->desiredAngle = D2R (30.0f * direction);
+                shoulder->motorSpeed = 1;
 
-            forearm->desiredAngle = D2R (40.0f * direction);
-            forearm->motorSpeed = 1;
+                forearm->desiredAngle = D2R (40.0f * direction);
+                forearm->motorSpeed = 1;
+            }
+
         }
         else{
             isAscendingLeg = false;
@@ -658,13 +673,13 @@ void Entity::applyForce(){
             break;
         }
 
-        // atacking
-        switch (atackState) {
+        // attacking
+        switch (attackState) {
         case AS_SWING:
-            atack();
+            attack();
             break;
         case AS_HIT:
-            atack();
+            attack();
             break;
         }
 
