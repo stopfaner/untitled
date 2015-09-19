@@ -102,7 +102,6 @@ SOURCES += main.cpp \
     Box2D/Json/jsoncpp.cpp \
     Sources/GameObjects/entitylist.cpp \
     Sources/GameObjects/enum.cpp \
-    Sources/triangulate.cpp \
     poly2tri/common/shapes.cc \
     poly2tri/sweep/advancing_front.cc \
     poly2tri/sweep/cdt.cc \
@@ -213,7 +212,6 @@ HEADERS  += \
     poly2tri/sweep/sweep.h \
     poly2tri/sweep/sweep_context.h \
     poly2tri/poly2tri.h \
-    Sources/triangulate.h \
     Sources/UserInterface/triangletexturedata.h
 
 

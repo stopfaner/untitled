@@ -21,6 +21,9 @@
 
 using namespace p2t;
 
+float TEXTURE_SIZE = 230.0f;
+float GRID_STEP = TEXTURE_SIZE;
+
 /**
  * @brief GameWidget::GameWidget - contructor
  * @param parent - parent widget instance
@@ -43,8 +46,9 @@ void GameWidget::createWorld(){
 
     loadBackground();
 
+    //loading polygon
 
-    b2Vec2 delta( 0, -50 ); // move all bodies by this offset
+    b2Vec2 delta(-400, 300 ); // move all bodies by this offset
 
     string errorMsg;
     b2dJson json;
@@ -60,7 +64,7 @@ void GameWidget::createWorld(){
 
         std::vector <Point*> polyline;
 
-        for (int i = 1; i < edgeCount; ++i){
+        for (int i = 0; i < edgeCount; ++i){
             b2EdgeShape edge;
             ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
             polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
@@ -100,8 +104,13 @@ void GameWidget::createWorld(){
         }
         b2Fixture* fixture = body->GetFixtureList();
         while (fixture){
-            fixture->SetUserData(static_cast<void*>
-                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
+            bool isKeyLine = false;
+            if (isKeyLine)
+                fixture->SetUserData(static_cast<void*>
+                                     (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
+            else
+                fixture->SetUserData(static_cast<void*>
+                                     (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
             body->ResetMassData();
             fixture = fixture->GetNext();
         }
@@ -135,12 +144,15 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
 
 
-    player = new Player (20, 10);
+    player = new Player (delta.x, delta.y + 100);
     player->constructBody();
-    for (int i = 0; i < 5; ++i){
-        NPC* npc = new NPC (20 + 3 * i, 10);
-        npc->constructBody();
-    }
+
+    bool createNPC = false;
+    if (createNPC)
+        for (int i = 0; i < 5; ++i){
+            NPC* npc = new NPC (20 + 3 * i, 10);
+            npc->constructBody();
+        }
     new Ladder (b2Vec2(-20, -5), b2Vec2(2, 10));
 
     //addWalkingMachine();
@@ -198,7 +210,7 @@ void GameWidget::createWorld(){
 
     addSpecRect();
 
-    new Car (b2Vec2(10, 10), 0.8);
+    //  new Car (b2Vec2(10, 10), 0.8);
 
     //Build build();
     // build.generateDungeon(b2Vec2(0, 70), 5, 5);
@@ -482,16 +494,17 @@ void GameWidget::paintGL() {
                     KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
                     TriangleTextureData* TTD_p = dynamic_cast<TriangleTextureData*>(displayData);
                     if (!ND_p)
-                        if (TD_p){
-                            drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
-                            TD_p->changeFrame();
-                        }
+                        if (TTD_p)
+                            drawTriangle(points, count, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
                         else
-                            if (KLD_p)
-                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
+                            if (TD_p){
+                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
+                                TD_p->changeFrame();
+                            }
                             else
-                                if (TTD_p)
-                                    drawTriangle(points, count, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
+                                if (KLD_p)
+                                    drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
+
                 }
                 else
                     if (curFixtureType == b2Shape::e_circle){
@@ -557,7 +570,15 @@ void GameWidget::paintGL() {
 
     }
 
-
+    //drawing grid
+    bool isDrawingGrid = true;
+    if (isDrawingGrid){
+        float step = GRID_STEP;
+        for (int i = 0; i < 10; ++i){
+            drawRectangle(b2Vec2(i * step,0), 0.1 / kx, 1000, 0, new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+            drawRectangle(b2Vec2(0,i * step), 1000, 0.1 / ky, 0, new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+        }
+    }
     //update Box2D
 
     world->Step(1.0/30.0, 8, 3);
@@ -603,7 +624,14 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->isJumping = true;
     if (key == Qt::Key_E)
         player->useObject();
-
+    if (key == Qt::Key_1){
+        TEXTURE_SIZE += 20;
+        GRID_STEP = TEXTURE_SIZE;
+    }
+    if (key == Qt::Key_2){
+        TEXTURE_SIZE -= 20;
+        GRID_STEP = TEXTURE_SIZE;
+    }
     if (key == Qt::Key_T){
         b2dJson json;
         json.writeToFile(world, "json/world.json");
@@ -777,38 +805,215 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData
     glPopMatrix();
 }
 
-void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData){
+b2Vec2 intersectLineTriangleX(b2Vec2 p1, b2Vec2 p2, float line){
+    return b2Vec2(line, p1.y + (line-p1.x) * (p2.y - p1.y) / (p2.x - p1.x));
+}
 
-    //setting texture's points
+b2Vec2 intersectLineTriangleY(b2Vec2 p1, b2Vec2 p2, float line){
+    return b2Vec2(line, p1.x + (line-p1.y) * (p2.x - p1.x) / (p2.y - p1.y));
+}
 
-    b2Vec2  texPoints [3];
-
-        for (int i = 0; i<3; i++)
-            texPoints[i] = points[i];
-
-    //drawing texture
-
-    glPushMatrix();
-    glColor3f(1, 1, 1);
-    glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, triangleTextureData->layer/ (float) DisplayData::Layer::MAX);
-    if(triangleTextureData->isShifting)
-        glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
-
-    glRotatef(angle*180.0/M_PI,0,0,1);
-
-    glEnable(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, triangleTextureData->texture_p->id);
-
-    glBegin(GL_POLYGON);
-    for(int i = 0; i < count; i++){
-        glTexCoord2f(texPoints[i].x, texPoints[i].y);
-        glVertex2f(points[i].x * M2P / WIDTH * kx, points[i].y * M2P / WIDTH * ky);
+bool intersectPointTriangle(b2Vec2 v1,b2Vec2 v2,b2Vec2 v3, b2Vec2 p){
+    float pl1, pl2, pl3;
+    pl1 = (v1.x - p.x)*(v2.y - v1.y)-(v2.x - v1.x)*(v1.y - p.y);
+    pl2 = (v2.x - p.x)*(v3.y - v2.y)-(v3.x - v2.x)*(v2.y - p.y);
+    pl3 = (v3.x - p.x)*(v1.y - v3.y)-(v1.x - v3.x)*(v3.y - p.y);
+    if ((pl1 >= 0 && pl2 >= 0 && pl3 >= 0) || (pl1 <= 0 && pl2 <= 0 && pl3 <= 0))
+    {
+        return true;
     }
-    glEnd();
+    return false;
+}
 
-    glDisable(GL_TEXTURE_2D);
-    glPopMatrix();
+void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData){
+    float textureSize = TEXTURE_SIZE; //meters
+    //setting texture's points
+    b2Vec2 worldPoints[3];
+    for (int i = 0; i < 3; i++){
+        worldPoints[i] = points[i] + center;
+    }
+    bool centerPoint[3] = {true, true, true};
+
+    b2Vec2 leftPoint;
+    if (worldPoints[0].x < worldPoints[1].x && worldPoints[0].x < worldPoints[2].x){ leftPoint = worldPoints[0]; centerPoint[0] = false;}
+    else
+        if (worldPoints[1].x < worldPoints[0].x && worldPoints[1].x < worldPoints[2].x){ leftPoint = worldPoints[1]; centerPoint[1] = false;}
+        else
+            if (worldPoints[2].x < worldPoints[0].x && worldPoints[2].x < worldPoints[1].x){ leftPoint = worldPoints[2]; centerPoint[2] = false;}
+    b2Vec2 rightPoint;
+    if (worldPoints[0].x > worldPoints[1].x && worldPoints[0].x > worldPoints[2].x){ rightPoint = worldPoints[0]; centerPoint[0] = false;}
+    else
+        if (worldPoints[1].x > worldPoints[0].x && worldPoints[1].x > worldPoints[2].x){ rightPoint = worldPoints[1]; centerPoint[1] = false;}
+        else
+            if (worldPoints[2].x > worldPoints[0].x && worldPoints[2].x > worldPoints[1].x){ rightPoint = worldPoints[2]; centerPoint[2] = false;}
+    b2Vec2 centerPointX;
+    for (int k = 0; k < 3; ++k)
+        if (centerPoint[k]) {
+            centerPointX = worldPoints[k]; break;
+        }
+    for (int k = 0; k < 3; ++k)
+        centerPoint[k] = true;
+
+    b2Vec2 lowPoint;
+    if (worldPoints[0].y < worldPoints[1].y && worldPoints[0].y < worldPoints[2].y){ lowPoint = worldPoints[0]; centerPoint[0] = false;}
+    else
+        if (worldPoints[1].y < worldPoints[0].y && worldPoints[1].y < worldPoints[2].y){ lowPoint = worldPoints[1]; centerPoint[1] = false;}
+        else
+            if (worldPoints[2].y < worldPoints[0].y && worldPoints[2].y < worldPoints[1].y){ lowPoint = worldPoints[2]; centerPoint[2] = false;}
+    b2Vec2 upPoint;
+    if (worldPoints[0].y > worldPoints[1].y && worldPoints[0].y > worldPoints[2].y){ upPoint = worldPoints[0]; centerPoint[0] = false;}
+    else
+        if (worldPoints[1].y > worldPoints[0].y && worldPoints[1].y > worldPoints[2].y){ upPoint = worldPoints[1]; centerPoint[1] = false;}
+        else
+            if (worldPoints[2].y > worldPoints[0].y && worldPoints[2].y > worldPoints[1].y){ upPoint = worldPoints[2]; centerPoint[2] = false;}
+    b2Vec2 centerPointY;
+    for (int k = 0; k < 3; ++k)
+        if (centerPoint[k]) {
+            centerPointY = worldPoints[k]; break;
+        }
+    //   qDebug()<<leftPoint.x<<centerPointX.x<<rightPoint.x<<" ! "<<lowPoint.y<<centerPointY.y<<upPoint.y;
+    glColor3f(1, 1, 1);
+
+    int x0 = (int) (leftPoint.x / textureSize);
+    int x1 = (int) (rightPoint.x / textureSize) + 1;
+    int y0 = (int) (lowPoint.y / textureSize);
+    int y1 = (int) (upPoint.y / textureSize) + 1;
+    for (int i = x0; i < x1; ++i){
+        for (int j = y0; j < y1; ++j){
+            float leftBound = i * textureSize, rightBound = leftBound + textureSize;
+            float lowBound = j * textureSize, upBound = leftBound + textureSize;
+            std::vector<b2Vec2> curPolygon;
+            for (int k = 0; k < 3; ++k){
+                if (worldPoints[k].x > leftBound && worldPoints[k].x < rightBound &&
+                        worldPoints[k].y > lowBound && worldPoints[k].y < upBound){
+                    curPolygon.push_back(worldPoints[k]);//add vertices if needed
+                }
+                //   else qDebug()<<worldPoints[k].x<<leftBound<<rightBound<<" ! "<<worldPoints[k].y<<lowBound<<upBound;
+            }
+            b2Vec2 intersectionPoint;
+            if  (leftBound > leftPoint.x && leftBound < centerPointX.x ){
+                intersectionPoint = intersectLineTriangleX(leftPoint, centerPointX, leftBound);
+                if (intersectionPoint.y < upBound && intersectionPoint.y > lowBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            if  (leftBound > leftPoint.x && leftBound < rightPoint.x ){
+                intersectionPoint = intersectLineTriangleX(leftPoint, rightPoint, leftBound);
+                if (intersectionPoint.y < upBound && intersectionPoint.y > lowBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            if  (leftBound < rightPoint.x && leftBound > centerPointX.x ){
+                intersectionPoint = intersectLineTriangleX(rightPoint, centerPointX, leftBound);
+                if (intersectionPoint.y < upBound && intersectionPoint.y > lowBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            b2Vec2 corner (leftBound, upBound);
+            if (intersectPointTriangle(worldPoints[0], worldPoints[1], worldPoints[2], corner)){
+                curPolygon.push_back(corner);
+            }
+
+            if  (upBound > lowPoint.y && upBound < centerPointY.y ){
+                intersectionPoint = intersectLineTriangleY(lowPoint, centerPointY, upBound);
+                if (intersectionPoint.x < rightBound && intersectionPoint.x > leftBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+
+            if  (upBound > lowPoint.y && upBound < upPoint.y ){
+                intersectionPoint = intersectLineTriangleY(lowPoint, upPoint, upBound);
+                if (intersectionPoint.x < rightBound && intersectionPoint.x > leftBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+
+            if  (upBound > centerPointY.y && upBound < upPoint.y ){
+                intersectionPoint = intersectLineTriangleY(upPoint, centerPointY, upBound);
+                if (intersectionPoint.x < rightBound && intersectionPoint.x > leftBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            corner = b2Vec2(rightBound, upBound);
+            if (intersectPointTriangle(worldPoints[0], worldPoints[1], worldPoints[2], corner)){
+                curPolygon.push_back(corner);
+            }
+
+            if  (rightBound > leftPoint.x && rightBound < centerPointX.x ){
+                intersectionPoint = intersectLineTriangleX(leftPoint, centerPointX, rightBound);
+                if (intersectionPoint.y < upBound && intersectionPoint.y > lowBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            if  (rightBound > leftPoint.x && rightBound < rightPoint.x ){
+                intersectionPoint = intersectLineTriangleX(leftPoint, rightPoint, rightBound);
+                if (intersectionPoint.y < upBound && intersectionPoint.y > lowBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+
+            if  (rightBound > centerPointX.x && rightBound < rightPoint.x ){
+                intersectionPoint = intersectLineTriangleX(rightPoint, centerPointX, rightBound);
+                if (intersectionPoint.y < upBound && intersectionPoint.y > lowBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            corner = b2Vec2(rightBound, lowBound);
+            if (intersectPointTriangle(worldPoints[0], worldPoints[1], worldPoints[2], corner)){
+                curPolygon.push_back(corner);
+            }
+
+
+            if  (lowBound > lowPoint.y && lowBound < centerPointY.y ){
+                intersectionPoint = intersectLineTriangleY(lowPoint, centerPointY, lowBound);
+                if (intersectionPoint.x < rightBound && intersectionPoint.x > leftBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            if  (lowBound > lowPoint.y && lowBound < upPoint.y ){
+                intersectionPoint = intersectLineTriangleY(lowPoint, upPoint, lowBound);
+                if (intersectionPoint.x < rightBound && intersectionPoint.x > leftBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            if  (lowBound < upPoint.y && lowBound > centerPointY.y ){
+                intersectionPoint = intersectLineTriangleY(upPoint, centerPointY, lowBound);
+                if (intersectionPoint.x < rightBound && intersectionPoint.x > leftBound)
+                    curPolygon.push_back(intersectionPoint);
+            }
+            corner = b2Vec2(leftBound, lowBound);
+            if (intersectPointTriangle(worldPoints[0], worldPoints[1], worldPoints[2], corner)){
+                curPolygon.push_back(corner);
+            }
+
+            //drawing polygon
+
+
+            b2Vec2 gridOffset((i - 1) * textureSize, (j - 1 ) * textureSize);
+            glPushMatrix();
+            glTranslatef(gridOffset.x * M2P / WIDTH * kx, gridOffset.y * M2P/WIDTH * ky, triangleTextureData->layer/ (float) DisplayData::Layer::MAX);
+            if(triangleTextureData->isShifting)
+                glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
+
+            glRotatef(angle*180.0/M_PI,0,0,1);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, triangleTextureData->texture_p->id);
+            glBegin(GL_POLYGON);
+            //        qDebug()<<"new"<<i<<j;
+            for (int t = 0; t < curPolygon.size(); ++t){
+                //          qDebug()<<curPolygon.at(t).x<<" "<<curPolygon.at(t).y;
+                b2Vec2  texPoints [curPolygon.size()];
+
+                curPolygon.at(t) -= gridOffset;
+                texPoints[t] = b2Vec2(curPolygon.at(t).x / textureSize -1, curPolygon.at(t).y / textureSize -1);
+                /*
+                if (j > 0)
+    qDebug()<<texPoints[t].x<<texPoints[t].y<<"1";
+else
+    qDebug()<<texPoints[t].x<<texPoints[t].y<<"0";
+    */
+                glTexCoord2f(texPoints[t].x, texPoints[t].y);
+
+                glVertex2f(curPolygon[t].x * M2P / WIDTH * kx, curPolygon[t].y * M2P / WIDTH * ky);
+
+            }
+
+            glEnd();
+            glDisable(GL_TEXTURE_2D);
+            glPopMatrix();
+
+        }
+
+    }
 }
 
 void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, KeyLineData *keyLineData) {
