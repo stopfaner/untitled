@@ -49,30 +49,7 @@ void GameWidget::createWorld(){
     string errorMsg;
     b2dJson json;
     b2World* jsonWorld = json.readFromFile("json/test.json", errorMsg);
-
-    vector<b2Body*> bodies;
-    json.getAllBodies(bodies);
-    for (int i = 0; i < bodies.size(); ++i){
-        b2Body* bodyChain = bodies.at(i);
-        b2Fixture* curFixture = bodyChain->GetFixtureList();
-        b2ChainShape* chain = static_cast<b2ChainShape*>( curFixture->GetShape());
-        int edgeCount = chain->GetChildCount();
-
-        std::vector <Point*> polyline;
-
-        for (int i = 0; i < edgeCount; ++i){
-            b2EdgeShape edge;
-            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
-            polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
-
-        }
-        vector<b2Body*> triangles = triangulate(polyline);
-        for (int j = 0; j < triangles.size(); ++j){
-            b2Body *body = triangles.at(j);
-            body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
-        }
-
-    }
+    triangulateChain(&json);
 
     //create polygon
 
@@ -105,16 +82,12 @@ void GameWidget::createWorld(){
     player->constructBody();
     b2dJson jsonSword;
     jsonSword.readFromFile("json/sword.json", errorMsg, world);
-    std::vector <b2Body*>swordVec;
-    jsonSword.getAllBodies(swordVec);
-    b2Body* sword = swordVec.at(0);
+    triangulateChain(jsonSword);
     b2Filter filter;
     filter.maskBits = GeneralInfo::CollisionType::BASIC;
     filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
     sword->GetFixtureList()->SetFilterData(filter);
     sword->SetTransform( player->bodyParts.wrist2->body->GetWorldCenter() ,M_PI);
-    sword->GetFixtureList()->SetUserData(static_cast<void*> (new UserData(new KeyLineData(Color(0,0,255), DisplayData::Layer::PLAYER))));
-    //sword->GetFixtureList()->SetUserData (new UserData((DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT)));
     b2RevoluteJointDef RJDSword;
     RJDSword.Initialize(player->bodyParts.wrist2->body,sword,sword->GetPosition());
     world->CreateJoint(&RJDSword);
@@ -190,17 +163,10 @@ void GameWidget::createWorld(){
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
 
 }
-vector<b2Body*> GameWidget::triangulate(std::vector <Point*> polyline){
+vector<b2Vec2*> GameWidget::triangulate(std::vector <Point*> polyline){
     vector<b2Body*> bodies;
     CDT* polygon = new CDT(polyline);
     polygon->Triangulate();
-
-    b2BodyDef bodydef;
-    bodydef.position.Set(0,0);
-    bodydef.type=b2_staticBody;
-    b2Body* body=world->CreateBody(&bodydef);
-    bodies.push_back(body);
-    b2PolygonShape shape;
 
     for (unsigned int i = 0; i < polygon->GetTriangles().size(); ++i) {
         Triangle* triangle = polygon->GetTriangles().at(i);
@@ -211,32 +177,9 @@ vector<b2Body*> GameWidget::triangulate(std::vector <Point*> polyline){
             points[j].y = triangle->GetPoint(j)->y;
         }
 
-        shape.Set(points, 3);
-        b2FixtureDef fixturedef;
-        fixturedef.shape = &shape;
-        fixturedef.density = 1.0;
-        fixturedef.filter.groupIndex = 1;
-
-        b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
-
-        DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
-
-        bodyFix->SetUserData((void*) new UserData(bodyDD));
 
     }
-    b2Fixture* fixture = body->GetFixtureList();
-    while (fixture){
-        bool isKeyLine = true;
-        if (isKeyLine)
-            fixture->SetUserData(static_cast<void*>
-                                 (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
 
-        else
-            fixture->SetUserData(static_cast<void*>
-                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
-        body->ResetMassData();
-        fixture = fixture->GetNext();
-    }
     return bodies;
 }
 
@@ -833,6 +776,70 @@ b2Body* GameWidget::addSpecRect() {
     bodyFix->SetUserData((void*) new UserData(bodyDD));
     body->SetUserData((void*) new UserData);
     return body;
+}
+
+void GameWidget::triangulateChain(b2dJson &json)
+{
+    b2BodyDef bodydef;
+    bodydef.position.Set(0,0);
+    bodydef.type=b2_staticBody;
+    b2Body* body=world->CreateBody(&bodydef);
+    bodies.push_back(body);
+    b2PolygonShape shape;
+
+    shape.Set(points, 3);
+    b2FixtureDef fixturedef;
+    fixturedef.shape = &shape;
+    fixturedef.density = 1.0;
+    fixturedef.filter.groupIndex = 1;
+
+    b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
+
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
+
+    bodyFix->SetUserData((void*) new UserData(bodyDD));
+
+    b2Fixture* fixture = body->GetFixtureList();
+    while (fixture){
+        bool isKeyLine = true;
+        if (isKeyLine)
+            fixture->SetUserData(static_cast<void*>
+                                 (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
+
+        else
+            fixture->SetUserData(static_cast<void*>
+                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
+        body->ResetMassData();
+        fixture = fixture->GetNext();
+    }
+
+
+    vector <b2Body*> bodies;
+    json.getAllBodies(bodies);
+    for (int i = 0; i < bodies.size(); ++i){
+        b2Body* bodyChain = bodies.at(i);
+        b2Fixture* curFixture = bodyChain->GetFixtureList();
+        b2ChainShape* chain = static_cast<b2ChainShape*>( curFixture->GetShape());
+        int edgeCount = chain->GetChildCount();
+
+        std::vector <Point*> polyline;
+
+        for (int i = 0; i < edgeCount; ++i){
+            b2EdgeShape edge;
+            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
+            polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
+
+        }
+        vector<b2Body*> triangles = triangulate(polyline);
+        for (int j = 0; j < triangles.size(); ++j){
+            b2Body *body = triangles.at(j);
+            body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
+        }
+
+    }
+
+
+
 }
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
