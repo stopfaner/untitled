@@ -109,7 +109,8 @@ SOURCES += main.cpp \
     poly2tri/sweep/sweep.cc \
     poly2tri/sweep/sweep_context.cc \
     Sources/UserInterface/triangletexturedata.cpp \
-    Sources/GameObjects/InteractiveObjects/weapon.cpp
+    Sources/GameObjects/InteractiveObjects/weapon.cpp \
+    Clipper/clipper.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -216,7 +217,8 @@ HEADERS  += \
     poly2tri/poly2tri.h \
     Sources/triangulate.h \
     Sources/UserInterface/triangletexturedata.h \
-    Sources/GameObjects/InteractiveObjects/weapon.h
+    Sources/GameObjects/InteractiveObjects/weapon.h \
+    Clipper/clipper.hpp
 
 
 unix|win32: LIBS += -L$$PWD/SOIL/ -llibSOIL

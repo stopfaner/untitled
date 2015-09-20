@@ -51,6 +51,7 @@
 #include "UserInterface/HUD/hudelement.h"
 #include "UserInterface/triangletexturedata.h"
 
+#include "Clipper/clipper.hpp"
 
 #include "generalinfo.h"
 #include "userdata.h"
@@ -61,7 +62,7 @@
  * @brief The GameWidget class describes main window activity
  */
 using namespace std;
-
+using namespace p2t;
 
 
 class GameWidget : public QGLWidget {
@@ -108,8 +109,8 @@ private:
     void keyPressEvent(QKeyEvent* event);
     void keyReleaseEvent(QKeyEvent* event);
 
-    b2Body *addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type);
-    b2Body* addRect(float x, float y, float width, float height, bool dyn, Textures::Type type);
+    b2Body *addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type, bool isSensor = false);
+    b2Body* addRect(float x, float y, float width, float height, bool dyn, Textures::Type type, bool isSensor = false);
 
     b2Body* addSpecRect ();
 
@@ -119,6 +120,7 @@ private:
     void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData, float angle);
     void drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData);
 
+    vector<b2Body *> triangulate(std::vector<Point *> polyline);
 
     void createWorld();
 
@@ -126,7 +128,9 @@ private:
 
     Textures *textures;
 
+    vector<b2Body*> destroyBodies;
     std::list<UIElement*> displayItems;
+    void destroyLandscape();
 };
 
 #endif // GAMEWIDGET_H

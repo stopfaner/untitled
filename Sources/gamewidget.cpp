@@ -19,7 +19,7 @@
 
 #define M_PI		3.14159265358979323846
 
-using namespace p2t;
+
 
 /**
  * @brief GameWidget::GameWidget - contructor
@@ -44,7 +44,7 @@ void GameWidget::createWorld(){
     loadBackground();
 
 
-    b2Vec2 delta( 0, -50 ); // move all bodies by this offset
+    b2Vec2 delta( -50, 0 ); // move all bodies by this offset
 
     string errorMsg;
     b2dJson json;
@@ -60,52 +60,18 @@ void GameWidget::createWorld(){
 
         std::vector <Point*> polyline;
 
-        for (int i = 1; i < edgeCount; ++i){
+        for (int i = 0; i < edgeCount; ++i){
             b2EdgeShape edge;
             ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
             polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
 
         }
-
-        CDT* polygon = new CDT(polyline);
-        polygon->Triangulate();
-
-        b2BodyDef bodydef;
-        bodydef.position.Set(0,10);
-        bodydef.type=b2_staticBody;
-        b2Body* body=world->CreateBody(&bodydef);
-        b2PolygonShape shape;
-
-        for (unsigned int i = 0; i < polygon->GetTriangles().size(); ++i) {
-            Triangle* triangle = polygon->GetTriangles().at(i);
-
-            b2Vec2 points[3];
-            for (unsigned int j = 0; j < 3; ++j){
-                points[j].x = triangle->GetPoint(j)->x;
-                points[j].y = triangle->GetPoint(j)->y;
-            }
-
-            shape.Set(points, 3);
-            b2FixtureDef fixturedef;
-            fixturedef.shape = &shape;
-            fixturedef.density = 1.0;
-            fixturedef.filter.groupIndex = 1;
-
-            b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
-
-            DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
-
-            bodyFix->SetUserData((void*) new UserData(bodyDD));
-
+        vector<b2Body*> triangles = triangulate(polyline);
+        for (int j = 0; j < triangles.size(); ++j){
+            b2Body *body = triangles.at(j);
+            body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
         }
-        b2Fixture* fixture = body->GetFixtureList();
-        while (fixture){
-            fixture->SetUserData(static_cast<void*>
-                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
-            body->ResetMassData();
-            fixture = fixture->GetNext();
-        }
-        body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
+
     }
 
     //create polygon
@@ -135,7 +101,7 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
 
 
-    player = new Player (20, 10);
+    player = new Player (delta.x + 10, delta.y + 100);
     player->constructBody();
     for (int i = 0; i < 5; ++i){
         NPC* npc = new NPC (20 + 3 * i, 10);
@@ -208,6 +174,55 @@ void GameWidget::createWorld(){
     displayItems.push_back(new HUDElement (new TextureData(textures->getTexture(Textures::Type::TEST1), DisplayData::Layer::HUD),
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
 
+}
+vector<b2Body*> GameWidget::triangulate(std::vector <Point*> polyline){
+    vector<b2Body*> bodies;
+    CDT* polygon = new CDT(polyline);
+    polygon->Triangulate();
+
+    b2BodyDef bodydef;
+    bodydef.position.Set(0,0);
+    bodydef.type=b2_staticBody;
+    b2Body* body=world->CreateBody(&bodydef);
+    bodies.push_back(body);
+    b2PolygonShape shape;
+
+    for (unsigned int i = 0; i < polygon->GetTriangles().size(); ++i) {
+        Triangle* triangle = polygon->GetTriangles().at(i);
+
+        b2Vec2 points[3];
+        for (unsigned int j = 0; j < 3; ++j){
+            points[j].x = triangle->GetPoint(j)->x;
+            points[j].y = triangle->GetPoint(j)->y;
+        }
+
+        shape.Set(points, 3);
+        b2FixtureDef fixturedef;
+        fixturedef.shape = &shape;
+        fixturedef.density = 1.0;
+        fixturedef.filter.groupIndex = 1;
+
+        b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
+
+        DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
+
+        bodyFix->SetUserData((void*) new UserData(bodyDD));
+
+    }
+    b2Fixture* fixture = body->GetFixtureList();
+    while (fixture){
+        bool isKeyLine = true;
+        if (isKeyLine)
+            fixture->SetUserData(static_cast<void*>
+                                 (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
+
+        else
+            fixture->SetUserData(static_cast<void*>
+                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
+        body->ResetMassData();
+        fixture = fixture->GetNext();
+    }
+    return bodies;
 }
 
 void GameWidget::addWalkingMachine (){
@@ -410,7 +425,8 @@ void GameWidget::updateGame(){
         Entity* item = *iterator;
         item->update();
     }
-
+    if (destroyBodies.size())
+        destroyLandscape();
 }
 
 void GameWidget::initializeGL() {
@@ -569,13 +585,105 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
     b2Vec2 worldCoord;
     worldCoord.x =  (event->pos().x() / kx - WIDTH/2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
     worldCoord.y = -(event->pos().y() / ky - HEIGHT/2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
-
+    qDebug()<<worldCoord.x<<worldCoord.y;
     if (mouseButtons == Qt::LeftButton)
         player->attackState=Player::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
-           addRect(worldCoord, 2, 2, true, Textures::Type::CRATE);
+            b2Body* box = addRect(worldCoord, 50, 50, true, Textures::Type::CRATE);
+            //box->SetType(b2_kinematicBody);
+            destroyBodies.push_back(box);
+
         }
+}
+void GameWidget::destroyLandscape(){
+    b2Body* box = destroyBodies.at(0);
+    b2Fixture* boxFixture = box->GetFixtureList();
+    b2Fixture* landscapeFixture;
+
+
+    using namespace ClipperLib;
+    Clipper clipper;
+    Paths sub, clp, sol;
+
+    Path pathBox;
+    b2PolygonShape* shape = static_cast<b2PolygonShape*>(boxFixture->GetShape());
+    int vertexCount =  shape->GetVertexCount();
+float conversionKoef = 10000;//precise, may cause overflow
+    for (int i = 0; i < vertexCount; ++i){
+        b2Vec2 vertex = shape->GetVertex(i) + box->GetPosition();
+        pathBox.push_back(IntPoint(vertex.x * conversionKoef, vertex.y * conversionKoef));
+      //  qDebug()<<pathBox.at(i).X<<pathBox.at(i).Y;
+    }
+
+    clp.push_back(pathBox);
+
+    for (b2ContactEdge* ce = box->GetContactList(); ce; ce = ce->next){
+        b2Contact* c = ce->contact;
+        if (c->IsTouching()){
+            //TO ADD LANDSCAPE CHECKING
+            if (c->GetFixtureA() == boxFixture)
+                landscapeFixture = c->GetFixtureB();
+            else
+                landscapeFixture = c->GetFixtureA();
+            //clipping
+            //landscape - boxFixture
+
+            Path path;
+            b2PolygonShape* shape = static_cast<b2PolygonShape*>(landscapeFixture->GetShape());
+            int vertexCount =  shape->GetVertexCount();
+
+            for (int i = 0; i < vertexCount; ++i){
+                b2Vec2 vertex = shape->GetVertex(i) + landscapeFixture->GetBody()->GetPosition();
+                path.push_back(IntPoint(vertex.x * conversionKoef, vertex.y * conversionKoef));
+            }
+
+            sub.push_back(path);
+
+            b2Body* landscapeBody = landscapeFixture->GetBody();
+            landscapeBody->DestroyFixture(landscapeFixture);
+            if (!landscapeBody->GetFixtureList())
+                world->DestroyBody(landscapeBody);
+            qDebug()<<"contact";
+        }
+    }
+    qDebug()<<"!";
+    clipper.AddPaths(sub, ptSubject, true);
+    clipper.AddPaths(clp, ptClip, true);
+    clipper.Execute(ctDifference, sol, pftEvenOdd, pftEvenOdd);
+
+    for (int i = 0; i < sol.size(); ++i){
+        vector<Point*> polyline;
+        //b2Vec2 points[sol.at(i).size()];
+        qDebug()<<"new polygon size = "<<sol.at(i).size();
+        for (int j = 0; j < sol.at(i).size(); ++j){
+            qDebug()<<sol[i][j].X / conversionKoef<<sol[i][j].Y / conversionKoef;
+            polyline.push_back(new Point(sol[i][j].X / conversionKoef,sol[i][j].Y / conversionKoef));
+            //points[j] = b2Vec2(sol[i][j].X / conversionKoef,sol[i][j].Y / conversionKoef);
+        }
+        triangulate(polyline);
+        /*
+        b2BodyDef bodydef;
+        bodydef.position.Set(0,0);
+        b2Body* body = world->CreateBody(&bodydef);
+        b2PolygonShape shape;
+        shape.Set(points, sol.at(i).size());
+        b2FixtureDef fixturedef;
+        fixturedef.shape = &shape;
+        fixturedef.density = 3.0;
+        fixturedef.filter.groupIndex = 1;
+
+        b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
+
+        DisplayData* bodyDD = new KeyLineData(Color(0, 255, 0), DisplayData::Layer::LANDSCAPE);
+
+        bodyFix->SetUserData((void*) new UserData(bodyDD));
+        body->SetUserData((void*) new UserData);
+        */
+    }
+
+    world->DestroyBody(box);
+    destroyBodies.clear();
 }
 
 void GameWidget::mouseReleaseEvent(QMouseEvent *event)
@@ -643,20 +751,20 @@ void GameWidget::keyReleaseEvent(QKeyEvent *event) {
         player->isJumping = false;
 }
 
-b2Body* GameWidget::addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type) {
-    return addRect(center.x, center.y, w, h , dyn, type);
+b2Body* GameWidget::addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type, bool isSensor) {
+    return addRect(center.x, center.y, w, h , dyn, type, isSensor);
 }
 
-b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textures::Type type) {
+b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textures::Type type, bool isSensor) {
     b2BodyDef bodydef;
     bodydef.position.Set(x,y);
     if(dyn)
         bodydef.type=b2_dynamicBody;
     b2Body* body=world->CreateBody(&bodydef);
-    body->SetAngularVelocity(0.5);
     b2PolygonShape shape;
     shape.SetAsBox(w/2, h/2);
     b2FixtureDef fixturedef;
+    fixturedef.isSensor = isSensor;
     fixturedef.shape = &shape;
     fixturedef.density = 3.0;
     fixturedef.filter.groupIndex = 1;
@@ -789,8 +897,8 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
 
     b2Vec2  texPoints [3];
 
-        for (int i = 0; i<3; i++)
-            texPoints[i] = points[i];
+    for (int i = 0; i<3; i++)
+        texPoints[i] = points[i];
 
     //drawing texture
 
