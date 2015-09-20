@@ -103,6 +103,21 @@ void GameWidget::createWorld(){
 
     player = new Player (delta.x + 10, delta.y + 100);
     player->constructBody();
+    b2dJson jsonSword;
+    jsonSword.readFromFile("json/sword.json", errorMsg, world);
+    std::vector <b2Body*>swordVec;
+    jsonSword.getAllBodies(swordVec);
+    b2Body* sword = swordVec.at(0);
+    b2Filter filter;
+    filter.maskBits = GeneralInfo::CollisionType::BASIC;
+    filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
+    sword->GetFixtureList()->SetFilterData(filter);
+    sword->SetTransform( player->bodyParts.wrist2->body->GetWorldCenter() ,M_PI);
+    sword->GetFixtureList()->SetUserData(static_cast<void*> (new UserData(new KeyLineData(Color(0,0,255), DisplayData::Layer::PLAYER))));
+    //sword->GetFixtureList()->SetUserData (new UserData((DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT)));
+    b2RevoluteJointDef RJDSword;
+    RJDSword.Initialize(player->bodyParts.wrist2->body,sword,sword->GetPosition());
+    world->CreateJoint(&RJDSword);
     for (int i = 0; i < 5; ++i){
         NPC* npc = new NPC (20 + 3 * i, 10);
         npc->constructBody();
@@ -462,6 +477,7 @@ void GameWidget::loadBackground (){
 
 void GameWidget::paintGL() {
 
+
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -781,7 +797,7 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
 
 b2Body* GameWidget::addSpecRect() {
     b2BodyDef bodydef;
-    bodydef.position.Set(0, 0);
+    bodydef.position.Set(20, 10);
 
     bodydef.type=b2_dynamicBody;
     b2Body* body=world->CreateBody(&bodydef);

@@ -296,7 +296,7 @@ void Entity::constructBody (){
         RJDshoulder.enableLimit = true;
         RJDshoulder.upperAngle = M_PI;
         RJDshoulder.lowerAngle = - M_PI / 2;
-        RJDshoulder.maxMotorTorque = motorTorque;
+        RJDshoulder.maxMotorTorque = motorTorque*2;
         RJDshoulder.Initialize(body, shoulder, b2Vec2(body->GetPosition().x, body->GetPosition().y + playerHeight * 0.4 / 2.0f));
         b2RevoluteJoint* RJshoulderTemp = static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDshoulder));
         RJshoulderTemp->EnableMotor(true);
@@ -328,7 +328,7 @@ void Entity::constructBody (){
         RJDforearm.enableLimit = true;
         RJDforearm.upperAngle = M_PI;
         RJDforearm.lowerAngle = 0;
-        RJDforearm.maxMotorTorque = motorTorque;
+        RJDforearm.maxMotorTorque = motorTorque*2;
         //RJDforearm.Initialize(shoulder, forearm, b2Vec2(shoulder->GetPosition().x, shoulder->GetPosition().y - playerHeight * (0.2 - offset) / 2.0f));
         RJDforearm.Initialize(shoulder, forearm, b2Vec2(shoulder->GetPosition().x, body->GetPosition().y));
 
