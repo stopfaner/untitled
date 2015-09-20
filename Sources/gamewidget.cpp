@@ -19,7 +19,7 @@
 
 #define M_PI		3.14159265358979323846
 
-float TEXTURE_SIZE = 230.0f;
+float TEXTURE_SIZE = 50.0f;
 float GRID_STEP = TEXTURE_SIZE;
 float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
 
@@ -47,7 +47,7 @@ void GameWidget::createWorld(){
     loadBackground();
 
 
-    b2Vec2 delta( -50, 0 ); // move all bodies by this offset
+    b2Vec2 delta( 0, 0); // move all bodies by this offset
 
     string errorMsg;
     b2dJson json;
@@ -61,14 +61,14 @@ void GameWidget::createWorld(){
     vector <b2Body*> bodies;
     json.getAllBodies(bodies);
     for (int i = 0; i < bodies.size(); ++i){
-        bool isKeyLine = true;
+        bool isKeyLine = false;
         if (isKeyLine)
             triangulateChain(chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
-              new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
+                             new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
         else
             triangulateChain (chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
                               new UserData(new TriangleTextureData
-                                   (textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
+                                           (textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
     }
     //create polygon
 
@@ -97,7 +97,7 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
 
 
-    player = new Player (delta.x + 10, delta.y + 100);
+    player = new Player (delta.x + 10, delta.y + 300);
     player->constructBody();
     b2dJson jsonSword;
     jsonSword.readFromFile("json/sword.json", errorMsg);
@@ -988,15 +988,30 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
         }
     //   qDebug()<<leftPoint.x<<centerPointX.x<<rightPoint.x<<" ! "<<lowPoint.y<<centerPointY.y<<upPoint.y;
     glColor3f(1, 1, 1);
+    int x0, x1, y0, y1;
+    if (leftPoint.x < 0)
+        x0 = (int) (leftPoint.x / textureSize) - 1;
+    else
+        x0 = (int) (leftPoint.x / textureSize);
+    if (rightPoint.x < 0)
+        x1 = (int) (rightPoint.x / textureSize);
+    else
+        x1 = (int) (rightPoint.x / textureSize) + 1;
 
-    int x0 = (int) (leftPoint.x / textureSize);
-    int x1 = (int) (rightPoint.x / textureSize) + 1;
-    int y0 = (int) (lowPoint.y / textureSize);
-    int y1 = (int) (upPoint.y / textureSize) + 1;
+    if (lowPoint.y < 0)
+        y0 = (int) (lowPoint.y / textureSize) - 1;
+    else
+        y0 = (int) (lowPoint.y / textureSize);
+    if (upPoint.y < 0)
+        y1 = (int) (upPoint.y / textureSize);
+    else
+        y1 = (int) (upPoint.y / textureSize) + 1;
+
+
     for (int i = x0; i < x1; ++i){
         for (int j = y0; j < y1; ++j){
             float leftBound = i * textureSize, rightBound = leftBound + textureSize;
-            float lowBound = j * textureSize, upBound = leftBound + textureSize;
+            float lowBound = j * textureSize, upBound = lowBound + textureSize;
 
             using namespace ClipperLib;
             Clipper clipper;
@@ -1032,7 +1047,7 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
                 //drawing polygon
 
 
-                b2Vec2 gridOffset((i - 1) * textureSize, (j - 1 ) * textureSize);
+                b2Vec2 gridOffset((i) * textureSize, (j) * textureSize);
                 glPushMatrix();
                 glTranslatef(gridOffset.x * M2P / WIDTH * kx, gridOffset.y * M2P/WIDTH * ky, triangleTextureData->layer/ (float) DisplayData::Layer::MAX);
                 if(triangleTextureData->isShifting)
@@ -1048,12 +1063,12 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
                     b2Vec2  texPoints [curPolygon.size()];
 
                     curPolygon.at(t) -= gridOffset;
-                    texPoints[t] = b2Vec2(curPolygon.at(t).x / textureSize -1, curPolygon.at(t).y / textureSize -1);
+                    texPoints[t] = b2Vec2(curPolygon.at(t).x / textureSize, curPolygon.at(t).y / textureSize);
+                    //
+                    //            qDebug()<<"1";
 
-                    if (j > 0)
-                        qDebug()<<texPoints[t].x<<texPoints[t].y<<"1";
-                    else
-                        qDebug()<<texPoints[t].x<<texPoints[t].y<<"0";
+                    //    if (j > 5)
+                    //          qDebug()<<texPoints[t].x<<texPoints[t].y;
 
                     glTexCoord2f(texPoints[t].x, texPoints[t].y);
 
