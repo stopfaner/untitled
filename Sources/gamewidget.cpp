@@ -99,7 +99,7 @@ void GameWidget::createWorld(){
 
     b2Body *sword = triangulateChain(chainToPolyline(jsonSword.getBodyByName("Sword")->GetFixtureList()),
                                      fixturedefSword, new UserData(new KeyLineData(Color(0, 255, 0),
-                                     DisplayData::Layer::PLAYER_NEAR)), player->bodyParts.wrist2->body->GetWorldCenter()).at(0);
+                                                                                   DisplayData::Layer::PLAYER_NEAR)), player->bodyParts.wrist2->body->GetWorldCenter()).at(0);
 
     b2RevoluteJointDef RJDSword;
     RJDSword.Initialize(player->bodyParts.wrist2->body,sword,sword->GetPosition());
@@ -549,7 +549,8 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
         player->attackState=Player::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
-            b2Body* box = addRect(worldCoord, 3, 3, true, Textures::Type::CRATE);
+            b2Body* box = addRect(worldCoord, 5, 5, true, Textures::Type::CRATE);
+
             //box->SetType(b2_kinematicBody);
             destroyBodies.push_back(box);
 
@@ -568,7 +569,7 @@ void GameWidget::destroyLandscape(){
     Path pathBox;
     b2PolygonShape* shape = static_cast<b2PolygonShape*>(boxFixture->GetShape());
     int vertexCount =  shape->GetVertexCount();
-    float conversionKoef = 100;//precise, may cause overflow
+    float conversionKoef = 1000;//precise, may cause overflow
     for (int i = 0; i < vertexCount; ++i){
         b2Vec2 vertex = shape->GetVertex(i) + box->GetPosition();
         pathBox.push_back(IntPoint(vertex.x * conversionKoef, vertex.y * conversionKoef));
@@ -586,7 +587,6 @@ void GameWidget::destroyLandscape(){
             else
                 landscapeFixture = c->GetFixtureA();
             //clipping
-            //landscape - boxFixture
 
             Path path;
             b2PolygonShape* shape = static_cast<b2PolygonShape*>(landscapeFixture->GetShape());
@@ -609,7 +609,7 @@ void GameWidget::destroyLandscape(){
     qDebug()<<"!";
     clipper.AddPaths(sub, ptSubject, true);
     clipper.AddPaths(clp, ptClip, true);
-    clipper.Execute(ctDifference, sol, pftNonZero, pftNonZero);
+    clipper.Execute(ctDifference, sol, pftEvenOdd, pftEvenOdd);
     // to simplify polygon1!!!
     for (int i = 0; i < sol.size(); ++i){
         vector<Point*> polyline;
@@ -774,6 +774,34 @@ vector<Point*> GameWidget::chainToPolyline(b2Fixture* fixture){
     }
     return polyline;
 }
+bool GameWidget::isPossiblePolygon(b2Vec2 vertices[], int n){
+    b2Vec2 ps[b2_maxPolygonVertices];
+    int32 tempCount = 0;
+    for (int32 i = 0; i < n; ++i)
+    {
+        b2Vec2 v = vertices[i];
+
+        bool unique = true;
+        for (int32 j = 0; j < tempCount; ++j)
+        {
+            if (b2DistanceSquared(v, ps[j]) < 0.5f * b2_linearSlop)
+            {
+                unique = false;
+                break;
+            }
+        }
+
+        if (unique)
+        {
+            ps[tempCount++] = v;
+        }
+    }
+
+    n = tempCount;
+    if (n < 3)
+        return false;
+    return true;
+}
 
 vector<b2Body*> GameWidget::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
 {
@@ -796,16 +824,18 @@ vector<b2Body*> GameWidget::triangulateChain(vector<Point*> polyline, b2FixtureD
             points[k].x = triangle->GetPoint(k)->x;
             points[k].y = triangle->GetPoint(k)->y;
         }
-        shape.Set(points, 3);
-        fixturedef.shape = &shape;
+        if (isPossiblePolygon(points, 3)){
+            shape.Set(points, 3);
+            fixturedef.shape = &shape;
 
-        b2Fixture* fixture = body->CreateFixture(&fixturedef);
+            b2Fixture* fixture = body->CreateFixture(&fixturedef);
 
-        bool isKeyLine = true;
-        if (isKeyLine)
-            fixture->SetUserData(static_cast<void*>(UD));
-        else
-            fixture->SetUserData(static_cast<void*>(UD));
+            bool isKeyLine = true;
+            if (isKeyLine)
+                fixture->SetUserData(static_cast<void*>(UD));
+            else
+                fixture->SetUserData(static_cast<void*>(UD));
+        }
     }
     body->ResetMassData();
 
@@ -963,4 +993,3 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
     glPopMatrix();
 
 }
-

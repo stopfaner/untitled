@@ -134,6 +134,7 @@ private:
     std::list<UIElement*> displayItems;
     void destroyLandscape();
     vector<Point *> chainToPolyline(b2Fixture *fixture);
+    bool isPossiblePolygon(b2Vec2 vertices[], int n);
 };
 
 #endif // GAMEWIDGET_H
