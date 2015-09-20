@@ -590,7 +590,7 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
         player->attackState=Player::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
-            b2Body* box = addRect(worldCoord, 50, 50, true, Textures::Type::CRATE);
+            b2Body* box = addRect(worldCoord, 3, 3, true, Textures::Type::CRATE);
             //box->SetType(b2_kinematicBody);
             destroyBodies.push_back(box);
 
@@ -609,7 +609,7 @@ void GameWidget::destroyLandscape(){
     Path pathBox;
     b2PolygonShape* shape = static_cast<b2PolygonShape*>(boxFixture->GetShape());
     int vertexCount =  shape->GetVertexCount();
-float conversionKoef = 10000;//precise, may cause overflow
+float conversionKoef = 100;//precise, may cause overflow
     for (int i = 0; i < vertexCount; ++i){
         b2Vec2 vertex = shape->GetVertex(i) + box->GetPosition();
         pathBox.push_back(IntPoint(vertex.x * conversionKoef, vertex.y * conversionKoef));
@@ -651,7 +651,7 @@ float conversionKoef = 10000;//precise, may cause overflow
     clipper.AddPaths(sub, ptSubject, true);
     clipper.AddPaths(clp, ptClip, true);
     clipper.Execute(ctDifference, sol, pftEvenOdd, pftEvenOdd);
-
+// to simplify polygon1!!!
     for (int i = 0; i < sol.size(); ++i){
         vector<Point*> polyline;
         //b2Vec2 points[sol.at(i).size()];
@@ -661,6 +661,7 @@ float conversionKoef = 10000;//precise, may cause overflow
             polyline.push_back(new Point(sol[i][j].X / conversionKoef,sol[i][j].Y / conversionKoef));
             //points[j] = b2Vec2(sol[i][j].X / conversionKoef,sol[i][j].Y / conversionKoef);
         }
+        qDebug()<<polyline.size()<<"polyline size";
         triangulate(polyline);
         /*
         b2BodyDef bodydef;
