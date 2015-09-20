@@ -48,9 +48,18 @@ void GameWidget::createWorld(){
 
     string errorMsg;
     b2dJson json;
-    b2World* jsonWorld = json.readFromFile("json/test.json", errorMsg);
-    triangulateChain(&json);
+    json.readFromFile("json/test.json", errorMsg);
 
+    b2FixtureDef fixturedef;
+    fixturedef.density = 1.0;
+    fixturedef.filter.groupIndex = 1;
+
+
+    vector <b2Body*> bodies;
+    json.getAllBodies(bodies);
+    for (int i = 0; i < bodies.size(); ++i){
+        triangulateChain(chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef, new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta, b2_staticBody);
+    }
     //create polygon
 
     //  trying to load PBE
@@ -81,13 +90,17 @@ void GameWidget::createWorld(){
     player = new Player (delta.x + 10, delta.y + 100);
     player->constructBody();
     b2dJson jsonSword;
-    jsonSword.readFromFile("json/sword.json", errorMsg, world);
-    triangulateChain(jsonSword);
-    b2Filter filter;
-    filter.maskBits = GeneralInfo::CollisionType::BASIC;
-    filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
-    sword->GetFixtureList()->SetFilterData(filter);
-    sword->SetTransform( player->bodyParts.wrist2->body->GetWorldCenter() ,M_PI);
+    jsonSword.readFromFile("json/sword.json", errorMsg);
+
+    b2FixtureDef fixturedefSword;
+    fixturedefSword.density = 1.0;
+    fixturedefSword.filter.maskBits = GeneralInfo::CollisionType::BASIC;
+    fixturedefSword.filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
+
+    b2Body *sword = triangulateChain(chainToPolyline(jsonSword.getBodyByName("Sword")->GetFixtureList()),
+                                     fixturedefSword, new UserData(new KeyLineData(Color(0, 255, 0),
+                                     DisplayData::Layer::PLAYER_NEAR)), player->bodyParts.wrist2->body->GetWorldCenter()).at(0);
+
     b2RevoluteJointDef RJDSword;
     RJDSword.Initialize(player->bodyParts.wrist2->body,sword,sword->GetPosition());
     world->CreateJoint(&RJDSword);
@@ -163,24 +176,11 @@ void GameWidget::createWorld(){
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
 
 }
-vector<b2Vec2*> GameWidget::triangulate(std::vector <Point*> polyline){
-    vector<b2Body*> bodies;
+vector<Triangle*> GameWidget::triangulate(std::vector <Point*> polyline){
     CDT* polygon = new CDT(polyline);
     polygon->Triangulate();
 
-    for (unsigned int i = 0; i < polygon->GetTriangles().size(); ++i) {
-        Triangle* triangle = polygon->GetTriangles().at(i);
-
-        b2Vec2 points[3];
-        for (unsigned int j = 0; j < 3; ++j){
-            points[j].x = triangle->GetPoint(j)->x;
-            points[j].y = triangle->GetPoint(j)->y;
-        }
-
-
-    }
-
-    return bodies;
+    return polygon->GetTriangles();
 }
 
 void GameWidget::addWalkingMachine (){
@@ -568,11 +568,11 @@ void GameWidget::destroyLandscape(){
     Path pathBox;
     b2PolygonShape* shape = static_cast<b2PolygonShape*>(boxFixture->GetShape());
     int vertexCount =  shape->GetVertexCount();
-float conversionKoef = 100;//precise, may cause overflow
+    float conversionKoef = 100;//precise, may cause overflow
     for (int i = 0; i < vertexCount; ++i){
         b2Vec2 vertex = shape->GetVertex(i) + box->GetPosition();
         pathBox.push_back(IntPoint(vertex.x * conversionKoef, vertex.y * conversionKoef));
-      //  qDebug()<<pathBox.at(i).X<<pathBox.at(i).Y;
+        //  qDebug()<<pathBox.at(i).X<<pathBox.at(i).Y;
     }
 
     clp.push_back(pathBox);
@@ -609,8 +609,8 @@ float conversionKoef = 100;//precise, may cause overflow
     qDebug()<<"!";
     clipper.AddPaths(sub, ptSubject, true);
     clipper.AddPaths(clp, ptClip, true);
-    clipper.Execute(ctDifference, sol, pftEvenOdd, pftEvenOdd);
-// to simplify polygon1!!!
+    clipper.Execute(ctDifference, sol, pftNonZero, pftNonZero);
+    // to simplify polygon1!!!
     for (int i = 0; i < sol.size(); ++i){
         vector<Point*> polyline;
         //b2Vec2 points[sol.at(i).size()];
@@ -621,25 +621,10 @@ float conversionKoef = 100;//precise, may cause overflow
             //points[j] = b2Vec2(sol[i][j].X / conversionKoef,sol[i][j].Y / conversionKoef);
         }
         qDebug()<<polyline.size()<<"polyline size";
-        triangulate(polyline);
-        /*
-        b2BodyDef bodydef;
-        bodydef.position.Set(0,0);
-        b2Body* body = world->CreateBody(&bodydef);
-        b2PolygonShape shape;
-        shape.Set(points, sol.at(i).size());
         b2FixtureDef fixturedef;
-        fixturedef.shape = &shape;
-        fixturedef.density = 3.0;
-        fixturedef.filter.groupIndex = 1;
+        triangulateChain(polyline, fixturedef, new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE)),
+                         b2Vec2(0, 0), b2_staticBody);
 
-        b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
-
-        DisplayData* bodyDD = new KeyLineData(Color(0, 255, 0), DisplayData::Layer::LANDSCAPE);
-
-        bodyFix->SetUserData((void*) new UserData(bodyDD));
-        body->SetUserData((void*) new UserData);
-        */
     }
 
     world->DestroyBody(box);
@@ -777,69 +762,54 @@ b2Body* GameWidget::addSpecRect() {
     body->SetUserData((void*) new UserData);
     return body;
 }
+vector<Point*> GameWidget::chainToPolyline(b2Fixture* fixture){
+    std::vector <Point*> polyline;
 
-void GameWidget::triangulateChain(b2dJson &json)
+    b2ChainShape* chain = static_cast<b2ChainShape*>( fixture->GetShape());
+    int edgeCount = chain->GetChildCount();
+    for (int j = 0; j < edgeCount; ++j){
+        b2EdgeShape edge;
+        ((b2ChainShape*)fixture->GetShape())->GetChildEdge(&edge, j);
+        polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
+    }
+    return polyline;
+}
+
+vector<b2Body*> GameWidget::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
 {
+    vector <b2Body*> triangleBodies;
+
+
     b2BodyDef bodydef;
-    bodydef.position.Set(0,0);
-    bodydef.type=b2_staticBody;
+    bodydef.position.Set(offset.x, offset.y);
+    bodydef.type = bodyType;
+
     b2Body* body=world->CreateBody(&bodydef);
-    bodies.push_back(body);
+    triangleBodies.push_back(body);
     b2PolygonShape shape;
 
-    shape.Set(points, 3);
-    b2FixtureDef fixturedef;
-    fixturedef.shape = &shape;
-    fixturedef.density = 1.0;
-    fixturedef.filter.groupIndex = 1;
+    vector<Triangle*> triangles = triangulate(polyline);
+    for (int j = 0; j < triangles.size(); ++j){
+        Triangle* triangle = triangles.at(j);
+        b2Vec2 points[3];
+        for (unsigned int k = 0; k < 3; ++k){
+            points[k].x = triangle->GetPoint(k)->x;
+            points[k].y = triangle->GetPoint(k)->y;
+        }
+        shape.Set(points, 3);
+        fixturedef.shape = &shape;
 
-    b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
+        b2Fixture* fixture = body->CreateFixture(&fixturedef);
 
-    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
-
-    bodyFix->SetUserData((void*) new UserData(bodyDD));
-
-    b2Fixture* fixture = body->GetFixtureList();
-    while (fixture){
         bool isKeyLine = true;
         if (isKeyLine)
-            fixture->SetUserData(static_cast<void*>
-                                 (new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE))));
-
+            fixture->SetUserData(static_cast<void*>(UD));
         else
-            fixture->SetUserData(static_cast<void*>
-                                 (new UserData(new TriangleTextureData(textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE))));
-        body->ResetMassData();
-        fixture = fixture->GetNext();
+            fixture->SetUserData(static_cast<void*>(UD));
     }
+    body->ResetMassData();
 
-
-    vector <b2Body*> bodies;
-    json.getAllBodies(bodies);
-    for (int i = 0; i < bodies.size(); ++i){
-        b2Body* bodyChain = bodies.at(i);
-        b2Fixture* curFixture = bodyChain->GetFixtureList();
-        b2ChainShape* chain = static_cast<b2ChainShape*>( curFixture->GetShape());
-        int edgeCount = chain->GetChildCount();
-
-        std::vector <Point*> polyline;
-
-        for (int i = 0; i < edgeCount; ++i){
-            b2EdgeShape edge;
-            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
-            polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
-
-        }
-        vector<b2Body*> triangles = triangulate(polyline);
-        for (int j = 0; j < triangles.size(); ++j){
-            b2Body *body = triangles.at(j);
-            body->SetTransform( body->GetPosition() + delta, body->GetAngle() );
-        }
-
-    }
-
-
-
+    return triangleBodies;
 }
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
