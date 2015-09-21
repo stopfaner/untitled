@@ -586,6 +586,7 @@ void GameWidget::destroyLandscape(){
 
     using namespace ClipperLib;
     Clipper clipper;
+    clipper.StrictlySimple(true);
     Paths sub, clp, sol;
 
     Path pathBox;
