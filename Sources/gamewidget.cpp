@@ -19,7 +19,7 @@
 
 
 
-float TEXTURE_SIZE = 230.0f;
+float TEXTURE_SIZE = 100.0f;
 float GRID_STEP = TEXTURE_SIZE;
 float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
 
@@ -47,7 +47,7 @@ void GameWidget::createWorld(){
     loadBackground();
 
 
-    b2Vec2 delta( -50, 0 ); // move all bodies by this offset
+    b2Vec2 delta( 0, 0); // move all bodies by this offset
 
     string errorMsg;
     b2dJson json;
@@ -61,14 +61,14 @@ void GameWidget::createWorld(){
     vector <b2Body*> bodies;
     json.getAllBodies(bodies);
     for (int i = 0; i < bodies.size(); ++i){
-        bool isKeyLine = true;
+        bool isKeyLine = false;
         if (isKeyLine)
             triangulation->triangulateChain(triangulation->chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
               new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
-        else
+            else
             triangulation->triangulateChain (triangulation->chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
                               new UserData(new TriangleTextureData
-                                   (textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
+                                           (textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
     }
     //create polygon
 
@@ -97,7 +97,7 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
 
 
-    player = new Player (delta.x + 10, delta.y + 100);
+    player = new Player (delta.x + 10, delta.y + 10);
     player->constructBody();
 
     for (int i = 0; i < 5; ++i){
@@ -560,6 +560,7 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
         }
 }
 void GameWidget::destroyLandscape(){
+    // TO SET COLLISION DETECTION IN CONTACT LISTENER
     b2Body* box = destroyBodies.at(0);
     b2Fixture* boxFixture = box->GetFixtureList();
     b2Fixture* landscapeFixture;
@@ -567,6 +568,7 @@ void GameWidget::destroyLandscape(){
 
     using namespace ClipperLib;
     Clipper clipper;
+    clipper.StrictlySimple(true);
     Paths sub, clp, sol;
 
     Path pathBox;
@@ -612,17 +614,14 @@ void GameWidget::destroyLandscape(){
     clipper.AddPaths(sub, ptSubject, true);
     clipper.AddPaths(clp, ptClip, true);
     clipper.Execute(ctDifference, sol, pftEvenOdd, pftEvenOdd);
-    // to simplify polygon1!!!
+    // ??
+    CleanPolygon(pathBox);
+    // ??
     for (int i = 0; i < sol.size(); ++i){
         vector<Point*> polyline;
-        //b2Vec2 points[sol.at(i).size()];
-        qDebug()<<"new polygon size = "<<sol.at(i).size();
         for (int j = 0; j < sol.at(i).size(); ++j){
-            qDebug()<<sol[i][j].X / CONVERSION_KOEF<<sol[i][j].Y / CONVERSION_KOEF;
             polyline.push_back(new Point(sol[i][j].X / CONVERSION_KOEF,sol[i][j].Y / CONVERSION_KOEF));
-            //points[j] = b2Vec2(sol[i][j].X / CONVERSION_KOEF,sol[i][j].Y / CONVERSION_KOEF);
         }
-        qDebug()<<polyline.size()<<"polyline size";
         b2FixtureDef fixturedef;
         triangulation->triangulateChain(polyline, fixturedef, new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE)),
                          b2Vec2(0, 0), b2_staticBody);
@@ -895,17 +894,31 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
         if (centerPoint[k]) {
             centerPointY = worldPoints[k]; break;
         }
-    //   qDebug()<<leftPoint.x<<centerPointX.x<<rightPoint.x<<" ! "<<lowPoint.y<<centerPointY.y<<upPoint.y;
     glColor3f(1, 1, 1);
+    int x0, x1, y0, y1;
+    if (leftPoint.x < 0)
+        x0 = (int) (leftPoint.x / textureSize) - 1;
+    else
+        x0 = (int) (leftPoint.x / textureSize);
+    if (rightPoint.x < 0)
+        x1 = (int) (rightPoint.x / textureSize);
+    else
+        x1 = (int) (rightPoint.x / textureSize) + 1;
 
-    int x0 = (int) (leftPoint.x / textureSize);
-    int x1 = (int) (rightPoint.x / textureSize) + 1;
-    int y0 = (int) (lowPoint.y / textureSize);
-    int y1 = (int) (upPoint.y / textureSize) + 1;
+    if (lowPoint.y < 0)
+        y0 = (int) (lowPoint.y / textureSize) - 1;
+    else
+        y0 = (int) (lowPoint.y / textureSize);
+    if (upPoint.y < 0)
+        y1 = (int) (upPoint.y / textureSize);
+    else
+        y1 = (int) (upPoint.y / textureSize) + 1;
+
+
     for (int i = x0; i < x1; ++i){
         for (int j = y0; j < y1; ++j){
             float leftBound = i * textureSize, rightBound = leftBound + textureSize;
-            float lowBound = j * textureSize, upBound = leftBound + textureSize;
+            float lowBound = j * textureSize, upBound = lowBound + textureSize;
 
             using namespace ClipperLib;
             Clipper clipper;
@@ -941,7 +954,7 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
                 //drawing polygon
 
 
-                b2Vec2 gridOffset((i - 1) * textureSize, (j - 1 ) * textureSize);
+                b2Vec2 gridOffset((i) * textureSize, (j) * textureSize);
                 glPushMatrix();
                 glTranslatef(gridOffset.x * M2P / WIDTH * kx, gridOffset.y * M2P/WIDTH * ky, triangleTextureData->layer/ (float) DisplayData::Layer::MAX);
                 if(triangleTextureData->isShifting)
@@ -951,18 +964,11 @@ void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float an
                 glEnable(GL_TEXTURE_2D);
                 glBindTexture(GL_TEXTURE_2D, triangleTextureData->texture_p->id);
                 glBegin(GL_POLYGON);
-                //        qDebug()<<"new"<<i<<j;
                 for (int t = 0; t < curPolygon.size(); ++t){
-                    //          qDebug()<<curPolygon.at(t).x<<" "<<curPolygon.at(t).y;
                     b2Vec2  texPoints [curPolygon.size()];
 
                     curPolygon.at(t) -= gridOffset;
-                    texPoints[t] = b2Vec2(curPolygon.at(t).x / textureSize -1, curPolygon.at(t).y / textureSize -1);
-
-                    if (j > 0)
-                        qDebug()<<texPoints[t].x<<texPoints[t].y<<"1";
-                    else
-                        qDebug()<<texPoints[t].x<<texPoints[t].y<<"0";
+                    texPoints[t] = b2Vec2(curPolygon.at(t).x / textureSize, curPolygon.at(t).y / textureSize);
 
                     glTexCoord2f(texPoints[t].x, texPoints[t].y);
 
@@ -986,7 +992,6 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     glTranslatef(center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH * ky, keyLineData->layer/ (float) DisplayData::Layer::MAX);
     if(keyLineData->isShifting)
         glTranslatef(-player->body->GetWorldCenter().x * M2P / WIDTH * kx,-player->body->GetWorldCenter().y*M2P/WIDTH * ky, 0);
-    //glTranslatef (center.x * M2P / WIDTH * kx, center.y*M2P/WIDTH, 0);
     glRotatef(angle*180.0/M_PI, 0, 0, 1);
     //glBegin(GL_POLYGON);
     glBegin(GL_LINE_LOOP);
