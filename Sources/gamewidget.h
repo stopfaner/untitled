@@ -27,6 +27,7 @@
 #include <SOIL.h>
 #include <vector>
 #include <time.h>
+#include "Sources/Process/triangulation.h"
 
 #include "GameObjects/Characters/npc.h"
 #include "GameObjects/Characters/bot.h"
@@ -90,6 +91,7 @@ private:
     float ky = 0.7;
 
     Player *player;
+    Triangulation *triangulation;
 
 
     QTimer *timer;
@@ -113,16 +115,13 @@ private:
 
     b2Body* addSpecRect ();
 
-
-    vector<b2Body *> triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef,
-                             UserData *UD, b2Vec2 offset = b2Vec2(0,0), b2BodyType bodyType = b2_dynamicBody);
     void drawTriangle(b2Vec2 *points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, TextureData *textureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, KeyLineData *keyLineData);
     void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData, float angle);
     void drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData);
 
-    vector<Triangle*> triangulate(std::vector<Point *> polyline);
+
 
     void createWorld();
 
@@ -133,8 +132,7 @@ private:
     vector<b2Body*> destroyBodies;
     std::list<UIElement*> displayItems;
     void destroyLandscape();
-    vector<Point *> chainToPolyline(b2Fixture *fixture);
-    bool isPossiblePolygon(b2Vec2 vertices[], int n);
+
 };
 
 #endif // GAMEWIDGET_H

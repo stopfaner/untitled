@@ -2,6 +2,7 @@
 #define BODYPART_H
 
 #include "Sources/GameObjects/gameobject.h"
+#include "Sources/Process/jointmanager.h"
 
 class Entity;
 class b2RevoluteJoint;
@@ -24,11 +25,7 @@ public:
     };
     void setDefaultSpeed(float speed);
     BodyPart(Entity* entity, Type type, b2Body* body, b2RevoluteJoint* RJ = nullptr);
-    b2RevoluteJoint* RJ;
-    float angleDeviation;
-    float desiredAngle;
-    float motorSpeed;
-    float defaultMotorSpeed;
+    RevoluteJointInfo RJI;
     Type type;
     b2Body* body;
     Entity* entity;

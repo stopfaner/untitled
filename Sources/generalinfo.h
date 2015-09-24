@@ -1,5 +1,6 @@
 #ifndef GENERALINFO_H
 #define GENERALINFO_H
+#define M_PI		3.14159265358979323846
 
 class b2World;
 class Textures;
@@ -12,6 +13,7 @@ public:
         static GeneralInfo  p_instance;
         return p_instance;
     }
+
 
     b2World* world;
     Textures *textures;
@@ -26,6 +28,7 @@ private:
     GeneralInfo() {}
     GeneralInfo( const GeneralInfo& );
     GeneralInfo& operator=( GeneralInfo& );
+
 };
 
 #endif // GENERALINFO_H

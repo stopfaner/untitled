@@ -17,7 +17,7 @@
 #include "gamewidget.h"
 #include <QDebug>
 
-#define M_PI		3.14159265358979323846
+
 
 float TEXTURE_SIZE = 230.0f;
 float GRID_STEP = TEXTURE_SIZE;
@@ -63,10 +63,10 @@ void GameWidget::createWorld(){
     for (int i = 0; i < bodies.size(); ++i){
         bool isKeyLine = true;
         if (isKeyLine)
-            triangulateChain(chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
+            triangulation->triangulateChain(triangulation->chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
               new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
         else
-            triangulateChain (chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
+            triangulation->triangulateChain (triangulation->chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
                               new UserData(new TriangleTextureData
                                    (textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
     }
@@ -99,21 +99,7 @@ void GameWidget::createWorld(){
 
     player = new Player (delta.x + 10, delta.y + 100);
     player->constructBody();
-    b2dJson jsonSword;
-    jsonSword.readFromFile("json/sword.json", errorMsg);
 
-    b2FixtureDef fixturedefSword;
-    fixturedefSword.density = 1.0;
-    fixturedefSword.filter.maskBits = GeneralInfo::CollisionType::BASIC;
-    fixturedefSword.filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
-
-    b2Body *sword = triangulateChain(chainToPolyline(jsonSword.getBodyByName("Sword")->GetFixtureList()),
-                                     fixturedefSword, new UserData(new KeyLineData(Color(0, 255, 0),
-                                                                                   DisplayData::Layer::PLAYER_NEAR)), player->bodyParts.wrist2->body->GetWorldCenter()).at(0);
-
-    b2RevoluteJointDef RJDSword;
-    RJDSword.Initialize(player->bodyParts.wrist2->body,sword,sword->GetPosition());
-    world->CreateJoint(&RJDSword);
     for (int i = 0; i < 5; ++i){
         NPC* npc = new NPC (20 + 3 * i, 10);
         npc->constructBody();
@@ -186,12 +172,7 @@ void GameWidget::createWorld(){
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
 
 }
-vector<Triangle*> GameWidget::triangulate(std::vector <Point*> polyline){
-    CDT* polygon = new CDT(polyline);
-    polygon->Triangulate();
 
-    return polygon->GetTriangles();
-}
 
 void GameWidget::addWalkingMachine (){
     float x = 20, y = 5;
@@ -643,7 +624,7 @@ void GameWidget::destroyLandscape(){
         }
         qDebug()<<polyline.size()<<"polyline size";
         b2FixtureDef fixturedef;
-        triangulateChain(polyline, fixturedef, new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE)),
+        triangulation->triangulateChain(polyline, fixturedef, new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE)),
                          b2Vec2(0, 0), b2_staticBody);
 
     }
@@ -791,81 +772,9 @@ b2Body* GameWidget::addSpecRect() {
     body->SetUserData((void*) new UserData);
     return body;
 }
-vector<Point*> GameWidget::chainToPolyline(b2Fixture* fixture){
-    std::vector <Point*> polyline;
-
-    b2ChainShape* chain = static_cast<b2ChainShape*>( fixture->GetShape());
-    int edgeCount = chain->GetChildCount();
-    for (int j = 0; j < edgeCount; ++j){
-        b2EdgeShape edge;
-        ((b2ChainShape*)fixture->GetShape())->GetChildEdge(&edge, j);
-        polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
-    }
-    return polyline;
-}
-bool GameWidget::isPossiblePolygon(b2Vec2 vertices[], int n){
-    b2Vec2 ps[b2_maxPolygonVertices];
-    int32 tempCount = 0;
-    for (int32 i = 0; i < n; ++i)
-    {
-        b2Vec2 v = vertices[i];
-
-        bool unique = true;
-        for (int32 j = 0; j < tempCount; ++j)
-        {
-            if (b2DistanceSquared(v, ps[j]) < 0.5f * b2_linearSlop)
-            {
-                unique = false;
-                break;
-            }
-        }
-
-        if (unique)
-        {
-            ps[tempCount++] = v;
-        }
-    }
-
-    n = tempCount;
-    if (n < 3)
-        return false;
-    return true;
-}
-
-vector<b2Body*> GameWidget::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
-{
-    vector <b2Body*> triangleBodies;
 
 
-    b2BodyDef bodydef;
-    bodydef.position.Set(offset.x, offset.y);
-    bodydef.type = bodyType;
 
-    b2Body* body=world->CreateBody(&bodydef);
-    triangleBodies.push_back(body);
-    b2PolygonShape shape;
-
-    vector<Triangle*> triangles = triangulate(polyline);
-    for (int j = 0; j < triangles.size(); ++j){
-        Triangle* triangle = triangles.at(j);
-        b2Vec2 points[3];
-        for (unsigned int k = 0; k < 3; ++k){
-            points[k].x = triangle->GetPoint(k)->x;
-            points[k].y = triangle->GetPoint(k)->y;
-        }
-        if (isPossiblePolygon(points, 3)){
-            shape.Set(points, 3);
-            fixturedef.shape = &shape;
-
-            b2Fixture* fixture = body->CreateFixture(&fixturedef);
-
-            fixture->SetUserData(static_cast<void*>(UD));
-        }
-    }
-    body->ResetMassData();
-
-    return triangleBodies;
-}
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
     b2Vec2 points[4] {b2Vec2(-width,-height),b2Vec2(width,-height),

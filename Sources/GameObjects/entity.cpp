@@ -33,6 +33,7 @@ Entity::Entity(float x, float y) : GameObject ()
     useCooldown = 0;
     useCooldownMax = 10;
     vehicle = nullptr;
+    weapon =nullptr;
 }
 
 void Entity::attack()
@@ -42,19 +43,19 @@ void Entity::attack()
     else direction = -1;
     switch (attackState) {
     case AS_SWING:
-        bodyParts.shoulder2->desiredAngle = D2R (135.0f * direction);
-        bodyParts.shoulder2->motorSpeed = 1;
+        bodyParts.shoulder2->RJI.desiredAngle = D2R (135.0f * direction);
+        bodyParts.shoulder2->RJI.motorSpeed = 1;
 
-        bodyParts.forearm2->desiredAngle = D2R (135.0f * direction);
-        bodyParts.forearm2->motorSpeed = 1;
+        bodyParts.forearm2->RJI.desiredAngle = D2R (135.0f * direction);
+        bodyParts.forearm2->RJI.motorSpeed = 1;
 
         break;
     case AS_HIT:
-        bodyParts.shoulder2->desiredAngle = D2R (0.0f * direction);
-        bodyParts.shoulder2->motorSpeed = 5;
+        bodyParts.shoulder2->RJI.desiredAngle = D2R (0.0f * direction);
+        bodyParts.shoulder2->RJI.motorSpeed = 5;
 
-        bodyParts.forearm2->desiredAngle = D2R (0.0f * direction);
-        bodyParts.forearm2->motorSpeed = 4;
+        bodyParts.forearm2->RJI.desiredAngle = D2R (0.0f * direction);
+        bodyParts.forearm2->RJI.motorSpeed = 4;
         break;
     }
 
@@ -207,9 +208,9 @@ void Entity::constructBody (){
         b2RevoluteJoint* RJfootTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDfoot));
         RJfootTemp->EnableMotor(true);
 
-        BPHip->RJ = RJhipTemp;
-        BPShin->RJ = RJkneeTemp;
-        BPFoot->RJ = RJfootTemp;
+        BPHip->RJI.RJ = RJhipTemp;
+        BPShin->RJI.RJ = RJkneeTemp;
+        BPFoot->RJI.RJ = RJfootTemp;
 
         if (i){
             RJfoot = RJfootTemp;
@@ -368,9 +369,9 @@ void Entity::constructBody (){
         b2RevoluteJoint* RJwristTemp =  static_cast<b2RevoluteJoint*> (world->CreateJoint(&RJDwrist));
         RJwristTemp->EnableMotor(true);
 
-        BPshoulder->RJ = RJshoulderTemp;
-        BPforearm->RJ = RJforearmTemp;
-        BPwrist->RJ = RJwristTemp;
+        BPshoulder->RJI.RJ = RJshoulderTemp;
+        BPforearm->RJI.RJ = RJforearmTemp;
+        BPwrist->RJI.RJ = RJwristTemp;
 
         if (i){
             RJwrist = RJwristTemp;
@@ -397,7 +398,7 @@ void Entity::rotate(bool right)
         if (isRightDirection) isRightDirection = false;
         else isRightDirection = true;
         bodyParts.mirror();
-
+        if(weapon) weapon->rotate(right);
     }
 }
 
@@ -408,12 +409,12 @@ void Entity::move()
     else direction = -1;
 
     if (isRightDirection){
-        bodyParts.foot->desiredAngle = surfaceAngle + M_PI / 2;
-        bodyParts.foot2->desiredAngle = surfaceAngle + M_PI / 2;
+        bodyParts.foot->RJI.desiredAngle = surfaceAngle + M_PI / 2;
+        bodyParts.foot2->RJI.desiredAngle = surfaceAngle + M_PI / 2;
     }
     else{
-        bodyParts.foot->desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
-        bodyParts.foot2->desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
+        bodyParts.foot->RJI.desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
+        bodyParts.foot2->RJI.desiredAngle = surfaceAngle + M_PI / 2 + M_PI;
     }
     BodyPart *hip, *shin;
     BodyPart *shoulder, *forearm, *foot;
@@ -436,50 +437,50 @@ void Entity::move()
         if (moveStateVertical == MSV_UP)
             hipMaxAngle = D2R(80.0f);
         float shinMaxAngle = D2R(-50.0f) - surfaceAngle;
-        if ( (hip->RJ->GetJointAngle() < hipMaxAngle && isRightDirection ) ||
-             (hip->RJ->GetJointAngle() > - hipMaxAngle && !isRightDirection)){
-            hip->desiredAngle = (hipMaxAngle + D2R(10)) * direction;
-            hip->motorSpeed = 2.3;
-            shin->desiredAngle = shinMaxAngle * direction;
-            shin->motorSpeed = 3;
+        if ( (hip->RJI.RJ->GetJointAngle() < hipMaxAngle && isRightDirection ) ||
+             (hip->RJI.RJ->GetJointAngle() > - hipMaxAngle && !isRightDirection)){
+            hip->RJI.desiredAngle = (hipMaxAngle + D2R(10)) * direction;
+            hip->RJI.motorSpeed = 2.3;
+            shin->RJI.desiredAngle = shinMaxAngle * direction;
+            shin->RJI.motorSpeed = 3;
             if (moveStateVertical == MSV_UP)
                 if (isRightDirection)
-                    foot->desiredAngle = D2R(110);
-                else foot->desiredAngle = D2R(110 + 90);
+                    foot->RJI.desiredAngle = D2R(110);
+                else foot->RJI.desiredAngle = D2R(110 + 90);
 
             if(attackState != AS_SWING && isUsingLeftLeg)
             {
-                shoulder->desiredAngle = D2R (30.0f * direction);
-                shoulder->motorSpeed = 1;
+                shoulder->RJI.desiredAngle = D2R (30.0f * direction);
+                shoulder->RJI.motorSpeed = 1;
 
-                forearm->desiredAngle = D2R (40.0f * direction);
-                forearm->motorSpeed = 1;
+                forearm->RJI.desiredAngle = D2R (40.0f * direction);
+                forearm->RJI.motorSpeed = 1;
             }
 
         }
         else{
             isAscendingLeg = false;
 
-            if (isUsingLeftLeg) bodyParts.foot->desiredAngle = M_PI / 2;
-            else bodyParts.foot2->desiredAngle = M_PI / 2;
+            if (isUsingLeftLeg) bodyParts.foot->RJI.desiredAngle = M_PI / 2;
+            else bodyParts.foot2->RJI.desiredAngle = M_PI / 2;
 
-            shoulder->desiredAngle = D2R (-5.0f * direction);
-            forearm->desiredAngle = 0;
+            shoulder->RJI.desiredAngle = D2R (-5.0f * direction);
+            forearm->RJI.desiredAngle = 0;
 
-            hip->desiredAngle = D2R (-15.0f * direction);
+            hip->RJI.desiredAngle = D2R (-15.0f * direction);
             if (moveStateVertical == MSV_UP){
-                shin->desiredAngle = D2R(-20) * direction;
+                shin->RJI.desiredAngle = D2R(-20) * direction;
             }
             else
-                shin->desiredAngle = D2R(0) * direction;
+                shin->RJI.desiredAngle = D2R(0) * direction;
             float verticalImpulse = body->GetMass() * (8 + surfaceAngle * 12);
             if (moveStateVertical == MSV_UP){
                 body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 8 * direction, verticalImpulse * 2), body->GetPosition() - b2Vec2(0, 3), true);
                 float footAngle = 110;
                 if (!isRightDirection)
                     footAngle = 180 + 90 - 10;
-                bodyParts.foot->desiredAngle = D2R(footAngle);
-                bodyParts.foot2->desiredAngle = D2R(footAngle);
+                bodyParts.foot->RJI.desiredAngle = D2R(footAngle);
+                bodyParts.foot2->RJI.desiredAngle = D2R(footAngle);
             }
             else
                 body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 6 * direction, verticalImpulse), body->GetPosition() - b2Vec2(0, 3), true);
@@ -498,22 +499,22 @@ void Entity::move()
         if (isUsingLeftLeg) curFoot = bodyParts.foot;
         else curFoot = bodyParts.foot2;
 
-        // if (fabs(bodyParts.hip->RJ->GetJointAngle() - bodyParts.hip2->RJ->GetJointAngle()) > 3.0f)
-        if ((hip->RJ->GetJointAngle() < ascendLimit && isRightDirection) ||
-                (hip->RJ->GetJointAngle() > - ascendLimit && !isRightDirection) ||
-                ( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() > D2R(10.0f)) ||
-                ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() < D2R(-10.0f))
+        // if (fabs(bodyParts.hip->RJI.RJ->GetJointAngle() - bodyParts.hip2->RJI.RJ->GetJointAngle()) > 3.0f)
+        if ((hip->RJI.RJ->GetJointAngle() < ascendLimit && isRightDirection) ||
+                (hip->RJI.RJ->GetJointAngle() > - ascendLimit && !isRightDirection) ||
+                ( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() > D2R(10.0f)) ||
+                ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() < D2R(-10.0f))
                 ){
-            if (( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() > D2R(10.0f)) ||
-                    ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJ->GetJointAngle() < D2R(-10.0f)))
+            if (( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() > D2R(10.0f)) ||
+                    ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() < D2R(-10.0f)))
                 body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * 10), body->GetPosition(), true);
             /*
                 BodyPart* foot;
                 if (isUsingLeftLeg) foot = bodyParts.foot;
                 else foot = bodyParts.foot2;
                 if (isRightDirection)
-                    surfaceAngle =  foot->RJ->GetJointAngle() - M_PI / 2;
-                else surfaceAngle = M_PI / 2 - foot->RJ->GetJointAngle() + M_PI;
+                    surfaceAngle =  foot->RJI.RJ->GetJointAngle() - M_PI / 2;
+                else surfaceAngle = M_PI / 2 - foot->RJI.RJ->GetJointAngle() + M_PI;
                 qDebug()<<R2D(surfaceAngle);
                 */
             isAscendingLeg = true;
@@ -606,8 +607,8 @@ void Entity::applyForce(){
         BodyPart* shoulder;
         BodyPart* wrist;
 
-        bodyParts.head->desiredAngle = 0;
-        bodyParts.body->desiredAngle = 0;
+        bodyParts.head->RJI.desiredAngle = 0;
+        bodyParts.body->RJI.desiredAngle = 0;
 
 
         for (int i = 0; i < 2; ++i){
@@ -629,16 +630,16 @@ void Entity::applyForce(){
             }
             //straight body parts
             if (isRightDirection)
-                foot->desiredAngle = M_PI / 2;
-            else foot->desiredAngle = M_PI / 2 + M_PI;
-            foot->angleDeviation = D2R(10.0f);
+                foot->RJI.desiredAngle = M_PI / 2;
+            else foot->RJI.desiredAngle = M_PI / 2 + M_PI;
+            foot->RJI.angleDeviation = D2R(10.0f);
             if (moveState == MoveState::MS_STAND){
                 body->SetLinearDamping(5);
-                shoulder->desiredAngle = 0;
-                forearm->desiredAngle = 0;
-                shin->desiredAngle = 0;
-                hip->desiredAngle = 0;
-                wrist->desiredAngle = 0;
+                shoulder->RJI.desiredAngle = 0;
+                forearm->RJI.desiredAngle = 0;
+                shin->RJI.desiredAngle = 0;
+                hip->RJI.desiredAngle = 0;
+                wrist->RJI.desiredAngle = 0;
 
                 bodyParts.resetSpeed();
             }
@@ -646,7 +647,7 @@ void Entity::applyForce(){
         }
 
 
-        if (fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 2)){
+        if (fabs(shin->RJI.desiredAngle - shin->RJI.RJ->GetJointAngle() < shin->RJI.angleDeviation / 2)){
             isStanding = true;
         }
         else isStanding = false;
@@ -661,6 +662,7 @@ void Entity::applyForce(){
         switch ( moveState ){
         case MS_LEFT :
             rotate (false);
+
             move ();
             break;
         case MS_RIGHT :
@@ -700,6 +702,8 @@ void Entity::applyForce(){
         }
     }
     bodyParts.setSpeed();
+
+
 }
 
 
@@ -733,17 +737,17 @@ void Entity::crouch(){
             direction = 1;
         else direction = -1;
 
-        forearm->desiredAngle = D2R (90) * direction;
+        forearm->RJI.desiredAngle = D2R (90) * direction;
 
-        hip->desiredAngle = D2R (90) * direction;
-        shin->desiredAngle = D2R (-130) * direction;
+        hip->RJI.desiredAngle = D2R (90) * direction;
+        shin->RJI.desiredAngle = D2R (-130) * direction;
         if (isRightDirection)
-            foot->desiredAngle = M_PI / 2 + D2R(45);
-        else foot->desiredAngle = M_PI / 2 - D2R(45) + M_PI;
+            foot->RJI.desiredAngle = M_PI / 2 + D2R(45);
+        else foot->RJI.desiredAngle = M_PI / 2 - D2R(45) + M_PI;
 
 
-        if (fabs(fabs(shin->desiredAngle - shin->RJ->GetJointAngle() < shin->angleDeviation / 4) &&
-                 fabs(hip->desiredAngle - hip->RJ->GetJointAngle() < hip->angleDeviation / 4))){
+        if (fabs(fabs(shin->RJI.desiredAngle - shin->RJI.RJ->GetJointAngle() < shin->RJI.angleDeviation / 4) &&
+                 fabs(hip->RJI.desiredAngle - hip->RJI.RJ->GetJointAngle() < hip->RJI.angleDeviation / 4))){
             isSitting = true;
         }
         else isSitting = false;
@@ -809,9 +813,9 @@ void Entity::jump(){
                     wrist = bodyParts.wrist2;
                 }
                 float jumpK = 2;
-                hip->motorSpeed *= jumpK;
-                shin->motorSpeed *= jumpK;
-                foot->motorSpeed *= jumpK;
+                hip->RJI.motorSpeed *= jumpK;
+                shin->RJI.motorSpeed *= jumpK;
+                foot->RJI.motorSpeed *= jumpK;
 
             }
             if (isStanding){
