@@ -20,9 +20,9 @@ public:
         static Triangulation  p_instance;
         return p_instance;
     }
-    static vector<b2Body *> triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef,
+    static b2Body *triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef,
                              UserData *UD, b2Vec2 offset = b2Vec2(0,0), b2BodyType bodyType = b2_dynamicBody);
-    static vector<Point *> chainToPolyline(b2Fixture *fixture);
+    static vector<Point *> chainToPolyline(b2Fixture *fixture, b2Vec2 scale = b2Vec2(1, 1));
     static vector<Triangle*> triangulate(std::vector<Point *> polyline);
 private:
     static bool isPossiblePolygon(b2Vec2 vertices[], int n);

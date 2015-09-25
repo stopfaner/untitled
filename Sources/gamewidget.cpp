@@ -27,6 +27,9 @@ float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
  * TODO list
  * separate paint
  * textdisplyadata
+ * TO FIX
+ * all lanscape fixtures have common userdata
+ * fps with triangle textures
 */
 /**
  * @brief GameWidget::GameWidget - contructor
@@ -36,7 +39,7 @@ float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     textures = new Textures;
     GeneralInfo::getInstance().textures = textures;
-    isTexturesEnabled = true;
+    isTexturesEnabled = false;
     testKeyLineData = new KeyLineData(Color(150, 100, 50), DisplayData::Layer::NEAREST);
 }
 
@@ -103,10 +106,10 @@ void GameWidget::createWorld(){
     borderWorld->upperBound.Set(1000.0, 1000.0);
 
 
-    player = new Player (delta.x + 10, delta.y + 10);
+    player = new Player (delta.x + 10, delta.y + 20);
     player->constructBody();
 
-    for (int i = 0; i < 5; ++i){
+    for (int i = 0; i < 2; ++i){
         NPC* npc = new NPC (20 + 3 * i, 10);
         npc->constructBody();
     }
@@ -330,7 +333,7 @@ void GameWidget::paintGL() {
             }
 
             //draw joints
-            bool isDrawingJoints = false;
+            bool isDrawingJoints = true;
             if (isDrawingJoints){
                 b2JointEdge* curJoint = tmp->GetJointList();
                 while(curJoint){
@@ -593,13 +596,6 @@ b2Body* GameWidget::addSpecRect() {
     bodyFix->SetUserData((void*) new UserData(bodyDD));
     body->SetUserData((void*) new UserData);
     return body;
-}
-
-vector<Triangle*> GameWidget::triangulate(std::vector <Point*> polyline){
-    CDT* polygon = new CDT(polyline);
-    polygon->Triangulate();
-
-    return polygon->GetTriangles();
 }
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){

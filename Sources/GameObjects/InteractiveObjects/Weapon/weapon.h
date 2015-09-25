@@ -17,7 +17,6 @@ class Weapon : public InteractiveObject
 {
 public:
     b2Body *body;
-    std::string errorMsg;
     float damage;
     float density;
     Triangulation* triangulation;

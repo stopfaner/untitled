@@ -10,7 +10,7 @@ void Player::constructBody(){
 
 }
 
-Textures::Type Player::getTextureIDType(BodyPart::Type bodyPart)
+Textures::Type Player::getTextureType(BodyPart::Type bodyPart)
 {
     switch (bodyPart){
     case BodyPart::Type::BODY : return Textures::Type::BODY;

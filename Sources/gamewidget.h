@@ -133,9 +133,6 @@ private:
     void loadBackground();
     void createWorld();
 
-
-    vector<b2Body *> triangulateChain(vector<Point *> polyline, b2FixtureDef fixturedef, UserData *UD, b2Vec2 offset, b2BodyType bodyType);
-    vector<Triangle *> triangulate(std::vector<Point *> polyline);
     void destroyLandscape();
 
     void drawNumber(float num, float x, float y, float scale, int precise);

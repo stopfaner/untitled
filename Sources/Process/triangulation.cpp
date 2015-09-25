@@ -1,17 +1,14 @@
 #include "triangulation.h"
 
-vector<b2Body*> Triangulation::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
+b2Body* Triangulation::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
 {
     b2World* world=GeneralInfo::getInstance().world;
-    vector <b2Body*> triangleBodies;
-
 
     b2BodyDef bodydef;
     bodydef.position.Set(offset.x, offset.y);
     bodydef.type = bodyType;
 
     b2Body* body=world->CreateBody(&bodydef);
-    triangleBodies.push_back(body);
     b2PolygonShape shape;
 
     vector<Triangle*> triangles = triangulate(polyline);
@@ -33,10 +30,10 @@ vector<b2Body*> Triangulation::triangulateChain(vector<Point*> polyline, b2Fixtu
     }
     body->ResetMassData();
 
-    return triangleBodies;
+    return body;
 }
 
-vector<Point*> Triangulation::chainToPolyline(b2Fixture* fixture){
+vector<Point*> Triangulation::chainToPolyline(b2Fixture* fixture, b2Vec2 scale){
     std::vector <Point*> polyline;
 
     b2ChainShape* chain = static_cast<b2ChainShape*>( fixture->GetShape());
@@ -44,7 +41,7 @@ vector<Point*> Triangulation::chainToPolyline(b2Fixture* fixture){
     for (int j = 0; j < edgeCount; ++j){
         b2EdgeShape edge;
         ((b2ChainShape*)fixture->GetShape())->GetChildEdge(&edge, j);
-        polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
+        polyline.push_back(new Point(edge.m_vertex2.x * scale.x, edge.m_vertex2.y * scale.y));
     }
     return polyline;
 }

@@ -62,7 +62,6 @@ public:
     void crouch();
     void fall();
     void update();
-    void setBody (b2Body* body);
     b2Body *body;
     bool checkForLadder();
     void changeLeg();
@@ -78,7 +77,7 @@ private:
     bool isStanding;
     float surfaceAngle;
     void applyForce();
-    virtual Textures::Type getTextureIDType(BodyPart::Type bodyPart) = 0;
+    virtual Textures::Type getTextureType(BodyPart::Type bodyPart) = 0;
 };
 
 #endif // ENTITY_H
