@@ -25,6 +25,7 @@ public:
     DisplayData();
     DisplayData(Layer layer);
     bool isShifting;
+    bool isVisible;
     Layer layer;
 
 private:

@@ -8,11 +8,11 @@
 #include "Sources/GameObjects/Characters/bodyparts.h"
 #include "Sources/GameObjects/InteractiveObjects/interactiveobject.h"
 #include "Sources/GameObjects/InteractiveObjects/ladder.h"
-#include "Sources/GameObjects/InteractiveObjects/weapon.h"
 #include "Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h"
 #include "Sources/GameObjects/Sensors/groundsensor.h"
 #include "Sources/UserInterface/keylinedata.h"
 #include "Sources/UserInterface/texturedata.h"
+#include "Sources/GameObjects/InteractiveObjects/Weapon/weapon.h"
 #include "Sources/userdata.h"
 #include "enum.h"
 #include "entitylist.h"
@@ -39,7 +39,8 @@ public:
         MSV_UP,
         MSV_DOWN,
     };
-    bool useWeapon;
+
+    Weapon *weapon;
     bool isOnLadder;
     bool isJumping;
     bool isUsingLeftLeg;
@@ -67,7 +68,7 @@ public:
     void changeLeg();
     bool isGrounded();
     bool isGrounded(bool leftLeg);
-    void constructBody();
+    virtual void constructBody();
 private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;

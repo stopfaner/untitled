@@ -17,13 +17,17 @@
 #include "gamewidget.h"
 #include <QDebug>
 
-#define M_PI		3.14159265358979323846
+
 
 float TEXTURE_SIZE = 100.0f;
 float GRID_STEP = TEXTURE_SIZE;
 float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
 
-
+/*
+ * TODO list
+ * separate paint
+ * textdisplyadata
+*/
 /**
  * @brief GameWidget::GameWidget - contructor
  * @param parent - parent widget instance
@@ -32,6 +36,8 @@ float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     textures = new Textures;
     GeneralInfo::getInstance().textures = textures;
+    isTexturesEnabled = true;
+    testKeyLineData = new KeyLineData(Color(150, 100, 50), DisplayData::Layer::NEAREST);
 }
 
 
@@ -63,12 +69,12 @@ void GameWidget::createWorld(){
     for (int i = 0; i < bodies.size(); ++i){
         bool isKeyLine = false;
         if (isKeyLine)
-            triangulateChain(chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
-                             new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
+            Triangulation::triangulateChain(Triangulation::chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
+                                            new UserData(new KeyLineData(Color(255, 255, 0), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
         else
-            triangulateChain (chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
-                              new UserData(new TriangleTextureData
-                                           (textures->getTextureID(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
+            Triangulation::triangulateChain (Triangulation::chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
+                                             new UserData(new TriangleTextureData
+                                                          (textures->getTextureID(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
     }
     //create polygon
 
@@ -99,21 +105,7 @@ void GameWidget::createWorld(){
 
     player = new Player (delta.x + 10, delta.y + 10);
     player->constructBody();
-    b2dJson jsonSword;
-    jsonSword.readFromFile("json/sword.json", errorMsg);
 
-    b2FixtureDef fixturedefSword;
-    fixturedefSword.density = 1.0;
-    fixturedefSword.filter.maskBits = GeneralInfo::CollisionType::BASIC;
-    fixturedefSword.filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
-
-    b2Body *sword = triangulateChain(chainToPolyline(jsonSword.getBodyByName("Sword")->GetFixtureList()),
-                                     fixturedefSword, new UserData(new KeyLineData(Color(0, 255, 0),
-                                                                                   DisplayData::Layer::PLAYER_NEAR)), player->bodyParts.wrist2->body->GetWorldCenter()).at(0);
-
-    b2RevoluteJointDef RJDSword;
-    RJDSword.Initialize(player->bodyParts.wrist2->body,sword,sword->GetPosition());
-    world->CreateJoint(&RJDSword);
     for (int i = 0; i < 5; ++i){
         NPC* npc = new NPC (20 + 3 * i, 10);
         npc->constructBody();
@@ -175,7 +167,7 @@ void GameWidget::createWorld(){
 
     addSpecRect();
 
-    new Car (b2Vec2(10, 10), 0.8);
+    new Car (b2Vec2(50, 10), 0.8);
 
     //Build build();
     // build.generateDungeon(b2Vec2(0, 70), 5, 5);
@@ -183,208 +175,8 @@ void GameWidget::createWorld(){
 
     //interface
     displayItems.push_back(new HUDElement (new TextureData(textures->getTextureID(Textures::Type::TEST1), DisplayData::Layer::HUD),
-                                           b2Vec2(5, -5), b2Vec2(1, 1), 0));
+                                           b2Vec2(20, -5), b2Vec2(2, 2), 0));
 
-}
-vector<Triangle*> GameWidget::triangulate(std::vector <Point*> polyline){
-    CDT* polygon = new CDT(polyline);
-    polygon->Triangulate();
-
-    return polygon->GetTriangles();
-}
-
-void GameWidget::addWalkingMachine (){
-    float x = 20, y = 5;
-    float widthScale = 1, heightScale = 1;
-    DisplayData* DD = (DisplayData*) new KeyLineData (Color(100, 150, 50), DisplayData::Layer::OBJECT);
-
-    b2Body* mainBody = addRect(x, y, 3 * widthScale * 2, 0.5 * heightScale * 2, true, Textures::Type::TEST1);
-    mainBody->SetType(b2_staticBody);
-    b2Filter filter;
-    filter.groupIndex = -1;
-    mainBody->GetFixtureList()->SetFilterData(filter);
-    b2BodyDef bodydef;
-    bodydef.position.Set(x, y);
-    bodydef.type = b2_dynamicBody;
-
-
-
-
-    UserData* basicUD = new UserData(DD);
-
-
-    b2Body* circleBody = world->CreateBody(&bodydef);
-    //circleBody->SetType(b2_staticBody);
-    b2CircleShape circleShape;
-    circleShape.m_radius = 1;
-
-    b2FixtureDef fixturedef;
-    fixturedef.density = 1;
-    fixturedef.shape = &circleShape;
-    fixturedef.filter.groupIndex = -1;
-    b2Fixture* circleFixture = circleBody->CreateFixture(&fixturedef);
-    circleFixture->SetUserData(static_cast<void*> (basicUD));
-
-
-    b2RevoluteJointDef mainRJD;
-    mainRJD.Initialize(mainBody, circleBody, circleBody->GetWorldCenter());
-    mainRJD.maxMotorTorque = 300;
-    mainRJD.motorSpeed = 5;
-    mainRJD.enableMotor = true;
-    b2RevoluteJoint* mainRJ = static_cast<b2RevoluteJoint*> (world->CreateJoint(&mainRJD));
-    mainRJD.enableMotor = false;
-
-    b2EdgeShape edgeShape;
-    edgeShape.Set(b2Vec2(0, 0), b2Vec2(-4 * widthScale, 3 * heightScale ));
-    bodydef.position.Set(x + circleShape.m_radius, y);
-    b2Body* edge=world->CreateBody(&bodydef);
-    //edge->SetType(b2_staticBody);
-    fixturedef.shape = &edgeShape;
-
-    b2Fixture* fixture = edge->CreateFixture(&fixturedef);
-    fixture->SetUserData(static_cast<void*>(new UserData
-                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
-    mainRJD.Initialize(circleBody, edge, edge->GetPosition());
-    world->CreateJoint(&mainRJD);
-
-    /*
-    b2Body* plank1 = addRect(x - 2.5 * widthScale - circleShape.m_radius, y, 2.5 * widthScale * 2, 0.05 * heightScale * 2, true, Textures::Type::TEST1);
-plank1->SetType(b2_staticBody);
-    plank1->GetFixtureList()->SetFilterData(filter);
-    mainRJD.Initialize(circleBody, plank1, b2Vec2(circleBody->GetWorldCenter().x - circleShape.m_radius,
-                                                  circleBody->GetWorldCenter().y));
-    mainRJD.enableMotor = false;
-    world->CreateJoint(&mainRJD);
-*/
-
-
-    b2PolygonShape triangleShape;
-    b2Vec2 trianglePoints [3] = {b2Vec2(0, 0), b2Vec2(-3 * widthScale, 0), b2Vec2(0, 3 * heightScale)};
-    triangleShape.Set(trianglePoints, 3);
-
-
-
-
-    bodydef.position.Set(x - 3 * widthScale, y);
-    bodydef.type=b2_dynamicBody;
-    b2Body* triangle=world->CreateBody(&bodydef);
-    //triangle->SetType(b2_staticBody);
-    fixturedef.shape = &triangleShape;
-
-    fixture = triangle->CreateFixture(&fixturedef);
-    fixture->SetUserData(static_cast<void*>(new UserData
-                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
-
-
-    mainRJD.Initialize(mainBody, triangle, triangle->GetPosition());
-    world->CreateJoint(&mainRJD);
-
-    mainRJD.Initialize(triangle, edge, b2Vec2(triangle->GetPosition().x, triangle->GetPosition().y + 3 * heightScale));
-    world->CreateJoint(&mainRJD);
-
-
-
-    edgeShape.Set(b2Vec2(0, 0), b2Vec2(0, - 3 * heightScale ));
-    bodydef.position.Set(triangle->GetPosition().x, triangle->GetPosition().y);
-    b2Body* edge1=world->CreateBody(&bodydef);
-    //edge1->SetType(b2_staticBody);
-    fixturedef.shape = &edgeShape;
-
-    fixture = edge1->CreateFixture(&fixturedef);
-    fixture->SetUserData(static_cast<void*>(new UserData
-                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
-    mainRJD.Initialize(triangle, edge1, triangle->GetPosition());
-    world->CreateJoint(&mainRJD);
-
-
-    bodydef.position.Set(triangle->GetPosition().x - 3 * widthScale, triangle->GetPosition().y);
-    b2Body* edge2=world->CreateBody(&bodydef);
-    //edge2->SetType(b2_staticBody);
-    fixturedef.shape = &edgeShape;
-
-    fixture = edge2->CreateFixture(&fixturedef);
-    fixture->SetUserData(static_cast<void*>(new UserData
-                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
-    mainRJD.Initialize(triangle, edge2, b2Vec2(triangle->GetPosition().x  - 3 * widthScale, triangle->GetPosition().y));
-    world->CreateJoint(&mainRJD);
-
-
-
-    trianglePoints[0] = b2Vec2(0, 0);
-    trianglePoints[1] = b2Vec2(-3 * widthScale, 0);
-    trianglePoints[2] = b2Vec2(0, -4 * heightScale);
-
-    triangleShape.Set(trianglePoints, 3);
-    bodydef.position.Set(triangle->GetPosition().x, triangle->GetPosition().y - 3 * heightScale);
-    b2Body* triangle2=world->CreateBody(&bodydef);
-    //triangle2->SetType(b2_staticBody);
-    fixturedef.shape = &triangleShape;
-
-    fixture = triangle2->CreateFixture(&fixturedef);
-    fixture->SetUserData(static_cast<void*>(new UserData
-                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
-
-    mainRJD.Initialize(edge1, triangle2, b2Vec2(triangle->GetPosition().x, triangle->GetPosition().y - 3 * heightScale));
-    world->CreateJoint(&mainRJD);
-
-    mainRJD.Initialize(edge2, triangle2, b2Vec2(triangle->GetPosition().x  - 3 * widthScale, triangle->GetPosition().y - 3 * heightScale));
-    world->CreateJoint(&mainRJD);
-
-
-
-    /*
-    bodydef.position.Set(triangle->GetPosition().x - 3 * widthScale, triangle->GetPosition().y);
-    b2Body* edge3=world->CreateBody(&bodydef);
-edge3->SetType(b2_staticBody);
-    fixturedef.shape = &edgeShape;
-    fixturedef.density = 1.0;
-    fixturedef.filter.groupIndex = -1;
-
-    fixture = edge3->CreateFixture(&fixturedef);
-    fixture->SetUserData(static_cast<void*>(new UserData
-                                            (new KeyLineData(Color(10, 90, 113), DisplayData::Layer::OBJECT))));
-    mainRJD.Initialize(triangle, edge3, b2Vec2(triangle->GetPosition().x  - 3 * widthScale, triangle->GetPosition().y));
-    world->CreateJoint(&mainRJD);
-    */
-
-    mainRJD.Initialize(triangle2, circleBody, b2Vec2(circleBody->GetPosition().x  + circleShape.m_radius, triangle->GetPosition().y));
-    world->CreateJoint(&mainRJD);
-    mainRJD.Initialize(triangle2, circleBody, b2Vec2(triangle2->GetPosition().x, triangle2->GetPosition().y));
-    world->CreateJoint(&mainRJD);
-
-}
-
-b2Body *GameWidget::addBot(Bot* bot) {/*
-    b2BodyDef bodydef;
-    bodydef.position.Set(0, 0);
-    bodydef.type = b2_dynamicBody;
-    bodydef.fixedRotation = true;
-    b2Body* body = world->CreateBody(&bodydef);
-    DisplayData* bodyDD = new NonDrawable;
-    GameObject* bodyUD = new GameObject (bodyDD);
-    body->SetUserData((void*) bodyUD);
-    b2PolygonShape shape;
-    shape.SetAsBox(1,2);
-
-
-    b2FixtureDef fixturedef;
-    fixturedef.shape = &shape;
-    fixturedef.density = 0.0;
-
-    b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
-
-    DisplayData* dispData = (DisplayData*)TextureData(textures->getTextureID(Textures::Type::));
-    GameObject* GameObject = new BodyPart(dispData, BodyPart::Type::BODY);
-
-   mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::BODY));
-
-    b2PolygonShape polygonShape;
-    polygonShape.SetAsBox(0.3, 0.3, b2Vec2(0,-2), 0);
-    fixturedef.isSensor = true;
-    b2Fixture* footSensorFixture = body->CreateFixture(&fixturedef);
-
-    footSensorFixture->SetUserData((void*) new BodyPart (BodyPart::Type::FOOT_SENSOR));
-    return body;*/
 }
 
 void GameWidget::updateGame(){
@@ -430,12 +222,13 @@ void GameWidget::loadBackground (){
 
 void GameWidget::paintGL() {
 
-
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
-
     glLoadIdentity();
 
+    //TODO move in dispItems, change dispItems to DisplayData vec, do cords in meters
+    //drawNumber(42.42, 0, 10, 1, 5);
+    drawText("hello, world!", b2Vec2(-10, 10), 0.5);
     //interface
     for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
         UIElement* item = *iterator;
@@ -444,43 +237,47 @@ void GameWidget::paintGL() {
     }
 
     //bodies
-
     b2Body* tmp=world->GetBodyList();
-
     while(tmp){
         b2Fixture* curFixture = tmp->GetFixtureList();
         while(curFixture){
-            b2Shape::Type curFixtureType = curFixture->GetShape()->GetType();
-
+            //qDebug()<<"1";
+            UserData* UD = static_cast<UserData*>(curFixture->GetUserData());
+            //qDebug()<<"2";
             DisplayData* displayData = nullptr;
-            void* UD = curFixture->GetUserData();
-            displayData = static_cast<UserData*>(UD)->displayData;
+            displayData = UD->displayData;
             if (displayData){
+                b2Shape::Type curFixtureType = curFixture->GetShape()->GetType();
                 if (curFixtureType ==  b2Shape::e_polygon){
-                    int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
-                    b2Vec2 points[count];
-                    for(int i=0; i < count; i++){
-                        points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
-                    }
-                    NonDrawable* ND_p = dynamic_cast<NonDrawable*>(displayData);
-                    TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
-                    KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
-                    TriangleTextureData* TTD_p = dynamic_cast<TriangleTextureData*>(displayData);
-                    if (!ND_p)
+                    if (displayData->isVisible){
+                        int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
+                        b2Vec2 points[count];
+                        for(int i=0; i < count; i++){
+                            points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
+                        }
+                        TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
+                        KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
+                        TriangleTextureData* TTD_p = dynamic_cast<TriangleTextureData*>(displayData);
                         if (TTD_p){
-                            drawTriangle(points, count, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
+                            if (isTexturesEnabled){
+                                drawTriangle(points, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
+                            }
+                            else
+                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), testKeyLineData);
                         }
                         else
                             if (TD_p){
-                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
-                                TD_p->changeFrame();
+                                if (isTexturesEnabled){
+                                    drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
+                                    TD_p->changeFrame();
+                                }
+                                else
+                                    drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), testKeyLineData);
                             }
                             else
                                 if (KLD_p)
                                     drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
-                    //else
-                    //  if (TTD_p)
-                    //    drawTriangle(points, count, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
+                    }
                 }
                 else
                     if (curFixtureType == b2Shape::e_circle){
@@ -531,15 +328,19 @@ void GameWidget::paintGL() {
 
                             }
             }
+
             //draw joints
-            /*
-            b2JointEdge* curJoint = tmp->GetJointList();
-            while(curJoint){
-                drawCircle(0.07, curJoint->joint->GetAnchorA(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
-                drawCircle(0.07, curJoint->joint->GetAnchorB(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
-                curJoint = curJoint->next;
+            bool isDrawingJoints = false;
+            if (isDrawingJoints){
+                b2JointEdge* curJoint = tmp->GetJointList();
+                while(curJoint){
+                    drawCircle(0.07, curJoint->joint->GetAnchorA(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
+                    drawCircle(0.07, curJoint->joint->GetAnchorB(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
+                    curJoint = curJoint->next;
+                }
             }
-*/
+            //
+
             curFixture=curFixture->GetNext();
         }
         tmp=tmp->GetNext();
@@ -549,9 +350,10 @@ void GameWidget::paintGL() {
     bool isDrawingGrid = true;
     if (isDrawingGrid){
         float step = GRID_STEP;
+        float width = 0.06;
         for (int i = 0; i < 10; ++i){
-            drawRectangle(b2Vec2(i * step,0), 0.1 / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
-            drawRectangle(b2Vec2(0,i * step), 1000, 0.1 / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+            drawRectangle(b2Vec2(i * step,0), width / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+            drawRectangle(b2Vec2(0,i * step), 1000, width / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
         }
     }
 
@@ -639,8 +441,10 @@ void GameWidget::destroyLandscape(){
             polyline.push_back(new Point(sol[i][j].X / CONVERSION_KOEF,sol[i][j].Y / CONVERSION_KOEF));
         }
         b2FixtureDef fixturedef;
-        triangulateChain(polyline, fixturedef, new UserData(new TriangleTextureData(
-                 textures->getTextureID(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), b2Vec2(0, 0), b2_staticBody);
+
+        Triangulation::triangulateChain(polyline, fixturedef, new UserData(new TriangleTextureData(textures->getTextureID(
+                         Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)),b2Vec2(0, 0), b2_staticBody);
+
     }
 
     world->DestroyBody(box);
@@ -686,8 +490,12 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->isJumping = true;
     if (key == Qt::Key_E)
         player->useObject();
+    if (key == Qt::Key_T)
+        if (isTexturesEnabled)
+            isTexturesEnabled = false;
+        else isTexturesEnabled = true;
 
-    if (key == Qt::Key_T){
+    if (key == Qt::Key_J){
         b2dJson json;
         json.writeToFile(world, "json/world.json");
         qDebug()<<"saved";
@@ -786,81 +594,12 @@ b2Body* GameWidget::addSpecRect() {
     body->SetUserData((void*) new UserData);
     return body;
 }
-vector<Point*> GameWidget::chainToPolyline(b2Fixture* fixture){
-    std::vector <Point*> polyline;
 
-    b2ChainShape* chain = static_cast<b2ChainShape*>( fixture->GetShape());
-    int edgeCount = chain->GetChildCount();
-    for (int j = 0; j < edgeCount; ++j){
-        b2EdgeShape edge;
-        ((b2ChainShape*)fixture->GetShape())->GetChildEdge(&edge, j);
-        polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
-    }
-    return polyline;
-}
-bool GameWidget::isPossiblePolygon(b2Vec2 vertices[], int n){
-    b2Vec2 ps[b2_maxPolygonVertices];
-    int32 tempCount = 0;
-    for (int32 i = 0; i < n; ++i)
-    {
-        b2Vec2 v = vertices[i];
+vector<Triangle*> GameWidget::triangulate(std::vector <Point*> polyline){
+    CDT* polygon = new CDT(polyline);
+    polygon->Triangulate();
 
-        bool unique = true;
-        for (int32 j = 0; j < tempCount; ++j)
-        {
-            if (b2DistanceSquared(v, ps[j]) < 0.5f * b2_linearSlop)
-            {
-                unique = false;
-                break;
-            }
-        }
-
-        if (unique)
-        {
-            ps[tempCount++] = v;
-        }
-    }
-
-    n = tempCount;
-    if (n < 3)
-        return false;
-    return true;
-}
-
-vector<b2Body*> GameWidget::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
-{
-    vector <b2Body*> triangleBodies;
-
-
-    b2BodyDef bodydef;
-    bodydef.position.Set(offset.x, offset.y);
-    bodydef.type = bodyType;
-
-    b2Body* body=world->CreateBody(&bodydef);
-    triangleBodies.push_back(body);
-    b2PolygonShape shape;
-
-    vector<Triangle*> triangles = triangulate(polyline);
-    for (int j = 0; j < triangles.size(); ++j){
-        Triangle* triangle = triangles.at(j);
-        b2Vec2 points[3];
-        for (unsigned int k = 0; k < 3; ++k){
-            points[k].x = triangle->GetPoint(k)->x;
-            points[k].y = triangle->GetPoint(k)->y;
-        }
-        if (isPossiblePolygon(points, 3)){
-            shape.Set(points, 3);
-            fixturedef.shape = &shape;
-
-            b2Fixture* fixture = body->CreateFixture(&fixturedef);
-            UserData* curUD = new UserData;
-            curUD = UD;
-            fixture->SetUserData(static_cast<void*>(curUD));
-        }
-    }
-    body->ResetMassData();
-
-    return triangleBodies;
+    return polygon->GetTriangles();
 }
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
@@ -887,7 +626,8 @@ void GameWidget::drawPolygon(b2Vec2* points, int count, b2Vec2 center, float ang
     //choosing sprite tile
 
     int tileColumn = textureData->currentFrameN % textureData->texture_p->columns;
-    int tileRow = textureData->currentFrameN / textureData->texture_p->columns;
+    int tileRow = textureData->texture_p->rows - textureData->currentFrameN / textureData->texture_p->columns;
+    tileRow--;
     for (int i = 0; i < 4; ++i){
 
         texPoints[i].x /= textureData->texture_p->columns;
@@ -936,7 +676,7 @@ void GameWidget::drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData
     glPopMatrix();
 }
 
-void GameWidget::drawTriangle(b2Vec2* points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData){
+void GameWidget::drawTriangle(b2Vec2* points, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData){
     float textureSize = TEXTURE_SIZE; //meters
     //setting texture's points
     b2Vec2 worldPoints[3];
@@ -1116,4 +856,87 @@ void GameWidget::drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineDat
 
     glPopMatrix();
 
+}
+
+void GameWidget::drawNumber(float num, float x, float y, float scale, int precise){
+    std::stringstream ss;
+    ss<<num;
+    string s;
+    s = ss.str();
+    string shortString;
+    for (int i = 0; i < precise; ++i){
+        if (i < s.size())
+            shortString.push_back(s.at(i));
+    }
+    drawText(shortString, b2Vec2(x, y), scale);
+}
+
+vector<GameWidget::Points4> GameWidget::getTextPoints(string s) {
+    vector<Points4> retur;
+    TextureData* textureData = new TextureData(textures->getTextureID(Textures::Type::FONT), DisplayData::Layer::HUD);
+    for(unsigned int i = 0; i < s.size(); i++) {
+        b2Vec2 texPoints[4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0f}};
+        int currentFrameN = 0;
+        if(s.at(i) >= 32 && s.at(i) <= 126)
+            currentFrameN = s.at(i) - '!' + 1;
+        int tileColumn = currentFrameN % textureData->texture_p->columns;
+        int tileRow = textureData->texture_p->rows - currentFrameN / textureData->texture_p->columns;
+        tileRow--;
+        for (int j = 0; j < 4; ++j) {
+            texPoints[j].x /= textureData->texture_p->columns;
+            texPoints[j].y /= textureData->texture_p->rows;
+            texPoints[j].x += (float) tileColumn/textureData->texture_p->columns;
+            texPoints[j].y += (float) tileRow/textureData->texture_p->rows;
+        }
+        Points4 ret;
+        ret.point1 = texPoints[0];
+        ret.point2 = texPoints[1];
+        ret.point3 = texPoints[2];
+        ret.point4 = texPoints[3];
+        retur.push_back(ret);
+    }
+    delete textureData;
+    return retur;
+}
+
+void GameWidget::drawText(string s, b2Vec2 center, float size) {
+    float x = center.x;
+    float y = center.y;
+    float width = 1 * size;
+    float height = 2 * size;
+    //width /= s.size();
+    vector<Points4> text = getTextPoints(s);
+    b2Vec2 points[4];
+    b2Vec2 straightImage [4] = {{0.0f, 0.0f},{1.0f, 0.0f},{1.0f, 1.0f},{0.0f, 1.0f}};
+    TextureData* textureData = new TextureData(textures->getTextureID(Textures::Type::FONT), DisplayData::Layer::HUD);
+    for(unsigned int j = 0; j < s.size(); j++) {
+        Points4 temp = text.at(j);
+        points[0] = temp.point1;
+        points[1] = temp.point2;
+        points[2] = temp.point3;
+        points[3] = temp.point4;
+
+        glPushMatrix();
+        glColor3f(1, 1, 1);
+        glTranslatef((x-width/2*s.size()+width*j )*M2P/WIDTH, (y-height/2)*M2P/WIDTH, textureData->layer/ (float) DisplayData::Layer::MAX);
+        //if(textureData->isShifting)
+        //    glTranslatef(-player->body->GetWorldCenter().x*M2P/WIDTH,-player->body->GetWorldCenter().y*M2P/WIDTH, 0);
+
+        glRotatef(0*180.0/M_PI,0,0,1);
+
+        glEnable(GL_TEXTURE_2D);
+
+        glBindTexture(GL_TEXTURE_2D, textureData->texture_p->id);
+
+        glBegin(GL_POLYGON);
+        for(int i = 0; i < 4; i++){
+            glTexCoord2f(points[i].x, points[i].y);
+            glVertex2f(straightImage[i].x*M2P/WIDTH*width,straightImage[i].y*M2P/WIDTH*height);
+        }
+        glEnd();
+
+        glDisable(GL_TEXTURE_2D);
+        glPopMatrix();
+    }
+    delete textureData;
 }

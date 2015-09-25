@@ -1,6 +1,13 @@
 #include "player.h"
 
 Player::Player(float x, float y) : Entity (x, y){
+
+}
+
+void Player::constructBody(){
+    Entity::constructBody();
+    weapon = new Sword(bodyParts.wrist2->body, bodyParts.wrist2->body->GetPosition());
+
 }
 
 Textures::Type Player::getTextureIDType(BodyPart::Type bodyPart)

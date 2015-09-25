@@ -91,7 +91,6 @@ SOURCES += main.cpp \
     Sources/UserInterface/color.cpp \
     Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.cpp \
     Sources/GameObjects/InteractiveObjects/Vehicles/car.cpp \
-    Sources/UserInterface/nondrawable.cpp \
     Sources/userdata.cpp \
     Sources/GameObjects/Characters/bodyparts.cpp \
     Sources/generalinfo.cpp \
@@ -108,8 +107,11 @@ SOURCES += main.cpp \
     poly2tri/sweep/sweep.cc \
     poly2tri/sweep/sweep_context.cc \
     Sources/UserInterface/triangletexturedata.cpp \
-    Sources/GameObjects/InteractiveObjects/weapon.cpp \
-    Clipper/clipper.cpp
+    Clipper/clipper.cpp \
+    Sources/GameObjects/InteractiveObjects/Weapon/weapon.cpp \
+    Sources/GameObjects/InteractiveObjects/Weapon/sword.cpp \
+    Sources/Process/triangulation.cpp \
+    Sources/Process/jointmanager.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -194,7 +196,6 @@ HEADERS  += \
     Sources/UserInterface/color.h \
     Sources/GameObjects/InteractiveObjects/Vehicles/vehicle.h \
     Sources/GameObjects/InteractiveObjects/Vehicles/car.h \
-    Sources/UserInterface/nondrawable.h \
     Sources/userdata.h \
     Sources/GameObjects/Characters/bodyparts.h \
     Sources/GameObjects/entitylist.h \
@@ -215,8 +216,11 @@ HEADERS  += \
     poly2tri/sweep/sweep_context.h \
     poly2tri/poly2tri.h \
     Sources/UserInterface/triangletexturedata.h \
-    Sources/GameObjects/InteractiveObjects/weapon.h \
-    Clipper/clipper.hpp
+    Clipper/clipper.hpp \
+    Sources/GameObjects/InteractiveObjects/Weapon/weapon.h \
+    Sources/GameObjects/InteractiveObjects/Weapon/sword.h \
+    Sources/Process/triangulation.h \
+    Sources/Process/jointmanager.h
 
 
 unix|win32: LIBS += -L$$PWD/SOIL/ -llibSOIL

@@ -21,12 +21,17 @@
 #include <QMouseEvent>
 #include <QTimer>
 
-#include <Box2D/Box2D.h>
+#include <time.h>
+
+#include <vector>
+#include <sstream>
+
+#include "SOIL.h"
+
+#include "Box2D/Box2D.h"
 #include "Box2D/Json/b2dJson.h"
 
-#include <SOIL.h>
-#include <vector>
-#include <time.h>
+#include "Sources/Process/triangulation.h"
 
 #include "GameObjects/Characters/npc.h"
 #include "GameObjects/Characters/bot.h"
@@ -47,7 +52,6 @@
 #include "UserInterface/displaydata.h"
 #include "UserInterface/keylinedata.h"
 #include "UserInterface/texturedata.h"
-#include "UserInterface/nondrawable.h"
 #include "UserInterface/HUD/hudelement.h"
 #include "UserInterface/triangletexturedata.h"
 
@@ -73,12 +77,8 @@ public:
      * @param parent - parent widget instance
      */
     GameWidget(QWidget *parent = 0);
-//public slots:
-    void updateGame();
-    void addWalkingMachine();
-    void drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData *textureData);
-    void loadBackground();
 private:
+
     int WIDTH = 600;
     int HEIGHT = 600;
 
@@ -89,52 +89,58 @@ private:
     float kx = 0.7;
     float ky = 0.7;
 
+
+    struct Points4{
+           b2Vec2 point1,point2,point3,point4;
+        };
+
+
     Player *player;
-
-
     QTimer *timer;
 
     b2World* world;
 
+    Textures *textures;
+    KeyLineData* testKeyLineData;
+
+    vector<b2Body*> destroyBodies;
+    std::list<UIElement*> displayItems;
+
+    bool isTexturesEnabled;
+
     void initializeGL();
-
     void resizeGL(int nWidth, int nHeight);
-
     void paintGL();
 
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
-
     void keyPressEvent(QKeyEvent* event);
     void keyReleaseEvent(QKeyEvent* event);
 
     b2Body *addRect(b2Vec2 center, float w, float h, bool dyn, Textures::Type type, bool isSensor = false);
     b2Body* addRect(float x, float y, float width, float height, bool dyn, Textures::Type type, bool isSensor = false);
-
     b2Body* addSpecRect ();
 
-
-    vector<b2Body *> triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef,
-                             UserData *UD, b2Vec2 offset = b2Vec2(0,0), b2BodyType bodyType = b2_dynamicBody);
-    void drawTriangle(b2Vec2 *points, int count, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData);
+    void drawTriangle(b2Vec2 *points, b2Vec2 center, float angle, TriangleTextureData *triangleTextureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center, float angle, TextureData *textureData);
     void drawPolygon(b2Vec2* points, int count, b2Vec2 center,float angle, KeyLineData *keyLineData);
     void drawCircle(float radius, b2Vec2 center, KeyLineData *keyLineData, float angle);
     void drawChain(b2Vec2* points, b2Vec2 center, int count, KeyLineData *keyLineData);
+    void drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData *textureData);
 
-    vector<Triangle*> triangulate(std::vector<Point *> polyline);
+    void updateGame();
 
+    void loadBackground();
     void createWorld();
 
-    b2Body *addBot(Bot* bot);
 
-    Textures *textures;
-
-    vector<b2Body*> destroyBodies;
-    std::list<UIElement*> displayItems;
+    vector<b2Body *> triangulateChain(vector<Point *> polyline, b2FixtureDef fixturedef, UserData *UD, b2Vec2 offset, b2BodyType bodyType);
+    vector<Triangle *> triangulate(std::vector<Point *> polyline);
     void destroyLandscape();
-    vector<Point *> chainToPolyline(b2Fixture *fixture);
-    bool isPossiblePolygon(b2Vec2 vertices[], int n);
+
+    void drawNumber(float num, float x, float y, float scale, int precise);
+    vector<Points4> getTextPoints(string s);
+    void drawText(string s, b2Vec2 center = b2Vec2(0, 0), float size = 1);
 };
 
 #endif // GAMEWIDGET_H

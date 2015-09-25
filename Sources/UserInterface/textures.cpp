@@ -39,6 +39,7 @@ void Textures::loadAll (){
     loadTexture(NPC_WRIST, "images/NPC/wrist.png");
     loadTexture(NPC_HEAD, "images/NPC/head.png");
 
+    loadTexture(FONT, "images/font.png", 6, 16);
 }
 
 void Textures::loadTexture (Type type, std::string path, int rows, int columns){

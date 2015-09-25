@@ -2,6 +2,7 @@
 
 DisplayData::DisplayData(){
     isShifting = true;
+    isVisible = true;
     layer = Layer::NEAREST;
 }
 
