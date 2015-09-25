@@ -96,7 +96,7 @@ void Entity::constructBody (){
     GameObject* bodyPart = BPBody;
 
     mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                       textures->getTexture(this->getTextureType(BodyPart::Type::BODY)), DisplayData::Layer::PLAYER)));
+                                                       textures->getTextureID(this->getTextureIDType(BodyPart::Type::BODY)), DisplayData::Layer::PLAYER)));
 
 
 
@@ -133,7 +133,7 @@ void Entity::constructBody (){
         if (i) layer = DisplayData::Layer::PLAYER_FAR;
         else layer = DisplayData::Layer::PLAYER_NEAR;
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                           textures->getTexture(getTextureType(BodyPart::Type::HIP)), layer)));
+                                                           textures->getTextureID(getTextureIDType(BodyPart::Type::HIP)), layer)));
 
 
         b2RevoluteJointDef RJDhip;
@@ -163,7 +163,7 @@ void Entity::constructBody (){
         bodyPart = BPShin;
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                           textures->getTexture(getTextureType(BodyPart::Type::SHIN)), layer)));
+                                                           textures->getTextureID(getTextureIDType(BodyPart::Type::SHIN)), layer)));
 
 
         b2RevoluteJointDef RJDknee;
@@ -196,7 +196,7 @@ void Entity::constructBody (){
         bodyPart = BPFoot;
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                           textures->getTexture(getTextureType(BodyPart::Type::FOOT)), layer)));
+                                                           textures->getTextureID(getTextureIDType(BodyPart::Type::FOOT)), layer)));
 
         b2RevoluteJointDef RJDfoot;
         RJDfoot.enableLimit = false;
@@ -243,7 +243,7 @@ void Entity::constructBody (){
 
     BodyPart* BPHead = new BodyPart(this, BodyPart::Type::HEAD, head);
     bodyPart = BPHead;
-    DisplayData* DD = new TextureData( textures->getTexture(getTextureType(BodyPart::Type::HEAD)), DisplayData::Layer::PLAYER);
+    DisplayData* DD = new TextureData( textures->getTextureID(getTextureIDType(BodyPart::Type::HEAD)), DisplayData::Layer::PLAYER);
     BPHead->DD = DD;
     mainFixture->SetUserData((void*) new UserData (bodyPart, DD));
 
@@ -289,7 +289,7 @@ void Entity::constructBody (){
 
 
         mainFixture->SetUserData((void*) new UserData (bodyPart,  new TextureData(
-                                                           textures->getTexture(getTextureType(BodyPart::Type::SHOULDER)), layer)));
+                                                           textures->getTextureID(getTextureIDType(BodyPart::Type::SHOULDER)), layer)));
 
 
         b2RevoluteJointDef RJDshoulder;
@@ -321,7 +321,7 @@ void Entity::constructBody (){
 
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                           textures->getTexture(getTextureType(BodyPart::Type::FOREARM)), layer)));
+                                                           textures->getTextureID(getTextureIDType(BodyPart::Type::FOREARM)), layer)));
 
 
         b2RevoluteJointDef RJDforearm;
@@ -356,7 +356,7 @@ void Entity::constructBody (){
         bodyPart = BPwrist;
 
         mainFixture->SetUserData((void*) new UserData (bodyPart, new TextureData(
-                                                           textures->getTexture(getTextureType(BodyPart::Type::WRIST)), layer)));
+                                                           textures->getTextureID(getTextureIDType(BodyPart::Type::WRIST)), layer)));
 
         b2RevoluteJointDef RJDwrist;
         RJDwrist.enableLimit = true;

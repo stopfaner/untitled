@@ -20,7 +20,7 @@ Ladder::Ladder(b2Vec2 center, b2Vec2 size){
     b2Fixture* ladderFixture = body->CreateFixture(&fixturedefLadder);
 
     body->SetUserData((void*) new UserData);
-    DisplayData* ladderDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::LADDER),
+    DisplayData* ladderDD = (DisplayData*) new TextureData(textures->getTextureID(Textures::Type::LADDER),
                                                            DisplayData::Layer::BACKGROUND_OBJECT);
     ladderFixture->SetUserData((void*) new UserData(this, ladderDD));
 

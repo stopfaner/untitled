@@ -12,7 +12,7 @@ class Player : public Entity
 public:
     Player(float x = 0, float y = 10);
 private:
-    Textures::Type getTextureType(BodyPart::Type bodyPart);
+    Textures::Type getTextureIDType(BodyPart::Type bodyPart);
 };
 
 #endif // PLAYER_H

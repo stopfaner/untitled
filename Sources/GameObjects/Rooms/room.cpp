@@ -5,7 +5,7 @@
 Room::Room(Textures* texture_p, b2World *world){
     this->texture_p = texture_p;
     this->world = world;
-    wallTD = new TextureData (texture_p->getTexture(Textures::Type::WALL), DisplayData::Layer::BUILDING);
+    wallTD = new TextureData (texture_p->getTextureID(Textures::Type::WALL), DisplayData::Layer::BUILDING);
 }
 
 b2Body *Room::CreateRoom(b2Vec2 center)

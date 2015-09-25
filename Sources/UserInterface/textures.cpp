@@ -60,7 +60,7 @@ void Textures::loadTexture (Type type, std::string path, int rows, int columns){
     vec.push_back(tex);
 }
 
-Textures::Texture* Textures::getTexture (Type type){
+Textures::Texture* Textures::getTextureID (Type type){
     for (int i = 0; i < vec.size(); ++i)
         if (vec.at(i)->type == type)
             return vec[i];

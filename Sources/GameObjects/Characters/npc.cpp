@@ -4,7 +4,7 @@ NPC::NPC(float x, float y) : Entity (x, y){
     moveState = MS_RIGHT;
 }
 
-Textures::Type NPC::getTextureType(BodyPart::Type bodyPart)
+Textures::Type NPC::getTextureIDType(BodyPart::Type bodyPart)
 {
     switch (bodyPart){
     case BodyPart::Type::BODY : return Textures::Type::NPC_BODY;

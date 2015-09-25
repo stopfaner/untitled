@@ -47,7 +47,7 @@ void GameWidget::createWorld(){
     loadBackground();
 
 
-    b2Vec2 delta( 0, 0); // move all bodies by this offset
+    b2Vec2 delta (0, 0); // move all bodies by this offset
 
     string errorMsg;
     b2dJson json;
@@ -68,7 +68,7 @@ void GameWidget::createWorld(){
         else
             triangulateChain (chainToPolyline(bodies.at(i)->GetFixtureList()), fixturedef,
                               new UserData(new TriangleTextureData
-                                           (textures->getTexture(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
+                                           (textures->getTextureID(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
     }
     //create polygon
 
@@ -182,7 +182,7 @@ void GameWidget::createWorld(){
 
 
     //interface
-    displayItems.push_back(new HUDElement (new TextureData(textures->getTexture(Textures::Type::TEST1), DisplayData::Layer::HUD),
+    displayItems.push_back(new HUDElement (new TextureData(textures->getTextureID(Textures::Type::TEST1), DisplayData::Layer::HUD),
                                            b2Vec2(5, -5), b2Vec2(1, 1), 0));
 
 }
@@ -373,7 +373,7 @@ b2Body *GameWidget::addBot(Bot* bot) {/*
 
     b2Fixture* mainFixture = body->CreateFixture(&fixturedef);
 
-    DisplayData* dispData = (DisplayData*)TextureData(textures->getTexture(Textures::Type::));
+    DisplayData* dispData = (DisplayData*)TextureData(textures->getTextureID(Textures::Type::));
     GameObject* GameObject = new BodyPart(dispData, BodyPart::Type::BODY);
 
    mainFixture->SetUserData((void*) new BodyPart (BodyPart::Type::BODY));
@@ -423,7 +423,7 @@ void GameWidget::resizeGL(int nWidth, int nHeight) {
 
 void GameWidget::loadBackground (){
 
-    TextureData* backgroundTD = new TextureData (textures->getTexture(Textures::Type::BACKGROUND), DisplayData::Layer::BACKGROUND);
+    TextureData* backgroundTD = new TextureData (textures->getTextureID(Textures::Type::BACKGROUND), DisplayData::Layer::BACKGROUND);
 
     displayItems.push_back(new UIElement (backgroundTD, b2Vec2(0, 0), b2Vec2 (80, 40), 0, true));
 }
@@ -550,8 +550,8 @@ void GameWidget::paintGL() {
     if (isDrawingGrid){
         float step = GRID_STEP;
         for (int i = 0; i < 10; ++i){
-            drawRectangle(b2Vec2(i * step,0), 0.1 / kx, 1000, 0, new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
-            drawRectangle(b2Vec2(0,i * step), 1000, 0.1 / ky, 0, new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+            drawRectangle(b2Vec2(i * step,0), 0.1 / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+            drawRectangle(b2Vec2(0,i * step), 1000, 0.1 / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
         }
     }
 
@@ -564,18 +564,17 @@ void GameWidget::paintGL() {
 void GameWidget::mousePressEvent(QMouseEvent *event) {
     Qt::MouseButtons mouseButtons = event->buttons();
     b2Vec2 worldCoord;
-    worldCoord.x =  (event->pos().x() / kx - WIDTH/2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
-    worldCoord.y = -(event->pos().y() / ky - HEIGHT/2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
+    worldCoord.x =  (event->pos().x() / kx - WIDTH / 2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
+    worldCoord.y = -(event->pos().y() / ky - HEIGHT / 2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
     qDebug()<<worldCoord.x<<worldCoord.y;
     if (mouseButtons == Qt::LeftButton)
         player->attackState=Player::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
             b2Body* box = addRect(worldCoord, 5, 5, true, Textures::Type::CRATE);
-
+            box->GetFixtureList()->SetSensor(true);
             //box->SetType(b2_kinematicBody);
             destroyBodies.push_back(box);
-
         }
 }
 void GameWidget::destroyLandscape(){
@@ -626,10 +625,8 @@ void GameWidget::destroyLandscape(){
             landscapeBody->DestroyFixture(landscapeFixture);
             if (!landscapeBody->GetFixtureList())
                 world->DestroyBody(landscapeBody);
-            qDebug()<<"contact";
         }
     }
-    qDebug()<<"!";
     clipper.AddPaths(sub, ptSubject, true);
     clipper.AddPaths(clp, ptClip, true);
     clipper.Execute(ctDifference, sol, pftEvenOdd, pftEvenOdd);
@@ -642,9 +639,8 @@ void GameWidget::destroyLandscape(){
             polyline.push_back(new Point(sol[i][j].X / CONVERSION_KOEF,sol[i][j].Y / CONVERSION_KOEF));
         }
         b2FixtureDef fixturedef;
-        triangulateChain(polyline, fixturedef, new UserData(new KeyLineData(Color(255, 0, 0), DisplayData::Layer::LANDSCAPE)),
-                         b2Vec2(0, 0), b2_staticBody);
-
+        triangulateChain(polyline, fixturedef, new UserData(new TriangleTextureData(
+                 textures->getTextureID(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), b2Vec2(0, 0), b2_staticBody);
     }
 
     world->DestroyBody(box);
@@ -744,7 +740,7 @@ b2Body* GameWidget::addRect(float x, float y, float w, float h, bool dyn, Textur
 
     b2Fixture* bodyFix = body->CreateFixture(&fixturedef);
 
-    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(type), DisplayData::Layer::OBJECT);
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTextureID(type), DisplayData::Layer::OBJECT);
 
     bodyFix->SetUserData((void*) new UserData(bodyDD));
     body->SetUserData((void*) new UserData);
@@ -785,7 +781,7 @@ b2Body* GameWidget::addSpecRect() {
 
     body->ApplyLinearImpulse(b2Vec2(-body->GetMass() * 100, 0), b2Vec2(0, 0), true);
 
-    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
     bodyFix->SetUserData((void*) new UserData(bodyDD));
     body->SetUserData((void*) new UserData);
     return body;
@@ -857,8 +853,9 @@ vector<b2Body*> GameWidget::triangulateChain(vector<Point*> polyline, b2FixtureD
             fixturedef.shape = &shape;
 
             b2Fixture* fixture = body->CreateFixture(&fixturedef);
-
-            fixture->SetUserData(static_cast<void*>(UD));
+            UserData* curUD = new UserData;
+            curUD = UD;
+            fixture->SetUserData(static_cast<void*>(curUD));
         }
     }
     body->ResetMassData();

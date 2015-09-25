@@ -54,7 +54,7 @@ Car::Car(b2Vec2 center, float scale) : Vehicle()
     world->CreateJoint( &weldJointDef );
 
 
-    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTexture(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
+    DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
     mainPlank->SetUserData((void*) new UserData (carPart, bodyDD));
     mainPlank->GetFixtureList()->SetUserData((void*) new UserData (carPart, bodyDD));
     rule->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));

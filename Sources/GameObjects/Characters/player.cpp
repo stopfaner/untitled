@@ -3,7 +3,7 @@
 Player::Player(float x, float y) : Entity (x, y){
 }
 
-Textures::Type Player::getTextureType(BodyPart::Type bodyPart)
+Textures::Type Player::getTextureIDType(BodyPart::Type bodyPart)
 {
     switch (bodyPart){
     case BodyPart::Type::BODY : return Textures::Type::BODY;

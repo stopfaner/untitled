@@ -49,7 +49,7 @@ public:
     };
     Textures();
     std::vector <Texture*> vec;
-    Texture* getTexture (Type);
+    Texture* getTextureID (Type);
     void loadAll ();
 private:
     void loadTexture (Type, std::string path, int rows = 1, int columns = 1);

@@ -77,7 +77,7 @@ private:
     bool isStanding;
     float surfaceAngle;
     void applyForce();
-    virtual Textures::Type getTextureType(BodyPart::Type bodyPart) = 0;
+    virtual Textures::Type getTextureIDType(BodyPart::Type bodyPart) = 0;
 };
 
 #endif // ENTITY_H
