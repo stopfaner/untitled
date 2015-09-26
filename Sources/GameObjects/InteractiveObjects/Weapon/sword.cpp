@@ -8,7 +8,7 @@ Sword::Sword(b2Body* body, b2Vec2 pointJoint)
     jsonSword.readFromFile("json/sword.json", errorMsg);
 
     b2FixtureDef fixturedefSword;
-    fixturedefSword.density = 1.0;
+    fixturedefSword.density = 0.5;
     fixturedefSword.filter.maskBits = GeneralInfo::CollisionType::BASIC;
     fixturedefSword.filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
 

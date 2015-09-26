@@ -22,8 +22,7 @@
 class Entity : public GameObject
 {
 public:
-    Entity(float x = 0, float y = 10);
-
+    Entity();
 
     enum AttackState{
         AS_SWING,
@@ -51,7 +50,7 @@ public:
     MoveStateVertical moveStateVertical;
     Vehicle* vehicle;
     DisplayData* displayData;
-    BodyParts bodyParts;
+    BodyParts *bodyParts;
 
 
     void attack();
@@ -67,11 +66,10 @@ public:
     void changeLeg();
     bool isGrounded();
     bool isGrounded(bool leftLeg);
-    virtual void constructBody();
+    virtual void constructBody(bool isMirrored, float x, float y, float angle = 0);
 private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;
-    float x, y;
     bool isSwing;
     bool isSitting;
     bool isStanding;

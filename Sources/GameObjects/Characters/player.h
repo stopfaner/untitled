@@ -10,8 +10,8 @@
 class Player : public Entity
 {
 public:
-    Player(float x = 0, float y = 10);
-    void constructBody();
+    Player();
+    void constructBody(bool isMirrored, float x, float y);
 private:
     Textures::Type getTextureType(BodyPart::Type bodyPart);
 };

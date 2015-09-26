@@ -23,7 +23,7 @@ public:
 
     b2World* world;
     Textures *textures;
-    float deductPeriod(float angle, float period = M_PI * 2.0f);
+    static float deductPeriod(float angle, float period = M_PI * 2.0f);
 
 private:
     static GeneralInfo * p_instance;

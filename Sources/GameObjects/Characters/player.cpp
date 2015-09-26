@@ -1,12 +1,12 @@
 #include "player.h"
 
-Player::Player(float x, float y) : Entity (x, y){
+Player::Player() : Entity (){
 
 }
 
-void Player::constructBody(){
-    Entity::constructBody();
-    weapon = new Sword(bodyParts.wrist2->body, bodyParts.wrist2->body->GetPosition());
+void Player::constructBody(bool isMirrored, float x, float y){
+    Entity::constructBody(isMirrored, x, y);
+    weapon = new Sword(bodyParts->wrist2->body, bodyParts->wrist2->body->GetPosition());
 
 }
 

@@ -1,6 +1,6 @@
 #include "npc.h"
 
-NPC::NPC(float x, float y) : Entity (x, y){
+NPC::NPC() : Entity (){
     moveState = MS_RIGHT;
 }
 
