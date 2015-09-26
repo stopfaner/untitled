@@ -1,16 +1,13 @@
 #include "weapon.h"
 
-void Weapon::rotate( bool isRightDirection)
+void Weapon::transform(b2Body *body, b2Vec2 weldPoint, b2Vec2 transformPoint, float angle)
 {
-    float weaponAngle;
-    if(isRightDirection) weaponAngle = -M_PI/2;
-    else weaponAngle = M_PI/2;
-    b2Body *bodyA = WJ->GetBodyA();
-    b2Body *bodyB = WJ->GetBodyB();
-    b2Vec2  point = WJ->GetAnchorA();
-    GeneralInfo::getInstance().world->DestroyJoint(WJ);
-    body->SetTransform(body->GetPosition(), weaponAngle );
-    createJoint(bodyA,bodyB,point);
+    b2Body *bodyA = this->body;
+    b2Body *bodyB = body;
+    if (WJ)
+        GeneralInfo::getInstance().world->DestroyJoint(WJ);
+    this->body->SetTransform(transformPoint, angle);
+    createJoint(bodyA, bodyB, weldPoint);
 }
 
 void Weapon::createJoint(b2Body* body, b2Body* weapon, b2Vec2 pointJoint )

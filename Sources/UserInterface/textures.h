@@ -40,7 +40,9 @@ public:
         NPC_WRIST,
         NPC_HEAD,
 
-        FONT
+        FONT,
+
+        SWORD
     };
     struct Texture {
         GLuint id;

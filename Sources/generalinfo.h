@@ -20,7 +20,6 @@ public:
        BASIC    =     0x0001,
        BODYPART =     0x0002,
      };
-
     b2World* world;
     Textures *textures;
     static float deductPeriod(float angle, float period = M_PI * 2.0f);

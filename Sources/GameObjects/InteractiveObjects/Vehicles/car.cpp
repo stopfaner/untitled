@@ -25,7 +25,7 @@ Car::Car(b2Vec2 center, float scale) : Vehicle()
     bodydef.position.Set(x + 2.5*2*2 * scale, y + 5*2 * scale);
     bodydef.type = b2_dynamicBody;
     b2Body* circle1 = world->CreateBody(&bodydef);
-    circle1->SetUserData((void*) new UserData (carPart, circleDD));
+    circle1->SetUserData((void*) new UserData (carPart));
 
     b2CircleShape circleShape;
     circleShape.m_p.Set(0, 0);
@@ -55,9 +55,9 @@ Car::Car(b2Vec2 center, float scale) : Vehicle()
 
 
     DisplayData* bodyDD = (DisplayData*) new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::OBJECT);
-    mainPlank->SetUserData((void*) new UserData (carPart, bodyDD));
+    mainPlank->SetUserData((void*) new UserData (carPart));
     mainPlank->GetFixtureList()->SetUserData((void*) new UserData (carPart, bodyDD));
-    rule->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
+    rule->SetUserData((void*) new UserData (static_cast<GameObject*>(this)));
     rule->GetFixtureList()->SetUserData((void*) new UserData (static_cast<GameObject*>(this), bodyDD));
 }
 
@@ -67,6 +67,7 @@ b2Body* Car::addRect(float x, float y, float w, float h, bool dyn) {
     if(dyn)
         bodydef.type=b2_dynamicBody;
     b2Body* body=world->CreateBody(&bodydef);
+    body->SetUserData(static_cast<void*>(new UserData));
     b2PolygonShape shape;
     shape.SetAsBox(w/2, h/2);
 

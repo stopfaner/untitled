@@ -157,6 +157,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.upperAngle = M_PI * 0.9;
                 RJD.lowerAngle = - M_PI / 6;
                 RJD.maxMotorTorque = maxMotorTorque;
+                RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
                 RJI.angleDeviation = 0.1;
                 break;
@@ -171,6 +172,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.upperAngle = 0;
                 RJD.lowerAngle = -D2R(170.0f);
                 RJD.maxMotorTorque = maxMotorTorque;
+                RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
                 RJI.angleDeviation = 0.1;
                 break;
@@ -185,6 +187,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.upperAngle = M_PI / 2;
                 RJD.lowerAngle = - M_PI / 4;
                 RJD.maxMotorTorque = maxMotorTorque;
+                RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
                 RJI.angleDeviation = 0.1;
                 break;
@@ -196,7 +199,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.upperAngle = M_PI;
                 RJD.lowerAngle = - M_PI / 2;
                 RJD.maxMotorTorque = maxMotorTorque ;
-                RJI.motorSpeed = 4;
+                RJI.defaultMotorSpeed = 1;
+                RJI.motorSpeed = 1;
                 RJI.angleDeviation = 0.1;
                 break;
             case 4:
@@ -210,7 +214,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.upperAngle = M_PI;
                 RJD.lowerAngle = 0;
                 RJD.maxMotorTorque = maxMotorTorque ;
-                RJI.motorSpeed = 4;
+                RJI.defaultMotorSpeed = 1;
+                RJI.motorSpeed = 1;
                 RJI.angleDeviation = 0.1;
                 break;
             case 5:
@@ -223,8 +228,9 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 type = BodyPart::Type::WRIST;
                 RJD.upperAngle = 1;
                 RJD.lowerAngle = - 1;
-                RJD.maxMotorTorque = maxMotorTorque / 3;
-                RJI.motorSpeed = 3;
+                RJD.maxMotorTorque = maxMotorTorque / 10;
+                RJI.defaultMotorSpeed = 0.1;
+                RJI.motorSpeed = 1;
                 RJI.angleDeviation = 0.1;
                 break;
             }
@@ -258,10 +264,16 @@ void Entity::rotate(bool right)
         else isRightDirection = true;
         b2Vec2 pos = bodyParts->body->body->GetPosition();
         delete bodyParts;
+        weapon->WJ = nullptr;
         bodyParts = new BodyParts();
         constructBody(!isRightDirection, pos.x, pos.y);
 
-        if(weapon) weapon->rotate(right);
+        float weaponAngle;
+        if (isRightDirection)
+            weaponAngle = - M_PI / 2;
+        else weaponAngle = M_PI / 2;
+        if(weapon) weapon->transform(bodyParts->wrist2->body,
+                                     bodyParts->wrist2->body->GetPosition(), bodyParts->wrist2->body->GetPosition(), weaponAngle);
     }
 }
 
@@ -495,7 +507,7 @@ void Entity::applyForce(){
                 forearm->RJI.desiredAngle = 0;
                 shin->RJI.desiredAngle = 0;
                 hip->RJI.desiredAngle = 0;
-                wrist->RJI.desiredAngle = D2R(10);
+                wrist->RJI.desiredAngle = 0;
 
                 bodyParts->resetSpeed();
             }

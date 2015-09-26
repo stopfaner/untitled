@@ -112,7 +112,8 @@ SOURCES += main.cpp \
     Sources/GameObjects/InteractiveObjects/Weapon/sword.cpp \
     Sources/Process/triangulation.cpp \
     Sources/Process/jointmanager.cpp \
-    Sources/GameObjects/InteractiveObjects/Weapon/spear.cpp
+    Sources/GameObjects/InteractiveObjects/Weapon/spear.cpp \
+    Sources/UserInterface/bodytexturedata.cpp
 
 HEADERS  += \
     Sources/gamewidget.h \
@@ -222,7 +223,8 @@ HEADERS  += \
     Sources/GameObjects/InteractiveObjects/Weapon/sword.h \
     Sources/Process/triangulation.h \
     Sources/Process/jointmanager.h \
-    Sources/GameObjects/InteractiveObjects/Weapon/spear.h
+    Sources/GameObjects/InteractiveObjects/Weapon/spear.h \
+    Sources/UserInterface/bodytexturedata.h
 
 
 unix|win32: LIBS += -L$$PWD/SOIL/ -llibSOIL

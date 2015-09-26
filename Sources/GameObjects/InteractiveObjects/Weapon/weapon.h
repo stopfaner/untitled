@@ -8,6 +8,7 @@
 #include "Sources/GameObjects/InteractiveObjects/interactiveobject.h"
 #include "Sources/UserInterface/displaydata.h"
 #include "Sources/UserInterface/keylinedata.h"
+#include "Sources/UserInterface/bodytexturedata.h"
 #include "Sources/Process/triangulation.h"
 #include "Sources/Process/jointmanager.h"
 
@@ -22,7 +23,7 @@ public:
     Triangulation* triangulation;
     Entity *entity;
     void use(Entity *entity){}
-    void rotate(bool isRightDirection);
+    void transform(b2Body *body, b2Vec2 weldPoint, b2Vec2 transformPoint, float angle);
     b2WeldJoint *WJ;
     Weapon();
     void createJoint(b2Body *body, b2Body *weapon, b2Vec2 pointJoint);

@@ -24,6 +24,8 @@ public:
                              UserData *UD, b2Vec2 offset = b2Vec2(0,0), b2BodyType bodyType = b2_dynamicBody);
     static vector<Point *> chainToPolyline(b2Fixture *fixture, b2Vec2 scale = b2Vec2(1, 1));
     static vector<Triangle*> triangulate(std::vector<Point *> polyline);
+    static b2Vec2 computePolylineSize(std::vector<Point *> polyline);
+    static b2Vec2 computeCenter(std::vector <Point*> polyline, float lcX, float lcY);
 private:
     static bool isPossiblePolygon(b2Vec2 vertices[], int n);
 

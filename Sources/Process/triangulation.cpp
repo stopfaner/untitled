@@ -29,7 +29,7 @@ b2Body* Triangulation::triangulateChain(vector<Point*> polyline, b2FixtureDef fi
         }
     }
     body->ResetMassData();
-
+    body->SetUserData(static_cast<void *>(new UserData));
     return body;
 }
 
@@ -52,7 +52,7 @@ vector<Triangle*> Triangulation ::triangulate(std::vector <Point*> polyline){
     return polygon->GetTriangles();
 }
 
-bool Triangulation ::isPossiblePolygon(b2Vec2 vertices[], int n){
+bool Triangulation::isPossiblePolygon(b2Vec2 vertices[], int n){
     b2Vec2 ps[b2_maxPolygonVertices];
     int32 tempCount = 0;
     for (int32 i = 0; i < n; ++i)
@@ -79,4 +79,40 @@ bool Triangulation ::isPossiblePolygon(b2Vec2 vertices[], int n){
     if (n < 3)
         return false;
     return true;
+}
+
+b2Vec2 Triangulation::computePolylineSize(std::vector <Point*> polyline){
+    b2Vec2 min = {polyline.at(0)->x, polyline.at(0)->y}, max = min;
+    Point point;
+    for (int i = 1; i < polyline.size(); i++){
+        point = *polyline.at(i);
+        if (point.x < min.x)
+            min.x = point.x;
+        if (point.y < min.y)
+            min.y = point.y;
+
+        if (point.x > max.x)
+            max.x = point.x;
+        if (point.y > max.y)
+            max.y = point.y;
+    }
+    return b2Vec2(max.x - min.x, max.y - min.y);
+}
+
+b2Vec2 Triangulation::computeCenter(std::vector <Point*> polyline, float lcX, float lcY){
+    b2Vec2 min = {polyline.at(0)->x, polyline.at(0)->y}, max = min;
+    Point point;
+    for (int i = 1; i < polyline.size(); i++){
+        point = *polyline.at(i);
+        if (point.x < min.x)
+            min.x = point.x;
+        if (point.y < min.y)
+            min.y = point.y;
+
+        if (point.x > max.x)
+            max.x = point.x;
+        if (point.y > max.y)
+            max.y = point.y;
+    }
+    return b2Vec2((min.x + max.x) / 2.0f + lcX, (min.y + max.y) / 2.0f + lcY);
 }

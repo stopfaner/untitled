@@ -54,6 +54,7 @@
 #include "UserInterface/texturedata.h"
 #include "UserInterface/HUD/hudelement.h"
 #include "UserInterface/triangletexturedata.h"
+#include "UserInterface/bodytexturedata.h"
 
 #include "Clipper/clipper.hpp"
 
@@ -107,6 +108,7 @@ private:
     std::list<UIElement*> displayItems;
 
     bool isTexturesEnabled;
+    bool isPaused;
 
     void initializeGL();
     void resizeGL(int nWidth, int nHeight);
@@ -138,6 +140,7 @@ private:
     void drawNumber(float num, float x, float y, float scale, int precise);
     vector<Points4> getTextPoints(string s);
     void drawText(string s, b2Vec2 center = b2Vec2(0, 0), float size = 1);
+    void drawRectangleFull(b2Vec2 center, float width, float height, float angle, TextureData *textureData);
 };
 
 #endif // GAMEWIDGET_H
