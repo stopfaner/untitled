@@ -32,6 +32,7 @@ public:
     float damage;
     float density;
     Entity *entity;
+    void use(Entity *entity){}
     void transform(b2Body *body, b2Vec2 weldPoint, b2Vec2 transformPoint, float angle);
     b2WeldJoint *WJ;
     void createJoint(b2Body *body, b2Body *weapon, b2Vec2 pointJoint);

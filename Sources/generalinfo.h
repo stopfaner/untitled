@@ -32,6 +32,7 @@ public:
      };
 
 
+
     enum AttackState{
         AS_SWING,
         AS_HIT,

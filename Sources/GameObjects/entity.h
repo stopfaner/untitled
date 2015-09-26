@@ -23,8 +23,6 @@ class Entity : public GameObject
 {
 public:
     Entity();
-
-
     enum MoveState{
         MS_STAND,
         MS_LEFT,

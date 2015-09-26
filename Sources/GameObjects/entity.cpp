@@ -4,7 +4,6 @@
 
 #define M_PI		3.14159265358979323846
 
-
 Entity::Entity() : GameObject ()
 {
     bodyParts = new BodyParts;
@@ -29,9 +28,11 @@ Entity::Entity() : GameObject ()
     weapon =nullptr;
 }
 
+
 void Entity::attack(){
    weapon->attack(isRightDirection,attackState,bodyParts);
 }
+
 
 void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     b2World *world = GeneralInfo::getInstance().world;
@@ -64,7 +65,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     bodyPart = new BodyPart(this, BodyPart::Type::BODY);
     b2Body *body =  Triangulation::triangulateChain(Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale),
                     fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                    DisplayData::Layer::PLAYER)), b2Vec2(x, y) + GeneralInfo:: GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
+                    DisplayData::Layer::PLAYER)), b2Vec2(x, y) + GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
     bodyPart->body = body;
     bodyParts->setPart(bodyPart);
 
@@ -77,8 +78,9 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     bodyPart = new BodyPart(this, BodyPart::Type::HEAD, body);
     body =  Triangulation::triangulateChain(Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale),
                                             fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                                                                                               DisplayData::Layer::PLAYER)),
-                                            b2Vec2(x, y) +  GeneralInfo::mulb2Vec2(bodyChain->GetPosition() , scale));
+                                            DisplayData::Layer::PLAYER)), b2Vec2(x, y) +  GeneralInfo::mulb2Vec2(bodyChain->GetPosition() , scale));
+
+
     bodyPart->body = body;
     bodyParts->setPart(bodyPart);
     // add joint
@@ -132,8 +134,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.angleDeviation = 0.1;
                 break;
             case 1:
-                name = "Shin" + mirrorString;
-                nameJoint = "ShinJ" + mirrorString;
+                name = "Shin"+mirrorString;
+                nameJoint = "ShinJ"+mirrorString;
                 if (i)
                     jointBody = bodyParts->hip2->body;
                 else
@@ -284,13 +286,12 @@ void Entity::move()
         float shinMaxAngle =  GeneralInfo::D2R(-50.0f) - surfaceAngle;
         if ( (hip->RJI.RJ->GetJointAngle() < hipMaxAngle && isRightDirection ) ||
              (hip->RJI.RJ->GetJointAngle() > - hipMaxAngle && !isRightDirection)){
-
             hip->RJI.desiredAngle = (hipMaxAngle + GeneralInfo::D2R(10)) * direction;
             hip->RJI.motorSpeed = 2.3;
             shin->RJI.desiredAngle = shinMaxAngle * direction;
             shin->RJI.motorSpeed = 3;
             if (moveStateVertical == MSV_UP)
-                    foot->RJI.desiredAngle =  GeneralInfo::D2R(30);
+                  foot->RJI.desiredAngle =  GeneralInfo::D2R(30);
             if(attackState != GeneralInfo::AS_SWING && isUsingLeftLeg)
             {
                 shoulder->RJI.desiredAngle =  GeneralInfo::D2R (30.0f * direction);
@@ -505,8 +506,8 @@ void Entity::applyForce(){
             move ();
             break;
         case MS_STAND:
-            if (GeneralInfo::R2D(GeneralInfo::deductPeriod(shin->body->GetAngle()) - GeneralInfo::deductPeriod(shin->body->GetAngle())) < 10.0f)
-                isAscendingLeg = true;
+            if (GeneralInfo::R2D(GeneralInfo::deductPeriod(shin->body->GetAngle()) - GeneralInfo::deductPeriod(shin->body->GetAngle())) < 10.0f);
+            isAscendingLeg = true;
             break;
         }
 
@@ -571,7 +572,6 @@ void Entity::crouch(){
         if (isRightDirection)
             direction = 1;
         else direction = -1;
-
         forearm->RJI.desiredAngle =  GeneralInfo::D2R (90) * direction;
         hip->RJI.desiredAngle =  GeneralInfo::D2R (90) * direction;
         shin->RJI.desiredAngle =  GeneralInfo::D2R (-130) * direction;
