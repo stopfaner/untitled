@@ -24,7 +24,7 @@ public:
     void setBody (b2Body* body);
     b2Body *body;
 private:
-    Textures::Type getTextureIDType(BodyPart::Type bodyPart);
+    Textures::Type getTextureType(BodyPart::Type bodyPart);
     bool canJump;
 };
 

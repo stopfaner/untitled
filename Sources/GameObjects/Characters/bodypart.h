@@ -24,7 +24,7 @@ public:
         SHOULDER
     };
     void setDefaultSpeed(float speed);
-    BodyPart(Entity* entity, Type type, b2Body* body, b2RevoluteJoint* RJ = nullptr);
+    BodyPart(Entity* entity, Type type, b2Body* body = nullptr, b2RevoluteJoint* RJ = nullptr);
     RevoluteJointInfo RJI;
     Type type;
     b2Body* body;

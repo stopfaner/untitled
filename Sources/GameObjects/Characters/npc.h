@@ -6,9 +6,9 @@
 class NPC : public Entity
 {
 public:
-    NPC(float x = 0, float y = 10);
+    NPC();
 private:
-    Textures::Type getTextureIDType(BodyPart::Type bodyPart);
+    Textures::Type getTextureType(BodyPart::Type bodyPart);
 };
 
 #endif // NPC_H

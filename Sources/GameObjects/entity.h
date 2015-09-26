@@ -22,13 +22,9 @@
 class Entity : public GameObject
 {
 public:
-    Entity(float x = 0, float y = 10);
+    Entity();
 
 
-    enum AttackState{
-        AS_SWING,
-        AS_HIT,
-    };
     enum MoveState{
         MS_STAND,
         MS_LEFT,
@@ -40,18 +36,19 @@ public:
         MSV_DOWN,
     };
 
+    GeneralInfo::AttackState attackState;
     Weapon *weapon;
     bool isOnLadder;
     bool isJumping;
     bool isUsingLeftLeg;
     bool isAscendingLeg;
     bool isRightDirection;
-    AttackState attackState;
+
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Vehicle* vehicle;
     DisplayData* displayData;
-    BodyParts bodyParts;
+    BodyParts *bodyParts;
 
 
     void attack();
@@ -62,23 +59,21 @@ public:
     void crouch();
     void fall();
     void update();
-    void setBody (b2Body* body);
     b2Body *body;
     bool checkForLadder();
     void changeLeg();
     bool isGrounded();
     bool isGrounded(bool leftLeg);
-    virtual void constructBody();
+    virtual void constructBody(bool isMirrored, float x, float y, float angle = 0);
 private:
     int jumpCooldown, jumpCooldownMax;
     int useCooldown, useCooldownMax;
-    float x, y;
     bool isSwing;
     bool isSitting;
     bool isStanding;
     float surfaceAngle;
     void applyForce();
-    virtual Textures::Type getTextureIDType(BodyPart::Type bodyPart) = 0;
+    virtual Textures::Type getTextureType(BodyPart::Type bodyPart) = 0;
 };
 
 #endif // ENTITY_H

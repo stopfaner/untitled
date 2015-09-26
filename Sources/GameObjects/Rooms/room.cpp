@@ -49,6 +49,6 @@ float hR = size.y - 2*wallWidth - passageHeightRight;
         fixture->SetUserData(static_cast<void*>(new UserData(wallTD)));
     }
 
-    room->SetUserData(static_cast<void*>(new UserData(wallTD)));
+    room->SetUserData(static_cast<void*>(new UserData()));
     return room;
 }

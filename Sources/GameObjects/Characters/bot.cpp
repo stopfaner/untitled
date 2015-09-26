@@ -11,7 +11,7 @@ void Bot::setBody (b2Body* body){
     this->body = body;
 }
 
-Textures::Type Bot::getTextureIDType(BodyPart::Type bodyPart)
+Textures::Type Bot::getTextureType(BodyPart::Type bodyPart)
 {
 
 }

@@ -22,11 +22,23 @@ BodyParts::BodyParts(){
     forearm  = nullptr;
     forearm2 = nullptr;
 }
+
+BodyParts::~BodyParts(){
+    for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
+        BodyPart* bodyPart = *iterator;
+        GeneralInfo::getInstance().world->DestroyBody(bodyPart->body);
+        delete bodyPart;
+    }
+    list.clear();
+}
+
 #include "qdebug.h"
 void BodyParts::setSpeed(){
     for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
         BodyPart* bodyPart = *iterator;
         JointManager::setJointSpeed(bodyPart->RJI);
+  //      if (bodyPart->type == BodyPart::Type::HIP)
+  //          qDebug()<<bodyPart->RJI.desiredAngle<<bodyPart->RJI.RJ->GetMotorSpeed();
 
     }
 }
@@ -35,25 +47,6 @@ void BodyParts::resetSpeed(){
     for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
         BodyPart* bodyPart = *iterator;
         bodyPart->RJI.motorSpeed = bodyPart->RJI.defaultMotorSpeed;
-    }
-}
-
-void BodyParts::mirror()
-{
-    for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
-        BodyPart* bodyPart = *iterator;
-        if (bodyPart->RJI.RJ && bodyPart->RJI.RJ->IsLimitEnabled())
-            bodyPart->RJI.RJ->SetLimits(- bodyPart->RJI.RJ->GetUpperLimit(), - bodyPart->RJI.RJ->GetLowerLimit());
-    }
-
-    BodyPart* foot;
-    for (int i = 0; i < 2; ++i){
-        if (i)
-            foot = this->foot;
-        else
-            foot = this->foot2;
-        foot->RJI.RJ->SetLimits(M_PI + M_PI / 4, 2 * M_PI);
-       // foot->body->SetTransform(foot->body->GetPosition(), D2R(180));
     }
 }
 

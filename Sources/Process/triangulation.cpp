@@ -1,17 +1,14 @@
 #include "triangulation.h"
 
-vector<b2Body*> Triangulation::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
+b2Body* Triangulation::triangulateChain(vector<Point*> polyline, b2FixtureDef fixturedef, UserData* UD, b2Vec2 offset, b2BodyType bodyType)
 {
     b2World* world=GeneralInfo::getInstance().world;
-    vector <b2Body*> triangleBodies;
-
 
     b2BodyDef bodydef;
     bodydef.position.Set(offset.x, offset.y);
     bodydef.type = bodyType;
 
     b2Body* body=world->CreateBody(&bodydef);
-    triangleBodies.push_back(body);
     b2PolygonShape shape;
 
     vector<Triangle*> triangles = triangulate(polyline);
@@ -32,11 +29,11 @@ vector<b2Body*> Triangulation::triangulateChain(vector<Point*> polyline, b2Fixtu
         }
     }
     body->ResetMassData();
-
-    return triangleBodies;
+    body->SetUserData(static_cast<void *>(new UserData));
+    return body;
 }
 
-vector<Point*> Triangulation::chainToPolyline(b2Fixture* fixture){
+vector<Point*> Triangulation::chainToPolyline(b2Fixture* fixture, b2Vec2 scale){
     std::vector <Point*> polyline;
 
     b2ChainShape* chain = static_cast<b2ChainShape*>( fixture->GetShape());
@@ -44,7 +41,7 @@ vector<Point*> Triangulation::chainToPolyline(b2Fixture* fixture){
     for (int j = 0; j < edgeCount; ++j){
         b2EdgeShape edge;
         ((b2ChainShape*)fixture->GetShape())->GetChildEdge(&edge, j);
-        polyline.push_back(new Point(edge.m_vertex2.x, edge.m_vertex2.y));
+        polyline.push_back(new Point(edge.m_vertex2.x * scale.x, edge.m_vertex2.y * scale.y));
     }
     return polyline;
 }
@@ -55,7 +52,7 @@ vector<Triangle*> Triangulation ::triangulate(std::vector <Point*> polyline){
     return polygon->GetTriangles();
 }
 
-bool Triangulation ::isPossiblePolygon(b2Vec2 vertices[], int n){
+bool Triangulation::isPossiblePolygon(b2Vec2 vertices[], int n){
     b2Vec2 ps[b2_maxPolygonVertices];
     int32 tempCount = 0;
     for (int32 i = 0; i < n; ++i)
@@ -82,4 +79,40 @@ bool Triangulation ::isPossiblePolygon(b2Vec2 vertices[], int n){
     if (n < 3)
         return false;
     return true;
+}
+
+b2Vec2 Triangulation::computePolylineSize(std::vector <Point*> polyline){
+    b2Vec2 min = {polyline.at(0)->x, polyline.at(0)->y}, max = min;
+    Point point;
+    for (int i = 1; i < polyline.size(); i++){
+        point = *polyline.at(i);
+        if (point.x < min.x)
+            min.x = point.x;
+        if (point.y < min.y)
+            min.y = point.y;
+
+        if (point.x > max.x)
+            max.x = point.x;
+        if (point.y > max.y)
+            max.y = point.y;
+    }
+    return b2Vec2(max.x - min.x, max.y - min.y);
+}
+
+b2Vec2 Triangulation::computeCenter(std::vector <Point*> polyline, float lcX, float lcY){
+    b2Vec2 min = {polyline.at(0)->x, polyline.at(0)->y}, max = min;
+    Point point;
+    for (int i = 1; i < polyline.size(); i++){
+        point = *polyline.at(i);
+        if (point.x < min.x)
+            min.x = point.x;
+        if (point.y < min.y)
+            min.y = point.y;
+
+        if (point.x > max.x)
+            max.x = point.x;
+        if (point.y > max.y)
+            max.y = point.y;
+    }
+    return b2Vec2((min.x + max.x) / 2.0f + lcX, (min.y + max.y) / 2.0f + lcY);
 }

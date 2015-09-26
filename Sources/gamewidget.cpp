@@ -27,6 +27,9 @@ float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
  * TODO list
  * separate paint
  * textdisplyadata
+ * TO FIX
+ * all lanscape fixtures have common userdata
+ * fps with triangle textures
 */
 /**
  * @brief GameWidget::GameWidget - contructor
@@ -36,7 +39,8 @@ float CONVERSION_KOEF = 1000;//clipping precise, may cause overflow
 GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     textures = new Textures;
     GeneralInfo::getInstance().textures = textures;
-    isTexturesEnabled = true;
+    isTexturesEnabled = false;
+    isPaused = false;
     testKeyLineData = new KeyLineData(Color(150, 100, 50), DisplayData::Layer::NEAREST);
 }
 
@@ -76,39 +80,19 @@ void GameWidget::createWorld(){
                                              new UserData(new TriangleTextureData
                                                           (textures->getTextureID(Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)), delta + bodies[i]->GetPosition(), b2_staticBody);
     }
-    //create polygon
-
-    //  trying to load PBE
-    /*
-    b2dJson jsonPBE;
-    json.readFromFile("json/PBE.json", errorMsg, world);
-
-    b2Fixture* bumperFixture = json.getFixtureByName("test01");
-
-      Json::Value fixtureValue = jsonPBE.b2j( bumperFixture );
-
-
-      b2BodyDef bd;
-      bd.position.Set(0, 0);
-      b2Body* PBEBody = world->CreateBody(&bd);
-      b2Fixture* myFixture = jsonPBE.j2b2Fixture(PBEBody, fixtureValue);
-      myFixture->SetUserData(static_cast<void*>(new UserData(new KeyLineData(Color(0, 255, 0), DisplayData::Layer::LANDSCAPE))));
-
-      //PBEBody->ResetMassData();
-      */
-    //
 
     b2AABB *borderWorld = new b2AABB();
     borderWorld->lowerBound.Set(-1000.0, -1000.0);
     borderWorld->upperBound.Set(1000.0, 1000.0);
 
 
-    player = new Player (delta.x + 10, delta.y + 10);
-    player->constructBody();
+    player = new Player ();
+    player->constructBody(false, delta.x + 10, delta.y + 20);
 
-    for (int i = 0; i < 5; ++i){
-        NPC* npc = new NPC (20 + 3 * i, 10);
-        npc->constructBody();
+    unsigned int NPCcount = 0;
+    for (unsigned int i = 0; i < NPCcount; ++i){
+        NPC* npc = new NPC;
+        npc->constructBody(false, 20 + 3 * i, 100);
     }
     new Ladder (b2Vec2(-20, -5), b2Vec2(2, 10));
 
@@ -165,9 +149,9 @@ void GameWidget::createWorld(){
     //
 
 
-    addSpecRect();
+    //  addSpecRect();
 
-    new Car (b2Vec2(50, 10), 0.8);
+    new Car (b2Vec2(-50, 10), 0.5);
 
     //Build build();
     // build.generateDungeon(b2Vec2(0, 70), 5, 5);
@@ -221,146 +205,152 @@ void GameWidget::loadBackground (){
 }
 
 void GameWidget::paintGL() {
+    bool drawindEnabled = true;
+    if (drawindEnabled){
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
+        //TODO move in dispItems, change dispItems to DisplayData vec, do cords in meters
+        //drawNumber(42.42, 0, 10, 1, 5);
+        drawText("hello, world!", b2Vec2(-10, 10), 0.5);
+        //interface
+        for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
+            UIElement* item = *iterator;
+            if (item)
+                drawRectangle(item->center, item->size.x, item->size.y, item->angle, item->textureData);
+        }
 
-    //TODO move in dispItems, change dispItems to DisplayData vec, do cords in meters
-    //drawNumber(42.42, 0, 10, 1, 5);
-    drawText("hello, world!", b2Vec2(-10, 10), 0.5);
-    //interface
-    for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
-        UIElement* item = *iterator;
-        if (item)
-            drawRectangle(item->center, item->size.x, item->size.y, item->angle, item->textureData);
-    }
-
-    //bodies
-    b2Body* tmp=world->GetBodyList();
-    while(tmp){
-        b2Fixture* curFixture = tmp->GetFixtureList();
-        while(curFixture){
-            //qDebug()<<"1";
-            UserData* UD = static_cast<UserData*>(curFixture->GetUserData());
-            //qDebug()<<"2";
-            DisplayData* displayData = nullptr;
-            displayData = UD->displayData;
-            if (displayData){
-                b2Shape::Type curFixtureType = curFixture->GetShape()->GetType();
-                if (curFixtureType ==  b2Shape::e_polygon){
-                    if (displayData->isVisible){
-                        int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
-                        b2Vec2 points[count];
-                        for(int i=0; i < count; i++){
-                            points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
-                        }
-                        TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
-                        KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
-                        TriangleTextureData* TTD_p = dynamic_cast<TriangleTextureData*>(displayData);
-                        if (TTD_p){
-                            if (isTexturesEnabled){
-                                drawTriangle(points, tmp->GetPosition(), tmp->GetAngle(), TTD_p);
-                            }
-                            else
-                                drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), testKeyLineData);
-                        }
-                        else
-                            if (TD_p){
-                                if (isTexturesEnabled){
-                                    drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), TD_p);
-                                    TD_p->changeFrame();
+        //bodies
+        b2Body* tmp=world->GetBodyList();
+        while(tmp){
+            UserData* UD = static_cast<UserData*>(tmp->GetUserData());
+            DisplayData* displayData = UD->displayData;
+            BodyTextureData* BTD = dynamic_cast<BodyTextureData*>(displayData);
+            if (BTD && isTexturesEnabled)
+                drawRectangleFull(BTD->centerBody->GetPosition(), BTD->width, BTD->height, tmp->GetAngle(), BTD);
+                else{
+                b2Fixture* curFixture = tmp->GetFixtureList();
+                while(curFixture){
+                    UD = static_cast<UserData*>(curFixture->GetUserData());
+                    displayData = UD->displayData;
+                    if (displayData){
+                        b2Shape::Type curFixtureType = curFixture->GetShape()->GetType();
+                        if (displayData->isVisible){
+                            if (curFixtureType ==  b2Shape::e_polygon){
+                                int count = ((b2PolygonShape*)curFixture->GetShape())->GetVertexCount();
+                                b2Vec2 points[count];
+                                for(int i=0; i < count; i++){
+                                    points[i]=((b2PolygonShape*)curFixture->GetShape())->GetVertex(i);
+                                }
+                                TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
+                                KeyLineData* KLD_p = dynamic_cast<KeyLineData*>(displayData);
+                                TriangleTextureData* TTD_p = dynamic_cast<TriangleTextureData*>(displayData);
+                                if (TTD_p){
+                                    if (isTexturesEnabled){
+                                        drawTriangle(points, tmp->GetPosition(), GeneralInfo::deductPeriod(tmp->GetAngle()), TTD_p);
+                                    }
+                                    else
+                                        drawPolygon(points, count, tmp->GetPosition(), GeneralInfo::deductPeriod(tmp->GetAngle()), testKeyLineData);
                                 }
                                 else
-                                    drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), testKeyLineData);
+                                    if (TD_p){
+                                        if (isTexturesEnabled){
+                                            drawPolygon(points, count, tmp->GetPosition(), GeneralInfo::deductPeriod(tmp->GetAngle()), TD_p);
+                                            TD_p->changeFrame();
+                                        }
+                                        else
+                                            drawPolygon(points, count, tmp->GetPosition(), GeneralInfo::deductPeriod(tmp->GetAngle()), testKeyLineData);
+                                    }
+                                    else
+                                        if (KLD_p)
+                                            drawPolygon(points, count, tmp->GetPosition(), GeneralInfo::deductPeriod(tmp->GetAngle()), KLD_p);
                             }
+
                             else
-                                if (KLD_p)
-                                    drawPolygon(points, count, tmp->GetPosition(), tmp->GetAngle(), KLD_p);
-                    }
-                }
-                else
-                    if (curFixtureType == b2Shape::e_circle){
-                        TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
-                        KeyLineData* KLD_p = dynamic_cast<KeyLineData*> (displayData);
-                        float radius = static_cast<b2CircleShape*>(curFixture->GetShape())->m_radius;
-                        if (KLD_p)
-                            drawCircle(radius, tmp->GetPosition(), KLD_p, tmp->GetAngle());
-                        else
-                            if (TD_p){
-                                drawRectangle(tmp->GetPosition(), radius, radius, tmp->GetAngle(), TD_p);
-                            }
-                    }
-                    else
-                        if (curFixtureType == b2Shape::e_chain){
-                            KeyLineData* KLD_p = (KeyLineData*) displayData;
-                            int edgeCount = ((b2ChainShape*)curFixture->GetShape())->GetChildCount();
-                            //one element for start point
-                            b2Vec2 points [edgeCount+1];
+                                if (curFixtureType == b2Shape::e_circle){
+                                    TextureData* TD_p = dynamic_cast<TextureData*>(displayData);
+                                    KeyLineData* KLD_p = dynamic_cast<KeyLineData*> (displayData);
+                                    float radius = static_cast<b2CircleShape*>(curFixture->GetShape())->m_radius;
+                                    if (KLD_p)
+                                        drawCircle(radius, tmp->GetPosition(), KLD_p, GeneralInfo::deductPeriod(tmp->GetAngle()));
+                                    else
+                                        if (TD_p){
+                                            drawRectangle(tmp->GetPosition(), radius, radius, GeneralInfo::deductPeriod(tmp->GetAngle()), TD_p);
+                                        }
+                                }
+                                else
+                                    if (curFixtureType == b2Shape::e_chain){
+                                        KeyLineData* KLD_p = (KeyLineData*) displayData;
+                                        int edgeCount = ((b2ChainShape*)curFixture->GetShape())->GetChildCount();
+                                        //one element for start point
+                                        b2Vec2 points [edgeCount+1];
 
-                            b2EdgeShape firstEdge;
-                            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&firstEdge, 0);
-                            points[0] = firstEdge.m_vertex1;
-                            points[1] = firstEdge.m_vertex2;
+                                        b2EdgeShape firstEdge;
+                                        ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&firstEdge, 0);
+                                        points[0] = firstEdge.m_vertex1;
+                                        points[1] = firstEdge.m_vertex2;
 
 
-                            for (int i = 1; i < edgeCount; ++i){
-                                b2EdgeShape edge;
-                                ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
-                                points[i+1] = edge.m_vertex2;
+                                        for (int i = 1; i < edgeCount; ++i){
+                                            b2EdgeShape edge;
+                                            ((b2ChainShape*)curFixture->GetShape())->GetChildEdge(&edge, i);
+                                            points[i+1] = edge.m_vertex2;
 
-                            }
+                                        }
 
-                            drawChain (points, tmp->GetPosition(), edgeCount + 1, KLD_p);
+                                        drawChain (points, tmp->GetPosition(), edgeCount + 1, KLD_p);
 
+                                    }
+                                    else
+                                        if (curFixtureType == b2Shape::e_edge){
+                                            KeyLineData* KLD_p = (KeyLineData*) displayData;
+
+                                            b2Vec2 points [2];
+
+                                            points[0] = static_cast<b2EdgeShape*>(curFixture->GetShape())->m_vertex1;
+                                            points[1] = static_cast<b2EdgeShape*>(curFixture->GetShape())->m_vertex2;
+
+
+                                            drawChain (points, tmp->GetPosition(), 2, KLD_p);
+
+                                        }
                         }
-                        else
-                            if (curFixtureType == b2Shape::e_edge){
-                                KeyLineData* KLD_p = (KeyLineData*) displayData;
+                    }
+                    //draw joints
+                    bool isDrawingJoints = false;
+                    if (isDrawingJoints){
+                        b2JointEdge* curJoint = tmp->GetJointList();
+                        while(curJoint){
+                            drawCircle(0.07, curJoint->joint->GetAnchorA(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
+                            drawCircle(0.07, curJoint->joint->GetAnchorB(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
+                            curJoint = curJoint->next;
+                        }
+                    }
+                    //
 
-                                b2Vec2 points [2];
-
-                                points[0] = static_cast<b2EdgeShape*>(curFixture->GetShape())->m_vertex1;
-                                points[1] = static_cast<b2EdgeShape*>(curFixture->GetShape())->m_vertex2;
-
-
-                                drawChain (points, tmp->GetPosition(), 2, KLD_p);
-
-                            }
-            }
-
-            //draw joints
-            bool isDrawingJoints = false;
-            if (isDrawingJoints){
-                b2JointEdge* curJoint = tmp->GetJointList();
-                while(curJoint){
-                    drawCircle(0.07, curJoint->joint->GetAnchorA(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
-                    drawCircle(0.07, curJoint->joint->GetAnchorB(), new KeyLineData(Color(255,0,0), DisplayData::Layer::JOINT), 0);
-                    curJoint = curJoint->next;
+                    curFixture=curFixture->GetNext();
                 }
             }
-            //
+            tmp=tmp->GetNext();
 
-            curFixture=curFixture->GetNext();
         }
-        tmp=tmp->GetNext();
 
-    }
-
-    bool isDrawingGrid = true;
-    if (isDrawingGrid){
-        float step = GRID_STEP;
-        float width = 0.06;
-        for (int i = 0; i < 10; ++i){
-            drawRectangle(b2Vec2(i * step,0), width / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
-            drawRectangle(b2Vec2(0,i * step), 1000, width / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+        bool isDrawingGrid = true;
+        if (isDrawingGrid){
+            float step = GRID_STEP;
+            float width = 0.06;
+            for (int i = 0; i < 10; ++i){
+                drawRectangle(b2Vec2(i * step,0), width / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+                drawRectangle(b2Vec2(0,i * step), 1000, width / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+            }
         }
     }
-
     //update Box2D
-
+if (!isPaused){
     world->Step(1.0/30.0, 8, 3);
     updateGame();
+}
 }
 
 void GameWidget::mousePressEvent(QMouseEvent *event) {
@@ -368,9 +358,9 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
     b2Vec2 worldCoord;
     worldCoord.x =  (event->pos().x() / kx - WIDTH / 2 / kx + player->body->GetWorldCenter().x*M2P/2) * 2 * P2M ;
     worldCoord.y = -(event->pos().y() / ky - HEIGHT / 2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
-    qDebug()<<worldCoord.x<<worldCoord.y;
+    qDebug()<<"Click coords: "<<worldCoord.x<<worldCoord.y;
     if (mouseButtons == Qt::LeftButton)
-        player->attackState=Player::AS_SWING;
+        player->attackState=GeneralInfo::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
             b2Body* box = addRect(worldCoord, 5, 5, true, Textures::Type::CRATE);
@@ -443,7 +433,7 @@ void GameWidget::destroyLandscape(){
         b2FixtureDef fixturedef;
 
         Triangulation::triangulateChain(polyline, fixturedef, new UserData(new TriangleTextureData(textures->getTextureID(
-                         Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)),b2Vec2(0, 0), b2_staticBody);
+                                                                                                       Textures::Type::GROUND), DisplayData::Layer::LANDSCAPE)),b2Vec2(0, 0), b2_staticBody);
 
     }
 
@@ -455,7 +445,7 @@ void GameWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     Qt::MouseButtons mouseButtons = event->button();
     if (mouseButtons == Qt::LeftButton){
-        player->attackState=Player::AS_HIT;
+        player->attackState=GeneralInfo::AS_HIT;
 
     }
 }
@@ -500,7 +490,8 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         json.writeToFile(world, "json/world.json");
         qDebug()<<"saved";
     }
-
+    if (key == Qt::Key_P)
+        isPaused? isPaused = false: isPaused = true;
     if (key == Qt::Key_F)
         player->fall();
     if (key == Qt::Key_Escape) this->close();
@@ -595,11 +586,12 @@ b2Body* GameWidget::addSpecRect() {
     return body;
 }
 
-vector<Triangle*> GameWidget::triangulate(std::vector <Point*> polyline){
-    CDT* polygon = new CDT(polyline);
-    polygon->Triangulate();
-
-    return polygon->GetTriangles();
+void GameWidget::drawRectangleFull(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
+    width /= 2;
+    height /= 2;
+    b2Vec2 points[4] {b2Vec2(-width,-height),b2Vec2(width,-height),
+                b2Vec2(width,height),b2Vec2(-width,height)};
+    drawPolygon(points, 4, center, angle, textureData);
 }
 
 void GameWidget::drawRectangle(b2Vec2 center, float width, float height, float angle, TextureData* textureData){
