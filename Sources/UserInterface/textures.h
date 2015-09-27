@@ -42,6 +42,7 @@ public:
 
         FONT,
 
+        SPEAR,
         SWORD
     };
     struct Texture {

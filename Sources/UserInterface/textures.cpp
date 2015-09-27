@@ -41,6 +41,7 @@ void Textures::loadAll (){
 
     loadTexture(FONT, "images/font.png", 6, 16);
 
+    loadTexture(SPEAR, "images/spear.png");
     loadTexture(SWORD, "images/sword.png");
 }
 
