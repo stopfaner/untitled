@@ -96,10 +96,15 @@ private:
         };
 
 
-    Player *player;
-    QTimer *timer;
-
     b2World* world;
+
+    Player *player;
+
+    QTimer *timer;
+    time_t lastTime;
+    unsigned int fps_counter;
+    unsigned int fps;
+
 
     Textures *textures;
     KeyLineData* testKeyLineData;

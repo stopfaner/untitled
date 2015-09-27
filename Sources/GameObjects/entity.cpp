@@ -67,8 +67,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
     b2Body *body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
                                DisplayData::Layer::PLAYER)), b2Vec2(x, y) + GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
-    BodyTextureData *BTD = new BodyTextureData(textures->getTextureID(Textures::Type::BODY),
-                                              DisplayData::Layer::PLAYER, polyline, body);
+    BodyTextureData *BTD = new BodyTextureData(textures->getTextureID(Textures::Type::BODY), DisplayData::Layer::PLAYER, polyline, body);
     BTD->isMirrored = isMirrored;
     body->SetUserData(static_cast<void*>(new UserData(bodyPart, BTD)));
 
@@ -86,8 +85,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
     body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
                                DisplayData::Layer::PLAYER)), b2Vec2(x, y) + GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
-    BTD = new BodyTextureData(textures->getTextureID(Textures::Type::HEAD),
-                                              DisplayData::Layer::PLAYER, polyline, body);
+    BTD = new BodyTextureData(textures->getTextureID(Textures::Type::HEAD), DisplayData::Layer::PLAYER, polyline, body);
     BTD->isMirrored = isMirrored;
     body->SetUserData(static_cast<void*>(new UserData(bodyPart, BTD)));
 

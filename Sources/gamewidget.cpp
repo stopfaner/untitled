@@ -42,6 +42,10 @@ GameWidget::GameWidget(QWidget *parent) : QGLWidget(parent) {
     isTexturesEnabled = false;
     isPaused = false;
     testKeyLineData = new KeyLineData(Color(150, 100, 50), DisplayData::Layer::NEAREST);
+
+    time(&lastTime);
+    fps_counter = 0;
+    fps = 0;
 }
 
 
@@ -164,11 +168,21 @@ void GameWidget::createWorld(){
 }
 
 void GameWidget::updateGame(){
+
+    ++fps_counter;
+    time_t curTime = time(nullptr);
+    if (difftime(curTime, lastTime) > 1.0f){
+        lastTime = curTime;
+        fps = fps_counter;
+        fps_counter = 0;
+    }
+
     for (std::list<Entity*>::const_iterator iterator = EntityList::getInstance().list.begin(),
          end = EntityList::getInstance().list.end(); iterator != end; ++iterator) {
         Entity* item = *iterator;
         item->update();
     }
+
     if (destroyBodies.size())
         destroyLandscape();
 }
@@ -211,9 +225,10 @@ void GameWidget::paintGL() {
         glClear(GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
 
+        drawNumber(fps / 3, -10, 10, 0.5, 5);
         //TODO move in dispItems, change dispItems to DisplayData vec, do cords in meters
         //drawNumber(42.42, 0, 10, 1, 5);
-        drawText("hello, world!", b2Vec2(-10, 10), 0.5);
+        //drawText("hello, world!", b2Vec2(-10, 10), 0.5);
         //interface
         for (std::list<UIElement*>::const_iterator iterator = displayItems.begin(), end = displayItems.end(); iterator != end; ++iterator) {
             UIElement* item = *iterator;
@@ -341,8 +356,8 @@ void GameWidget::paintGL() {
             float step = GRID_STEP;
             float width = 0.06;
             for (int i = 0; i < 10; ++i){
-                drawRectangle(b2Vec2(i * step,0), width / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
-                drawRectangle(b2Vec2(0,i * step), 1000, width / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+                drawRectangle(b2Vec2(i * step, 0), width / kx, 1000, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
+                drawRectangle(b2Vec2(0, i * step), 1000, width / ky, 0, new TextureData(textures->getTextureID(Textures::Type::CRATE), DisplayData::Layer::NEAREST));
             }
         }
     }
