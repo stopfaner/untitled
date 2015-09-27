@@ -360,7 +360,7 @@ void GameWidget::mousePressEvent(QMouseEvent *event) {
     worldCoord.y = -(event->pos().y() / ky - HEIGHT / 2 / ky - player->body->GetWorldCenter().y*M2P/2) * 2 * P2M;
     qDebug()<<"Click coords: "<<worldCoord.x<<worldCoord.y;
     if (mouseButtons == Qt::LeftButton)
-        player->attackState=Player::AS_SWING;
+        player->attackState=GeneralInfo::AS_SWING;
     else
         if (mouseButtons == Qt::RightButton){
             b2Body* box = addRect(worldCoord, 5, 5, true, Textures::Type::CRATE);
@@ -445,7 +445,7 @@ void GameWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     Qt::MouseButtons mouseButtons = event->button();
     if (mouseButtons == Qt::LeftButton){
-        player->attackState=Player::AS_HIT;
+        player->attackState=GeneralInfo::AS_HIT;
 
     }
 }

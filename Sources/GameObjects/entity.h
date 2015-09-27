@@ -24,11 +24,6 @@ class Entity : public GameObject
 {
 public:
     Entity();
-
-    enum AttackState{
-        AS_SWING,
-        AS_HIT,
-    };
     enum MoveState{
         MS_STAND,
         MS_LEFT,
@@ -40,13 +35,14 @@ public:
         MSV_DOWN,
     };
 
+    GeneralInfo::AttackState attackState;
     Weapon *weapon;
     bool isOnLadder;
     bool isJumping;
     bool isUsingLeftLeg;
     bool isAscendingLeg;
     bool isRightDirection;
-    AttackState attackState;
+
     MoveState moveState;
     MoveStateVertical moveStateVertical;
     Vehicle* vehicle;

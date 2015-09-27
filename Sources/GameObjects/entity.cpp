@@ -4,15 +4,6 @@
 
 #define M_PI		3.14159265358979323846
 
-float D2R (float degrees){
-    return degrees * M_PI / 180.0f;
-}
-float R2D (float radians){
-    return radians * 180.0f / M_PI;
-}
-b2Vec2 mulb2Vec2(b2Vec2 a, b2Vec2 b){
-    return b2Vec2(a.x * b.x, a.y * b.y);
-}
 Entity::Entity() : GameObject ()
 {
     bodyParts = new BodyParts;
@@ -37,31 +28,11 @@ Entity::Entity() : GameObject ()
     weapon =nullptr;
 }
 
-void Entity::attack()
-{
-    float direction;
-    if (isRightDirection) direction = 1;
-    else direction = -1;
-    switch (attackState) {
-    case AS_SWING:
-        bodyParts->shoulder2->RJI.desiredAngle = D2R (135.0f * direction);
-        bodyParts->shoulder2->RJI.motorSpeed = 1;
 
-        bodyParts->forearm2->RJI.desiredAngle = D2R (135.0f * direction);
-        bodyParts->forearm2->RJI.motorSpeed = 1;
-
-        break;
-    case AS_HIT:
-        bodyParts->shoulder2->RJI.desiredAngle = D2R (0.0f * direction);
-        bodyParts->shoulder2->RJI.motorSpeed = 1;
-
-        bodyParts->forearm2->RJI.desiredAngle = D2R (0.0f * direction);
-        bodyParts->forearm2->RJI.motorSpeed = 1;
-        break;
-    }
-
-
+void Entity::attack(){
+   weapon->attack(isRightDirection,attackState,bodyParts);
 }
+
 
 void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     b2World *world = GeneralInfo::getInstance().world;
@@ -74,7 +45,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     json.readFromFile("json/man.json", errorMsg);
 
     b2FixtureDef fixturedef;
-    fixturedef.density = 1.0f;
+    fixturedef.density = 10.0f;
     fixturedef.filter.maskBits = GeneralInfo::CollisionType::BASIC;
     fixturedef.filter.categoryBits = GeneralInfo::CollisionType::BODYPART;
 
@@ -92,11 +63,16 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     b2Body* bodyChain = json.getBodyByName("Body"+mirrorString);
 
     bodyPart = new BodyPart(this, BodyPart::Type::BODY);
+
     polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
     b2Body *body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                               DisplayData::Layer::PLAYER)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
-    body->SetUserData(static_cast<void*>(new UserData(bodyPart, new BodyTextureData(textures->getTextureID(Textures::Type::BODY),
-                                    DisplayData::Layer::PLAYER, polyline, body))));
+                               DisplayData::Layer::PLAYER)), b2Vec2(x, y) + GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
+    BodyTextureData *BTD = new BodyTextureData(textures->getTextureID(Textures::Type::BODY),
+                                              DisplayData::Layer::PLAYER, polyline, body);
+    BTD->isMirrored = isMirrored;
+    body->SetUserData(static_cast<void*>(new UserData(bodyPart, BTD)));
+
+
     bodyPart->body = body;
     bodyParts->setPart(bodyPart);
 
@@ -109,9 +85,12 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     bodyPart = new BodyPart(this, BodyPart::Type::HEAD, body);
     polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
     body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                               DisplayData::Layer::PLAYER)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
-    body->SetUserData(static_cast<void*>(new UserData(bodyPart, new BodyTextureData(textures->getTextureID(Textures::Type::HEAD),
-                                    DisplayData::Layer::PLAYER, polyline, body))));
+                               DisplayData::Layer::PLAYER)), b2Vec2(x, y) + GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
+    BTD = new BodyTextureData(textures->getTextureID(Textures::Type::HEAD),
+                                              DisplayData::Layer::PLAYER, polyline, body);
+    BTD->isMirrored = isMirrored;
+    body->SetUserData(static_cast<void*>(new UserData(bodyPart, BTD)));
+
     bodyPart->body = body;
     bodyParts->setPart(bodyPart);
     // add joint
@@ -126,7 +105,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     RJI.angleDeviation = 0.1;
     RJI.defaultMotorSpeed = 4;
     RJI.motorSpeed = 10;
-    RJD.Initialize(bodyParts->body->body, bodyParts->head->body, b2Vec2(x, y) + mulb2Vec2(jointOld->GetAnchorA() , scale));
+    RJD.Initialize(bodyParts->body->body, bodyParts->head->body, b2Vec2(x, y) +  GeneralInfo::mulb2Vec2(jointOld->GetAnchorA() , scale));
     RJI.RJ = static_cast<b2RevoluteJoint*>(world->CreateJoint(&RJD));
     if (isMirrored) RJI.RJ->SetLimits(- RJI.RJ->GetUpperLimit(), - RJI.RJ->GetLowerLimit());
     bodyPart->RJI = RJI;
@@ -173,7 +152,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                     jointBody = bodyParts->hip->body;
                 type = BodyPart::Type::SHIN;
                 RJD.upperAngle = 0;
-                RJD.lowerAngle = -D2R(170.0f);
+                RJD.lowerAngle = - GeneralInfo::D2R(170.0f);
                 RJD.maxMotorTorque = maxMotorTorque;
                 RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
@@ -208,9 +187,10 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.maxMotorTorque = maxMotorTorque ;
                 RJI.defaultMotorSpeed = 1;
                 RJI.motorSpeed = 1;
-                RJI.angleDeviation = 0.1;
+                RJI.angleDeviation = 0.2;
                 if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
                 else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
+
                 break;
             case 4:
                 name = "Forearm"+mirrorString;
@@ -225,7 +205,7 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.maxMotorTorque = maxMotorTorque ;
                 RJI.defaultMotorSpeed = 1;
                 RJI.motorSpeed = 1;
-                RJI.angleDeviation = 0.1;
+                RJI.angleDeviation = 0.2;
                 if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
                 else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
                 break;
@@ -242,26 +222,31 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJD.maxMotorTorque = maxMotorTorque / 10;
                 RJI.defaultMotorSpeed = 0.1;
                 RJI.motorSpeed = 1;
-                RJI.angleDeviation = 0.1;
+                RJI.angleDeviation = 0.2;
                 if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
                 else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
+                RJI.angleDeviation = 0.2;
                 break;
             }
 
             bodyChain = json.getBodyByName(name);
 
             bodyPart = new BodyPart(this, type);
+
             polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
             body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                                       layer)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
-            body->SetUserData(static_cast<void*>(new UserData(bodyPart, new BodyTextureData(textures->getTextureID(getTextureType(type)),
-                                            layer, polyline, body))));
+                                       layer)), b2Vec2(x, y) + GeneralInfo::mulb2Vec2( bodyChain->GetPosition(), scale));
+
+            BTD = new BodyTextureData(textures->getTextureID(getTextureType(type)), layer, polyline, body);
+            BTD->isMirrored = isMirrored;
+            body->SetUserData(static_cast<void*>(new UserData(bodyPart, BTD)));
+
             bodyPart->body = body;
             bodyParts->setPart(bodyPart);
 
             // add joint
             jointOld = static_cast<b2RevoluteJoint*>(json.getJointByName(nameJoint));
-            RJD.Initialize(jointBody, bodyPart->body, mulb2Vec2(jointOld->GetAnchorA(), scale) + b2Vec2(x, y));
+            RJD.Initialize(jointBody, bodyPart->body,  GeneralInfo::mulb2Vec2(jointOld->GetAnchorA(), scale) + b2Vec2(x, y));
             RJI.RJ = static_cast<b2RevoluteJoint*>(world->CreateJoint(&RJD));
             if (isMirrored) RJI.RJ->SetLimits(- RJI.RJ->GetUpperLimit(), - RJI.RJ->GetLowerLimit());
             bodyPart->RJI = RJI;
@@ -324,27 +309,24 @@ void Entity::move()
         forearm = bodyParts->forearm;
     }
     if (isAscendingLeg){
-        float hipMaxAngle = D2R(70.0f) + surfaceAngle * 2;
+        float hipMaxAngle =  GeneralInfo::D2R(70.0f) + surfaceAngle * 2;
         if (moveStateVertical == MSV_UP)
-            hipMaxAngle = D2R(80.0f);
-        float shinMaxAngle = D2R(-50.0f) - surfaceAngle;
+            hipMaxAngle =  GeneralInfo::D2R(80.0f);
+        float shinMaxAngle =  GeneralInfo::D2R(-50.0f) - surfaceAngle;
         if ( (hip->RJI.RJ->GetJointAngle() < hipMaxAngle && isRightDirection ) ||
              (hip->RJI.RJ->GetJointAngle() > - hipMaxAngle && !isRightDirection)){
-            hip->RJI.desiredAngle = (hipMaxAngle + D2R(10)) * direction;
-
+            hip->RJI.desiredAngle = (hipMaxAngle + GeneralInfo::D2R(10)) * direction;
             hip->RJI.motorSpeed = 2.3;
             shin->RJI.desiredAngle = shinMaxAngle * direction;
             shin->RJI.motorSpeed = 3;
             if (moveStateVertical == MSV_UP)
-                    foot->RJI.desiredAngle = D2R(30);
-
-
-            if(attackState != AS_SWING && isUsingLeftLeg)
+                  foot->RJI.desiredAngle =  GeneralInfo::D2R(30);
+            if(attackState != GeneralInfo::AS_SWING && isUsingLeftLeg)
             {
-                shoulder->RJI.desiredAngle = D2R (30.0f * direction);
+                shoulder->RJI.desiredAngle =  GeneralInfo::D2R (30.0f * direction);
                 shoulder->RJI.motorSpeed = 2;
 
-                forearm->RJI.desiredAngle = D2R (40.0f * direction);
+                forearm->RJI.desiredAngle =  GeneralInfo::D2R (40.0f * direction);
                 forearm->RJI.motorSpeed = 2;
             }
 
@@ -355,21 +337,21 @@ void Entity::move()
             if (isUsingLeftLeg) bodyParts->foot->RJI.desiredAngle = 0;
             else bodyParts->foot2->RJI.desiredAngle = 0;
 
-            shoulder->RJI.desiredAngle = D2R (-5.0f * direction);
+            shoulder->RJI.desiredAngle =  GeneralInfo::D2R (-5.0f * direction);
             forearm->RJI.desiredAngle = 0;
 
-            hip->RJI.desiredAngle = D2R (-15.0f * direction);
+            hip->RJI.desiredAngle =  GeneralInfo::D2R (-15.0f * direction);
             if (moveStateVertical == MSV_UP){
-                shin->RJI.desiredAngle = D2R(-20) * direction;
+                shin->RJI.desiredAngle =  GeneralInfo::D2R(-20) * direction;
             }
             else
-                shin->RJI.desiredAngle = D2R(0) * direction;
+                shin->RJI.desiredAngle =  GeneralInfo::D2R(0) * direction;
             float verticalImpulse = body->GetMass() * (3 + surfaceAngle * 12);
             if (moveStateVertical == MSV_UP){
                 body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 5 * direction, verticalImpulse * 2), body->GetPosition() - b2Vec2(0, 3), true);
                 float footAngle = 10;
-                bodyParts->foot->RJI.desiredAngle = D2R(footAngle);
-                bodyParts->foot2->RJI.desiredAngle = D2R(footAngle);
+                bodyParts->foot->RJI.desiredAngle =  GeneralInfo::D2R(footAngle);
+                bodyParts->foot2->RJI.desiredAngle =  GeneralInfo::D2R(footAngle);
             }
             else
                 body->ApplyLinearImpulse(b2Vec2 (body->GetMass() * 5 * direction, verticalImpulse), body->GetPosition() - b2Vec2(0, 1.5), true);
@@ -383,7 +365,7 @@ void Entity::move()
         float ascendLimit = 5;
 
         if (moveStateVertical == MSV_UP)
-            ascendLimit = D2R(10);
+            ascendLimit =  GeneralInfo::D2R(10);
         BodyPart* curFoot;
         if (isUsingLeftLeg) curFoot = bodyParts->foot;
         else curFoot = bodyParts->foot2;
@@ -391,11 +373,11 @@ void Entity::move()
         // if (fabs(bodyParts->hip->RJI.RJ->GetJointAngle() - bodyParts->hip2->RJI.RJ->GetJointAngle()) > 3.0f)
         if ((hip->RJI.RJ->GetJointAngle() < ascendLimit && isRightDirection) ||
                 (hip->RJI.RJ->GetJointAngle() > - ascendLimit && !isRightDirection) ||
-                ( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() > D2R(10.0f)) ||
-                ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() < D2R(-10.0f))
+                ( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() >  GeneralInfo::D2R(10.0f)) ||
+                ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() <  GeneralInfo::D2R(-10.0f))
                 ){
-            if (( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() > D2R(10.0f)) ||
-                    ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() < D2R(-10.0f)))
+            if (( isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() >  GeneralInfo::D2R(10.0f)) ||
+                    ( !isRightDirection && isGrounded(isUsingLeftLeg) && hip->RJI.RJ->GetJointAngle() <  GeneralInfo::D2R(-10.0f)))
                 body->ApplyLinearImpulse(b2Vec2(0, body->GetMass() * 10), body->GetPosition(), true);
             /*
                 BodyPart* foot;
@@ -404,7 +386,7 @@ void Entity::move()
                 if (isRightDirection)
                     surfaceAngle =  foot->RJI.RJ->GetJointAngle() - M_PI / 2;
                 else surfaceAngle = M_PI / 2 - foot->RJI.RJ->GetJointAngle() + M_PI;
-                qDebug()<<R2D(surfaceAngle);
+                qDebug()<<GeneralInfo::R2D(surfaceAngle);
                 */
             isAscendingLeg = true;
             changeLeg();
@@ -514,9 +496,8 @@ void Entity::applyForce(){
                 wrist = bodyParts->wrist2;
             }
             //straight body parts
-                foot->RJI.desiredAngle = 0;
-
-            foot->RJI.angleDeviation = D2R(10.0f);
+            foot->RJI.desiredAngle = 0;
+            foot->RJI.angleDeviation =  GeneralInfo::D2R(10.0f);
             if (moveState == MoveState::MS_STAND){
                 body->SetLinearDamping(5);
                 shoulder->RJI.desiredAngle = 0;
@@ -554,17 +535,17 @@ void Entity::applyForce(){
             move ();
             break;
         case MS_STAND:
-            if (R2D(GeneralInfo::deductPeriod(shin->body->GetAngle()) - GeneralInfo::deductPeriod(shin->body->GetAngle())) < 10.0f)
-                isAscendingLeg = true;
+            if (GeneralInfo::R2D(GeneralInfo::deductPeriod(shin->body->GetAngle()) - GeneralInfo::deductPeriod(shin->body->GetAngle())) < 10.0f);
+            isAscendingLeg = true;
             break;
         }
 
         // attacking
         switch (attackState) {
-        case AS_SWING:
+        case GeneralInfo::AS_SWING:
             attack();
             break;
-        case AS_HIT:
+        case GeneralInfo::AS_HIT:
             attack();
             break;
         }
@@ -620,14 +601,10 @@ void Entity::crouch(){
         if (isRightDirection)
             direction = 1;
         else direction = -1;
-
-        forearm->RJI.desiredAngle = D2R (90) * direction;
-
-        hip->RJI.desiredAngle = D2R (90) * direction;
-        shin->RJI.desiredAngle = D2R (-130) * direction;
-        foot->RJI.desiredAngle = D2R(45) * direction;
-
-
+        forearm->RJI.desiredAngle =  GeneralInfo::D2R (90) * direction;
+        hip->RJI.desiredAngle =  GeneralInfo::D2R (90) * direction;
+        shin->RJI.desiredAngle =  GeneralInfo::D2R (-130) * direction;
+        foot->RJI.desiredAngle =  GeneralInfo::D2R(45) * direction;
         if (fabs(fabs(shin->RJI.desiredAngle - shin->RJI.RJ->GetJointAngle() < shin->RJI.angleDeviation / 4) &&
                  fabs(hip->RJI.desiredAngle - hip->RJI.RJ->GetJointAngle() < hip->RJI.angleDeviation / 4))){
             isSitting = true;
