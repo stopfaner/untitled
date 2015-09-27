@@ -215,15 +215,14 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 else
                     jointBody = bodyParts->forearm->body;
                 type = BodyPart::Type::WRIST;
-                RJD.upperAngle = 1;
-                RJD.lowerAngle = - 1;
+                RJD.upperAngle = M_PI / 2.0f;
+                RJD.lowerAngle = - M_PI / 2.0f;
                 RJD.maxMotorTorque = maxMotorTorque / 10;
                 RJI.defaultMotorSpeed = 0.1;
                 RJI.motorSpeed = 1;
-                RJI.angleDeviation = 0.2;
+                RJI.angleDeviation = 0.3;
                 if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
                 else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
-                RJI.angleDeviation = 0.2;
                 break;
             }
 

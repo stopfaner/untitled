@@ -43,6 +43,22 @@ void BodyParts::setSpeed(){
     }
 }
 
+void BodyParts::disable(){
+    for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
+        BodyPart* bodyPart = *iterator;
+        if (bodyPart->RJI.RJ)
+            bodyPart->RJI.RJ->EnableMotor(false);
+    }
+}
+
+void BodyParts::enable(){
+    for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
+        BodyPart* bodyPart = *iterator;
+        if (bodyPart->RJI.RJ)
+            bodyPart->RJI.RJ->EnableMotor(true);
+    }
+}
+
 void BodyParts::resetSpeed(){
     for (std::list<BodyPart*>::const_iterator iterator = list.begin(), end = list.end(); iterator != end; ++iterator) {
         BodyPart* bodyPart = *iterator;

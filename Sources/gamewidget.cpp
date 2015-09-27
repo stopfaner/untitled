@@ -511,14 +511,10 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         player->fall();
     if (key == Qt::Key_Escape) this->close();
     if (key == Qt::Key_X) {
-        player->vehicle->motor->SetMaxMotorTorque(
-                    player->vehicle->motor->GetMaxMotorTorque()*1.2);
-        qDebug()<<player->vehicle->motor->GetMaxMotorTorque();
+        player->bodyParts->disable();
     }
     if (key == Qt::Key_Z) {
-        player->vehicle->motor->SetMaxMotorTorque(
-                    player->vehicle->motor->GetMaxMotorTorque()*1.0f/1.2);
-        qDebug()<<player->vehicle->motor->GetMaxMotorTorque();
+        player->bodyParts->enable();
     }
 }
 

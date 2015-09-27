@@ -17,6 +17,8 @@ public:
     std::list<BodyPart*> list;
     BodyPart *body, *hip, *shin, *foot, *head, *hip2, *shin2, *foot2, *shoulder, *shoulder2,
     *wrist, *wrist2, *forearm, *forearm2;
+    void disable();
+    void enable();
 };
 
 #endif // BODYPARTS_H
