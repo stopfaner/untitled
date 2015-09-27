@@ -12,6 +12,7 @@
 #include "Sources/GameObjects/Sensors/groundsensor.h"
 #include "Sources/UserInterface/keylinedata.h"
 #include "Sources/UserInterface/texturedata.h"
+#include "Sources/UserInterface/bodytexturedata.h"
 #include "Sources/GameObjects/InteractiveObjects/Weapon/weapon.h"
 #include "Sources/userdata.h"
 #include "enum.h"

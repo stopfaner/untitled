@@ -87,14 +87,16 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     }
 
     BodyPart* bodyPart;
-
+    vector<Point*> polyline;
     //body
     b2Body* bodyChain = json.getBodyByName("Body"+mirrorString);
 
     bodyPart = new BodyPart(this, BodyPart::Type::BODY);
-    b2Body *body =  Triangulation::triangulateChain(Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale),
-                                                    fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                                                                                                       DisplayData::Layer::PLAYER)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
+    polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
+    b2Body *body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
+                               DisplayData::Layer::PLAYER)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
+    body->SetUserData(static_cast<void*>(new UserData(bodyPart, new BodyTextureData(textures->getTextureID(Textures::Type::BODY),
+                                    DisplayData::Layer::PLAYER, polyline, body))));
     bodyPart->body = body;
     bodyParts->setPart(bodyPart);
 
@@ -105,10 +107,11 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     bodyChain = json.getBodyByName("Head"+mirrorString);
 
     bodyPart = new BodyPart(this, BodyPart::Type::HEAD, body);
-    body =  Triangulation::triangulateChain(Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale),
-                                            fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
-                                                                                               DisplayData::Layer::PLAYER)),
-                                            b2Vec2(x, y) + mulb2Vec2(bodyChain->GetPosition() , scale));
+    polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
+    body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
+                               DisplayData::Layer::PLAYER)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
+    body->SetUserData(static_cast<void*>(new UserData(bodyPart, new BodyTextureData(textures->getTextureID(Textures::Type::HEAD),
+                                    DisplayData::Layer::PLAYER, polyline, body))));
     bodyPart->body = body;
     bodyParts->setPart(bodyPart);
     // add joint
@@ -133,8 +136,6 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
     for (int i = 0; i < 2; ++i){
 
         DisplayData::Layer layer;
-        if (i) layer = DisplayData::Layer::PLAYER_FAR;
-        else layer = DisplayData::Layer::PLAYER_NEAR;
 
         DisplayData* bodyDD;
         if (i)
@@ -160,6 +161,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
                 RJI.angleDeviation = 0.1;
+                if (i) layer = DisplayData::Layer::PLAYER_FAR;
+                else layer = DisplayData::Layer::PLAYER_NEAR;
                 break;
             case 1:
                 name = "Shin"+mirrorString;
@@ -175,6 +178,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
                 RJI.angleDeviation = 0.1;
+                if (i) layer = DisplayData::Layer::PLAYER_FAR;
+                else layer = DisplayData::Layer::PLAYER_NEAR;
                 break;
             case 2:
                 name = "Foot"+mirrorString;
@@ -190,6 +195,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.defaultMotorSpeed = 4;
                 RJI.motorSpeed = 4;
                 RJI.angleDeviation = 0.1;
+                if (i) layer = DisplayData::Layer::PLAYER_FAR;
+                else layer = DisplayData::Layer::PLAYER_NEAR;
                 break;
             case 3:
                 name = "Shoulder"+mirrorString;
@@ -202,6 +209,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.defaultMotorSpeed = 1;
                 RJI.motorSpeed = 1;
                 RJI.angleDeviation = 0.1;
+                if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
+                else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
                 break;
             case 4:
                 name = "Forearm"+mirrorString;
@@ -217,6 +226,8 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.defaultMotorSpeed = 1;
                 RJI.motorSpeed = 1;
                 RJI.angleDeviation = 0.1;
+                if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
+                else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
                 break;
             case 5:
                 name = "Wrist"+mirrorString;
@@ -232,14 +243,19 @@ void Entity::constructBody (bool isMirrored, float x, float y, float angle){
                 RJI.defaultMotorSpeed = 0.1;
                 RJI.motorSpeed = 1;
                 RJI.angleDeviation = 0.1;
+                if (i) layer = DisplayData::Layer::PLAYER_FAR_FAR;
+                else layer = DisplayData::Layer::PLAYER_NEAR_NEAR;
                 break;
             }
 
             bodyChain = json.getBodyByName(name);
 
             bodyPart = new BodyPart(this, type);
-            body =  Triangulation::triangulateChain(Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale),
-                                                    fixturedef, new UserData(bodyPart, bodyDD), b2Vec2(x, y) + mulb2Vec2(bodyChain->GetPosition() , scale));
+            polyline = Triangulation::chainToPolyline(bodyChain->GetFixtureList(), scale);
+            body =  Triangulation::triangulateChain(polyline,fixturedef, new UserData(bodyPart, new KeyLineData(Color(0, 255, 255),
+                                       layer)), b2Vec2(x, y) + mulb2Vec2( bodyChain->GetPosition(), scale));
+            body->SetUserData(static_cast<void*>(new UserData(bodyPart, new BodyTextureData(textures->getTextureID(getTextureType(type)),
+                                            layer, polyline, body))));
             bodyPart->body = body;
             bodyParts->setPart(bodyPart);
 
